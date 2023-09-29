@@ -1,0 +1,146 @@
+{
+    "enums": [
+        {
+            "type": "PRODUCTS_1",
+            "valid_values": [
+                "Food",
+                "Energy",
+                "All items less food and energy",
+                "All items less food",
+                "All items less shelter",
+                "All items less food and shelter",
+                "All items less food, shelter, and energy",
+                "All items less food, shelter, energy, and used cars and trucks",
+                "All items less medical care",
+                "All items less energy",
+                "Commodities",
+                "Services",
+                "Durables",
+                "Nondurables",
+                "Housing",
+                "Education and communication",
+                "Recreation",
+                "Food and beverages",
+                "Other services",
+                "Apparel less footwear",
+                "Fuels and utilities",
+                "Medical care",
+                "Transportation",
+                "Utilities and public transportation",
+                "Household furnishings and operations",
+                "Other goods and services"
+            ]
+        }
+    ],
+    "tables": [
+        {
+            "name": "Consumer Price Index - CPI",
+            "description": "Table 'Consumer Price Index - CPI' has price index for products, encompassing over 200 expenditure categories grouped into eight major segments (food and beverages, housing, apparel, transportation, medical care, recreation, education and communication, and other goods and services).",
+            "columns": [
+                {
+                    "name": "Year",
+                    "type": "INTEGER",
+                    "description": "year"
+                },
+                {
+                    "name": "Consumer Price Inde",
+                    "type": "FLOAT",
+                    "description": "consumer price index"
+                },
+                {
+                    "name": "Standard Error",
+                    "type": "FLOAT",
+                    "description": "standard error or CPI"
+                },
+                {
+                    "name": "Percent Change",
+                    "type": "FLOAT",
+                    "description": "percentage change"
+                },
+                {
+                    "name": "Product or Service",
+                    "type": "TEXT",
+                    "description": "enums `PRODUCTS_1`"
+                }
+            ]
+        },
+        {
+            "name": "dot_faf",
+            "description": "Table 'dot_faf' has freight movement among states and major metropolitan areas by all modes of transportation. Shows which goods are shipped from one region of the US to another region, according to type of commodity, mode of shipment, value, and weight.",
+            "columns": [
+                {
+                    "name": "Year",
+                    "type": "INTEGER",
+                    "description": "year"
+                },
+                {
+                    "name": "Millions Of Dollars",
+                    "type": "FLOAT",
+                    "description": "value in millions of dollars of a certain shipment."             
+                },
+                {
+                    "name": "Thousands Of Tons",
+                    "type": "FLOAT",
+                    "description": "weight in thousands of tons of a certain shipment."
+                },
+                {
+                    "name": "Origin State",
+                    "type": "TEXT",
+                    "description": "origin state"
+                },
+                {
+                    "name": "Origin Region",
+                    "type": "TEXT",
+                    "description": "origin region"
+                },
+                {
+                    "name": "Destination State",
+                    "type": "TEXT",
+                    "description": "destination state"
+                },
+                {
+                    "name": "Destination Region",
+                    "type": "TEXT",
+                    "description": "destination region"
+                },
+                {
+                    "name": "SCTG2",
+                    "type": "TEXT",
+                    "description": "products based on SCTG classification (first level)." 
+                },
+                {
+                    "name": "Transportation Mode",
+                    "type": "TEXT",
+                    "description": "mode of transportation or shipment." 
+                } 
+            ]
+        },
+        {
+            "name": "us_location_data",
+            "description": "Table `us_location_data` has geo_ids for zip codes.",
+            "columns": [
+                {
+                    "name": "geo_id",
+                    "type": "TEXT",
+                    "description": "geo ID of zip code, primary key"
+                },
+                {
+                    "name": "zip_code",
+                    "type": "TEXT"
+                },
+                {
+                    "name": "city",
+                    "type": "TEXT"
+                },
+                {
+                    "name": "county",
+                    "type": "TEXT"
+                },
+                {
+                    "name": "state",
+                    "type": "TEXT"
+                }
+            ]
+        }
+    ]
+}
