@@ -2,25 +2,11 @@ import json
 from typing import List, Tuple
 import re
 
+from utils.preprocessors.text import extract_text_from_markdown_single_backticks
 
 table_details = {}
-with open("data/tables.json", "r") as f:
+with open("/Users/alexandrabjanes/Datawheel/CODE/datausa-chat/api/data/tables.json", "r") as f:
     table_details = json.load(f)
-
-
-def extract_text_from_markdown(text):
-    """
-    Extracts any sub-string enclosed within backticks in a string.
-    """
-    regex = r"`([\s\S]+?)`"
-    matches = re.findall(regex, text)
-
-    if matches:
-        extracted_text = matches[0]
-    else:
-        extracted_text = text
-
-    return extracted_text
 
 
 def get_table_names() -> List[str]:
@@ -47,7 +33,7 @@ def get_table_schemas(table_names: List[str] = None) -> Tuple[str, str]:
 
     enums_str_set = set()
     tables_str_list = []
-    
+
     for table in tables_list: 
         tables_str = f"table name: {table['name']}\n"
         tables_str += f"table description: {table['description']}\n"
@@ -56,7 +42,7 @@ def get_table_schemas(table_names: List[str] = None) -> Tuple[str, str]:
             if column.get('description'):
                 columns_str_list.append(f"{column['name']} [{column['type']}] ({column['description']})")
                 if 'enums' in column['description']:
-                    enums_str_set.add(extract_text_from_markdown(column['description']))
+                    enums_str_set.add(extract_text_from_markdown_single_backticks(column['description']))
             else:
                 columns_str_list.append(f"{column['name']} [{column['type']}]")
         tables_str += f"table columns: {', '.join(columns_str_list)}\n"
@@ -72,23 +58,7 @@ def get_table_schemas(table_names: List[str] = None) -> Tuple[str, str]:
             enums_str_list.append(enums_str)
     enums_description = "\n\n".join(enums_str_list)
 
-    return enums_description + "\n\n" + tables_description
+    return tables_description
     #return tables_description, enums_description
 
-
-def get_minimal_table_schemas(scope="USA") -> str:
-    
-    tables_list = []
-
-    tables_list = table_details["tables"]
-
-    tables_str_list = []
-    for table in tables_list:
-        tables_str = f"table name: {table['name']}\n"
-        tables_str += f"table description: {table['description']}\n"
-        tables_str_list.append(tables_str)
-
-    tables_description = "\n\n".join(tables_str_list)
-
-    # return tables_description
-    return tables_description
+#def get_minimal_table_schemas() -> str:
