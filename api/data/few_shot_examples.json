@@ -8,16 +8,20 @@
         ],
         "table_selection": [
             {
-                "user": "What product presented the highest growth in the consumer price index during the last year?",
-                "assistant": "\n{\n    \"tables\": [\"Consumer Price Index - CPI\"]\n}\n"
+                "user": "What service presented the highest growth in the consumer price index during the last year?",
+                "assistant": "\n{\n    \"tables\": [\"Consumer Price Index - Services\"]\n}\n"
             },
             {
                 "user": "What is the average monthly CPI volatility for all product groups combined?",
-                "assistant": "\n{\n    \"tables\": [\"Consumer Price Index - CPI\"]\n}\n"
+                "assistant": "\n{\n    \"tables\": [\"Consumer Price Index - Products\"]\n}\n"
             },
             {
                 "user": "Which states or metropolitan areas are the primary origins for specific products, and which are the primary destinations?",
-                "assistant": "\n{\n    \"tables\": [\"Consumer Price Index - CPI\"]\n}\n"
+                "assistant": "\n{\n    \"tables\": [\"Consumer Price Index - Products\"]\n}\n"
+            },
+            {
+                "user": "What is the trend in total freight movement volume across all transportation modes over the past five years?",
+                "assistant": "\n{\n    \"tables\": [\"dot_faf\", \"us_location_data\"]\n}\n"
             },
             {
                 "user": "What is the trend in total freight movement volume across all transportation modes over the past five years?",
