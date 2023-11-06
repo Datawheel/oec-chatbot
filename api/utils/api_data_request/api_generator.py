@@ -9,6 +9,7 @@ from os import getenv
 from dotenv import load_dotenv
 from langchain.llms import OpenAI
 from utils.table_selection.table_selector import get_table_schemas
+from utils.table_selection.table_details import get_table_api_base
 from utils.preprocessors.text import *
 
 load_dotenv()
@@ -72,14 +73,14 @@ def get_api_components_messages(table):
     )
 
 
-def get_api_params_from_lm(natural_language_query, table_list = None, model="gpt-4", top_matches=False):
+def get_api_params_from_lm(natural_language_query, table = None, model="gpt-4", top_matches=False):
     """
     Identify relevant tables for answering a natural language query via LM
     """
     max_attempts = 5
     attempts = 0
 
-    content = get_api_components_messages(table_list).format(
+    content = get_api_components_messages(table).format(
         natural_language_query = natural_language_query,
     )
 
@@ -121,14 +122,21 @@ def get_api_params_from_lm(natural_language_query, table_list = None, model="gpt
     return variables, measures, cuts
 
 
-def api_build(drilldown, measure, cut = "", limit = "", base = MONDRIAN_API):
-    drilldown = clean_string(drilldown)
-    measure = clean_string(measure)
+def api_build(table, drilldowns, measures, cuts = "", limit = ""):
+    base = get_table_api_base(table)
+    drilldowns = clean_string(drilldowns)
+    measures = clean_string(measures)
+    
+    if base == "Mondrian": 
+        base = MONDRIAN_API
+    else:
+        base = TESSERACT_API + "cube=" + table + "&"
+
 
     #if (cut): url = base + cut + "&cube=" + cube + "&drilldowns=" + drilldown + "&measures=" + measure + limit
     #else: url = base + "cube=" + cube + "&drilldowns=" + drilldown + "&measures=" + measure + limit
     
-    url = base + "drilldowns=" + drilldown + "&measures=" + measure
+    url = base + "drilldowns=" + drilldowns + "&measures=" + measures
 
     return url
 
@@ -141,5 +149,3 @@ def api_request(url):
         df = pd.DataFrame.from_dict(r.json()['data'])
     except: raise ValueError('Invalid API url:', url)
     return json_data, df
-
-

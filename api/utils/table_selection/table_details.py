@@ -2,24 +2,44 @@ import json
 from typing import List, Tuple
 import re
 
+from os import getenv
 from utils.preprocessors.text import extract_text_from_markdown_single_backticks
 
-table_details = {}
-with open("/Users/alexandrabjanes/Datawheel/CODE/datausa-chat/api/data/tables.json", "r") as f:
-    table_details = json.load(f)
+TABLES_PATH = getenv('TABLES_PATH')
+
+def load_tables_json(TABLES_PATH):
+    table_details = {}
+    with open(TABLES_PATH, "r") as f:
+        table_details = json.load(f)
+
+    return table_details
 
 
 def get_table_names() -> List[str]:
     """
     Gets table names.
     """
+    table_details = load_tables_json(TABLES_PATH)
     return [table["name"] for table in table_details["tables"]]
+
+
+def get_table_api_base(table_name):
+    table_details = load_tables_json(TABLES_PATH)
+    tables = table_details.get("tables", [])
+
+    for table in tables:
+        if table.get("name") == table_name:
+            return table.get("api")
+    
+    return None
 
 
 def get_table_schemas(table_names: List[str] = None) -> Tuple[str, str]:
     """
     Returns table name, columns and description. Also returns any custom type and valid values for a column (enums).
     """
+    table_details = load_tables_json(TABLES_PATH)
+
     enums_list = []
     tables_list = []
     
