@@ -11,6 +11,7 @@ from langchain.llms import OpenAI
 from utils.table_selection.table_selector import get_table_schemas
 from utils.table_selection.table_details import get_table_api_base
 from utils.preprocessors.text import *
+from utils.api_data_request.similarity_search import *
 
 load_dotenv()
 
@@ -112,7 +113,7 @@ def get_api_params_from_lm(natural_language_query, table = None, model="gpt-4", 
 
     output_text = response['choices'][0]['message']['content']
     print("\nChatGPT response:", output_text)
-    params = extract_text_from_markdow_triple_backticks(output_text)
+    params = extract_text_from_markdown_triple_backticks(output_text)
     print("\nParameters:", params)
 
     variables = json.loads(params).get("variables")
@@ -122,21 +123,41 @@ def get_api_params_from_lm(natural_language_query, table = None, model="gpt-4", 
     return variables, measures, cuts
 
 
-def api_build(table, drilldowns, measures, cuts = "", limit = ""):
+def cuts_processing(cuts, cube_name):
+    updated_cuts = []
+
+    for i in range(len(cuts)):
+        var = cuts[i].split('=')[0].strip()
+        cut = cuts[i].split('=')[1].strip()
+
+        if var == "Year" or var == "Month" or var == "Quarter":
+            updated_cuts.append(f"{var}={cut}")
+        else: 
+            drilldown_id, s = get_similar_content(cut, cube_name, var)
+            updated_cuts.append(f"{var}={drilldown_id}")
+
+    api_params = '&' + "&".join(updated_cuts)
+    
+    return api_params
+
+
+def api_build(table, drilldowns, measures, cuts, limit = ""):
     base = get_table_api_base(table)
-    drilldowns = clean_string(drilldowns)
-    measures = clean_string(measures)
     
-    if base == "Mondrian": 
-        base = MONDRIAN_API
-    else:
-        base = TESSERACT_API + "cube=" + table + "&"
+    for i in range(len(drilldowns)):
+        drilldowns[i] = clean_string(drilldowns[i])
 
+    for i in range(len(measures)):
+        measures[i] = clean_string(measures[i])
 
-    #if (cut): url = base + cut + "&cube=" + cube + "&drilldowns=" + drilldown + "&measures=" + measure + limit
-    #else: url = base + "cube=" + cube + "&drilldowns=" + drilldown + "&measures=" + measure + limit
+    drilldowns_str = "&drilldowns=" + ','.join(drilldowns)
+    measures_str = "&measures=" + ','.join(measures)
+    cuts_str = cuts_processing(cuts, table)
+
+    if base == "Mondrian": base = MONDRIAN_API
+    else: base = TESSERACT_API + "cube=" + table
     
-    url = base + "drilldowns=" + drilldowns + "&measures=" + measures
+    url = base + drilldowns_str + measures_str + cuts_str
 
     return url
 
