@@ -45,6 +45,12 @@
                     "description": "year"
                 },
                 {
+                    "name": "Month and Year",
+                    "param": "variable",
+                    "type": "INTEGER",
+                    "description": "year"
+                },
+                {
                     "name": "Consumer Price Inde",
                     "param": "measure",
                     "type": "FLOAT",
@@ -63,10 +69,16 @@
                     "description": "percentage change"
                 },
                 {
-                    "name": "Product or Service",
+                    "name": "Level 1.1",
                     "param": "variable",
                     "type": "TEXT",
-                    "description": "enums `PRODUCTS_1`"
+                    "description": "enums `PRODUCTS_1`, Level 1 classification of products"
+                },
+                {
+                    "name": "Level 2.1",
+                    "param": "variable",
+                    "type": "TEXT",
+                    "description": "Level 2.1 classification of products/services"
                 }
             ]
         },
