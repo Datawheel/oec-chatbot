@@ -8,20 +8,67 @@
         ],
         "table_selection": [
             {
-                "user": "What product presented the highest growth in the consumer price index during the last year?",
-                "assistant": "\n{\n    \"tables\": [\"Consumer Price Index - CPI\"]\n}\n"
+                "user": "What service presented the highest growth in the consumer price index during the last year?",
+                "assistant": "\n{\n    \"tables\": [\"Consumer Price Index - Services\"]\n}\n"
             },
             {
                 "user": "What is the average monthly CPI volatility for all product groups combined?",
-                "assistant": "\n{\n    \"tables\": [\"Consumer Price Index - CPI\"]\n}\n"
+                "assistant": "\n{\n    \"tables\": [\"Consumer Price Index - Products\"]\n}\n"
             },
             {
                 "user": "Which states or metropolitan areas are the primary origins for specific products, and which are the primary destinations?",
-                "assistant": "\n{\n    \"tables\": [\"Consumer Price Index - CPI\"]\n}\n"
+                "assistant": "\n{\n    \"tables\": [\"Consumer Price Index - Products\"]\n}\n"
             },
             {
                 "user": "What is the trend in total freight movement volume across all transportation modes over the past five years?",
                 "assistant": "\n{\n    \"tables\": [\"dot_faf\", \"us_location_data\"]\n}\n"
+            },
+            {
+                "user": "What is the trend in total freight movement volume across all transportation modes over the past five years?",
+                "assistant": "\n{\n    \"tables\": [\"dot_faf\", \"us_location_data\"]\n}\n"
+            }
+        ],
+        "api_parameters": [
+            {
+                "variables": "Year, Exporter Country, Product",
+                "measures": "Trade Value",
+                "filters": [
+                    {
+                        "Exporter Country": ["Chile"], 
+                        "Year": ["2010", "2011", "2012", "2013", "2014", "2015"]
+                    }
+                ],
+                "sort": "Desc",
+                "limit": "10", 
+                "growth": "false"
+            },        
+            {
+                "variables": "Year, Importer Country, Product",
+                "measures": "Trade Value",
+                "filters": [
+                    {
+                        "Importer Country": ["United States"], 
+                        "Year": ["2018", "2019"]
+                    }
+                ],
+                "sort": "Desc",
+                "limit": "false",
+                "growth": "true"
+            },
+            {
+                "variables": "Year, Importer Country, Exporter Country, Product",
+                "measures": "Trade Value",
+                "filters": [
+                    {
+                        "Importer Country": ["Saudi Arabia"], 
+                        "Exporter Country": ["Argentina"],
+                        "Year": ["2011", "2012"],
+                        "Product": ["Copper"]
+                    }
+                ],
+                "sort": "Desc",
+                "limit": "false",
+                "growth": "true"
             }
         ]
     }

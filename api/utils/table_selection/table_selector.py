@@ -1,65 +1,94 @@
 import json
-import re
+import openai
+import time
 from typing import List
 from sentence_transformers import SentenceTransformer
+from os import getenv
+from dotenv import load_dotenv
 
-from .table_details import get_table_schemas, get_table_names
-from .table_database_search import get_similar_tables
-from ..few_shot_examples import get_few_shot_example_messages
-from ..messages import get_assistant_message_from_openai
+from utils.table_selection.table_details import get_table_schemas, get_table_names
+from utils.table_selection.table_database_search import get_similar_tables
+from utils.few_shot_examples import get_few_shot_example_messages
+#from utils.messages import get_assistant_message_from_openai
+from utils.preprocessors.text import extract_text_from_markdown_triple_backticks
 
+load_dotenv()
 
-def _extract_text_from_markdown(text):
-    matches = re.findall(r"```([\s\S]+?)```", text)
-    if matches:
-        return matches[0]
-    return text
+OPENAI_KEY = getenv("OPENAI_KEY")
+openai.api_key = OPENAI_KEY
 
-
-def _get_table_selection_message_with_descriptions(scope="USA"):
+def _get_table_selection_message_with_descriptions(table_names: List[str] = None, top_matches = False):
     message = (
         """
-        You are an expert data scientist.
-        Return a JSON object with relevant SQL tables for answering the following natural language query:
-        ---------------
+        You are an expert data scientist.\n
+        Return a JSON object with relevant SQL tables for answering the following natural language query:\n
+        ---------------\n
         {natural_language_query}
-        ---------------
-        Respond in JSON format with your answer in a field named \"tables\" which is a list of strings.
-        Respond with an empty list if you cannot identify any relevant tables.
-        Write your answer in markdown format.
-        """
-    )
-    return (
-        message +
-        f"""
-        The following are the scripts that created the tables and the definition of their enums:
-        ---------------------
-        {get_table_schemas(scope=scope)}
-        ---------------------
-
-        in your answer, provide the following information:
-        
-        - <one to two sentence comment explaining what tables can be relevant goes here>
-        - <for each table identified, comment double checking the table is in the schema above along with what the first column in the table is or (none) if it doesn't exist. be careful that any tables suggested were actually above>
-        - <if any tables were incorrectly identified, make a note here about what tables from the schema should actually be used if any>
-        - the markdown formatted like this:
-        ```
-        <json of the tables>
-        ```
-
-        Provide only the list of related tables and nothing else after.
+        \n---------------\n
+        Respond in JSON format with your answer in a field named \"tables\" which is a list of strings.\n
+        Respond with an empty list if you cannot identify any relevant tables.\n
+        Write your answer in markdown format.\n
         """
     )
 
+    if top_matches == True:
 
-def _get_table_selection_messages(scope = "USA"):
+        return (
+            message +
+            f"""
+            The following are the tables you can query and the definition of their enums:\n
+            ---------------------\n
+            {get_table_schemas(table_names)}
+            ---------------------\n
 
+            in your answer, provide the following information:\n
+            
+            - <one to two sentence comment explaining what tables can be relevant goes here>\n
+            - <for each table identified, comment double checking the table is in the schema above along with what the first column in the table is or (none) if it doesn't exist. be careful that any tables suggested were actually above>\n
+            - <if any tables were incorrectly identified, make a note here about what tables from the schema should actually be used if any>\n
+            - the markdown formatted like this:\n
+            ```\n
+            <json of the tables>\n
+            ```\n
+
+            Provide only the list of related tables and nothing else after.
+            """
+        )
+    
+    else:
+        return (
+            message +
+            f"""
+            The following is a table that can be used to answer the natural language query, along with the definition of its enums:\n
+            ---------------------\n
+            {get_table_schemas(table_names)}
+            ---------------------\n
+
+            in your answer, provide the following information:\n
+            
+            - <one to two sentence comment explaining what tables can be relevant goes here>\n
+            - <comment double checking the table is the one above along with what the first column in the table is or (none) if it doesn't exist.>\n
+            - <finally select the most relevant table that can be used to answer the query.>
+            - the markdown formatted like this:\n
+            ```\n
+            <json of the most relevant table>\n
+            ```\n
+
+            Provide only the most relevant table and nothing else after.
+            """
+        )
+
+
+def _get_table_selection_messages() -> List[str]:
+    """
+    
+    """
     default_messages = []
-    default_messages.extend(get_few_shot_example_messages(mode = "table_selection", scope = scope))
+    default_messages.extend(get_few_shot_example_messages(mode = "table_selection"))
     return default_messages
 
 
-def get_relevant_tables_from_database(natural_language_query, scope = "USA", embedding_model = 'multi-qa-MiniLM-L6-cos-v1') -> List[str]:
+def get_relevant_tables_from_database(natural_language_query, embedding_model = 'multi-qa-MiniLM-L6-cos-v1', content_limit=1) -> List[str]:
     """
     Returns a list of the top k table names (matches the embedding vector of the NLQ with the stored vectors of each table)
     """
@@ -68,46 +97,65 @@ def get_relevant_tables_from_database(natural_language_query, scope = "USA", emb
     model = SentenceTransformer(embedding_model) # 384
     vector = model.encode([natural_language_query])
 
-    results = get_similar_tables(vector, content_limit = 3)
+    results = get_similar_tables(vector, content_limit=content_limit)
 
     return list(results)
 
 
-def get_relevant_tables_from_lm(natural_language_query, scope="USA", model="gpt-3.5-turbo", session_id=None):
+def get_relevant_tables_from_lm(natural_language_query, table_list = None, model="gpt-4", session_id=None, top_matches=False) -> List[str]:
     """
     Identify relevant tables for answering a natural language query via LM
     """
-    content = _get_table_selection_message_with_descriptions(scope).format(
+    max_attempts = 5
+    attempts = 0
+
+    content = _get_table_selection_message_with_descriptions(table_list, top_matches=top_matches).format(
         natural_language_query = natural_language_query,
     )
 
-    messages = _get_table_selection_messages(scope).copy()
+    messages = _get_table_selection_messages().copy()
     messages.append({
         "role": "user",
         "content": content
     })
 
-    try:
-        response = get_assistant_message_from_openai(
+    print("Messages:\n", messages, "\n\n")
+    
+    while attempts < max_attempts:
+        try:
+            response = openai.ChatCompletion.create(
+                model="gpt-4",
                 messages=messages,
-                model=model,
-                scope=scope,
-                purpose="table_selection",
-                session_id=session_id,
-            )["message"]["content"]
-        tables_json_str = _extract_text_from_markdown(response)
+                temperature=0
+                )
+        except openai.error.Timeout as e:
+            print(f"OpenAI API request timed out (attempt {attempts + 1}): {e}")
+        except openai.error.APIError as e:
+            print(f"OpenAI API returned an API Error (attempt {attempts + 1}): {e}")
+        except openai.error.APIConnectionError as e:
+            print(f"OpenAI API request failed to connect: {e}")
+        except openai.error.ServiceUnavailableError as e:
+            print(f"OpenAI API service unavailable: {e}")
+        else:
+            break
+        attempts += 1
+        time.sleep(1)
 
-        tables = json.loads(tables_json_str).get("tables")
-    except:
-        tables = []
+    output_text = response['choices'][0]['message']['content']
+    print("\nChatGPT response:", output_text)
+    tables_json_str = extract_text_from_markdown_triple_backticks(output_text)
+    print("\nTables:", tables_json_str)
 
-    possible_tables = get_table_names(scope=scope)
+    table_list = json.loads(tables_json_str).get("tables")
 
-    tables = [table for table in tables if table in possible_tables]
-
-    # only get the first 7 tables
-    tables = tables[:7]
-
-    return tables
+    return table_list
 
 
+def request_tables_to_lm_from_db(natural_language_query, content_limit=3):
+    """
+    Extracts most similar tables from database using embeddings and similarity functions, and then lets the llm choose the most relevant one.
+    """
+    tables = get_relevant_tables_from_database(natural_language_query, content_limit=content_limit)
+    gpt_selected_table = get_relevant_tables_from_lm(natural_language_query, table_list = tables, top_matches=True)
+
+    return gpt_selected_table

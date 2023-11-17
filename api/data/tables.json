@@ -35,110 +35,226 @@
     "tables": [
         {
             "name": "Consumer Price Index - CPI",
-            "description": "Table 'Consumer Price Index - CPI' has price index for products, encompassing over 200 expenditure categories grouped into eight major segments (food and beverages, housing, apparel, transportation, medical care, recreation, education and communication, and other goods and services).",
+            "api": "Tesseract",
+            "description": "Table 'Consumer Price Index - CPI' has price index for products, encompassing over 200 expenditure categories grouped into major segments (food and beverages, housing, apparel, recreation, and other goods).",
             "columns": [
                 {
                     "name": "Year",
+                    "param": "variable",
+                    "type": "INTEGER",
+                    "description": "year"
+                },
+                {
+                    "name": "Month and Year",
+                    "param": "variable",
                     "type": "INTEGER",
                     "description": "year"
                 },
                 {
                     "name": "Consumer Price Inde",
+                    "param": "measure",
                     "type": "FLOAT",
                     "description": "consumer price index"
                 },
                 {
                     "name": "Standard Error",
+                    "param": "measure",
                     "type": "FLOAT",
                     "description": "standard error or CPI"
                 },
                 {
                     "name": "Percent Change",
+                    "param": "measure",
                     "type": "FLOAT",
                     "description": "percentage change"
                 },
                 {
-                    "name": "Product or Service",
+                    "name": "Level 1.1",
+                    "param": "variable",
                     "type": "TEXT",
-                    "description": "enums `PRODUCTS_1`"
+                    "description": "enums `PRODUCTS_1`, Level 1 classification of products"
+                },
+                {
+                    "name": "Level 2.1",
+                    "param": "variable",
+                    "type": "TEXT",
+                    "description": "Level 2.1 classification of products/services"
                 }
             ]
         },
         {
             "name": "dot_faf",
+            "api": "Tesseract",
             "description": "Table 'dot_faf' has freight movement among states and major metropolitan areas by all modes of transportation. Shows which goods are shipped from one region of the US to another region, according to type of commodity, mode of shipment, value, and weight.",
             "columns": [
                 {
                     "name": "Year",
+                    "param": "variable",
                     "type": "INTEGER",
                     "description": "year"
                 },
                 {
                     "name": "Millions Of Dollars",
+                    "param": "measure",
                     "type": "FLOAT",
                     "description": "value in millions of dollars of a certain shipment."             
                 },
                 {
                     "name": "Thousands Of Tons",
+                    "param": "measure",
                     "type": "FLOAT",
                     "description": "weight in thousands of tons of a certain shipment."
                 },
                 {
                     "name": "Origin State",
+                    "param": "variable",
                     "type": "TEXT",
                     "description": "origin state"
                 },
                 {
                     "name": "Origin Region",
+                    "param": "variable",
                     "type": "TEXT",
                     "description": "origin region"
                 },
                 {
                     "name": "Destination State",
+                    "param": "variable",
                     "type": "TEXT",
                     "description": "destination state"
                 },
                 {
                     "name": "Destination Region",
+                    "param": "variable",
                     "type": "TEXT",
                     "description": "destination region"
                 },
                 {
                     "name": "SCTG2",
+                    "param": "variable",
                     "type": "TEXT",
                     "description": "products based on SCTG classification (first level)." 
                 },
                 {
                     "name": "Transportation Mode",
+                    "param": "variable",
                     "type": "TEXT",
                     "description": "mode of transportation or shipment." 
                 } 
             ]
         },
         {
-            "name": "us_location_data",
-            "description": "Table `us_location_data` has geo_ids for zip codes.",
+            "name": "ed_defaults",
+            "api": "Tesseract",
+            "description": "Table `ed_defaults` has cohort default rates of schools.",
             "columns": [
                 {
-                    "name": "geo_id",
+                    "name": "Borrowers in Default",
+                    "param": "measure",
+                    "type": "INTEGER",
+                    "description": "Number of borrowers in default"
+                },
+                {
+                    "name": "Default Rate",
+                    "param": "measure",
+                    "type": "FLOAT"
+                },
+                {
+                    "name": "Year",
+                    "param": "variable",
+                    "type": "INTEGER"
+                },
+                {
+                    "name": "State",
+                    "param": "variable",
                     "type": "TEXT",
-                    "description": "geo ID of zip code, primary key"
+                    "description": "US states"
                 },
                 {
-                    "name": "zip_code",
+                    "name": "OPEID",
+                    "param": "variable",
+                    "type": "School name according to the Office of Postsecondary Education Identifier"
+                },
+                {
+                    "name": "OPEID ID",
+                    "param": "variable",
+                    "type": "ID of schools according to the Office of Postsecondary Education Identifier"
+                }
+            ]
+        },
+        {
+            "name": "pums_5",
+            "api": "Mondrian",
+            "description": "Table 'pums_5' has data on total population and average wages by Year, Nation, State or PUMA, age, gender, race, PUMS occupation and PUMS industry. You can query any combination of these.",
+            "columns": [
+                {
+                    "name": "Year",
+                    "param": "variable",
+                    "type": "INTEGER",
+                    "description": "year"
+                },
+                {
+                    "name": "Nation",
+                    "param": "variable",
                     "type": "TEXT"
                 },
                 {
-                    "name": "city",
+                    "name": "State",
+                    "param": "variable",
                     "type": "TEXT"
                 },
                 {
-                    "name": "county",
+                    "name": "PUMA",
+                    "param": "variable",
+                    "type": "TEXT",
+                    "description": "public use microdata areas"
+                },
+                {
+                    "name": "Age",
+                    "param": "variable",
+                    "type": "INTEGER"
+                },
+                {
+                    "name": "Gender",
+                    "param": "variable",
                     "type": "TEXT"
                 },
                 {
-                    "name": "state",
+                    "name": "Race",
+                    "param": "variable",
                     "type": "TEXT"
+                },
+                {
+                    "name": "PUMS occupation",
+                    "param": "variable",
+                    "type": "TEXT",
+                    "description": "PUMS Occupation classification"
+                },
+                {
+                    "name": "PUMS industry",
+                    "param": "variable",
+                    "type": "TEXT",
+                    "description": "PUMS industry classification"
+                },
+                {
+                    "name": "Average Wage",
+                    "param": "measure",
+                    "type": "INTEGER"
+                },
+                {
+                    "name": "Total Population",
+                    "param": "measure",
+                    "type": "INTEGER"
+                },
+                {
+                    "name": "Average Income",
+                    "param": "measure",
+                    "type": "INTEGER"
+                },
+                {
+                    "name": "Average Age",
+                    "param": "measure",
+                    "type": "INTEGER"
                 }
             ]
         }

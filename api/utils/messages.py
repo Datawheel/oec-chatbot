@@ -1,25 +1,20 @@
 import json
 import re
 import time
-from typing import List, Dict
-
 import openai
 
-from api.utils.logs import log_apicall
-
+from typing import List, Dict
+from utils.logs import log_apicall
 
 def get_assistant_message_from_openai(
         messages: List[Dict[str, str]],
         temperature: int = 0,
-        model: str = "gpt-3.5-turbo",
-        scope: str = "USA",
+        model: str = "gpt-4",
         purpose: str = "Generic",
         session_id: str = None,
         test_failure: bool = False,
-        # model: str = "gpt-4",
 ):
-    # alright, it looks like gpt-3.5-turbo is ignoring the user messages in history
-    # let's go and re-create the chat in the last message!
+
     final_payload = messages
 
     start = time.time()
@@ -39,7 +34,6 @@ def get_assistant_message_from_openai(
             model,
             0,
             0,
-            scope,
             purpose,
             session_id = session_id,
             success=False,
@@ -58,7 +52,6 @@ def get_assistant_message_from_openai(
         model,
         input_tokens,
         output_tokens,
-        scope,
         purpose,
         session_id = session_id,
     )
@@ -73,7 +66,6 @@ def call_chat(
         messages: List[Dict[str, str]],
         temperature: int = 0,
         model: str = "gpt-3.5-turbo",
-        scope: str = "USA",
         purpose: str = "Generic",
         session_id: str = None,
         # model: str = "gpt-4",
@@ -94,7 +86,6 @@ def call_chat(
             model,
             0,
             0,
-            scope,
             purpose,
             session_id = session_id,
             success=False,
@@ -114,7 +105,6 @@ def call_chat(
         model,
         input_tokens,
         output_tokens,
-        scope,
         purpose,
         session_id = session_id,
     )
