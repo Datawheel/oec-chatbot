@@ -43,7 +43,7 @@ This repository contains scripts for a chatbot that leverages artificial intelli
 
    1. Builds a prompt that includes the table to query (with its description and column names) and the NLQ given by the user.
 
-   2. Requests the Language Model (LM) to return a comment explaining why the chosen variables, measures, and filters can answer the query, along with a JSON containing these parameters with the following structure:
+   2. Requests the LM to return a comment explaining why the chosen variables, measures, and filters can answer the query, along with a JSON containing these parameters with the following structure:
 
 
 ```json
