@@ -10,7 +10,7 @@ from utils.table_selection.table_details import get_table_schemas, get_table_nam
 from utils.table_selection.table_database_search import get_similar_tables
 from utils.few_shot_examples import get_few_shot_example_messages
 #from utils.messages import get_assistant_message_from_openai
-from utils.preprocessors.text import extract_text_from_markdow_triple_backticks
+from utils.preprocessors.text import extract_text_from_markdown_triple_backticks
 
 load_dotenv()
 
@@ -143,7 +143,7 @@ def get_relevant_tables_from_lm(natural_language_query, table_list = None, model
 
     output_text = response['choices'][0]['message']['content']
     print("\nChatGPT response:", output_text)
-    tables_json_str = extract_text_from_markdow_triple_backticks(output_text)
+    tables_json_str = extract_text_from_markdown_triple_backticks(output_text)
     print("\nTables:", tables_json_str)
 
     table_list = json.loads(tables_json_str).get("tables")

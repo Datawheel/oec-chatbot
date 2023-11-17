@@ -1,4 +1,5 @@
 import re
+import regex
 
 def clean_string(text):
     return text.replace(", ", "%2C").replace(" ,", "%2C").replace(".", "").strip().replace(" ", "+")
@@ -41,7 +42,7 @@ def extract_text_from_markdown_single_backticks(text):
     return extracted_text
 
 
-def extract_text_from_markdow_triple_backticks(text):
+def extract_text_from_markdown_triple_backticks_aux(text):
     """
     Extracts any sub-string enclosed within triple backticks
     """
@@ -49,3 +50,15 @@ def extract_text_from_markdow_triple_backticks(text):
     if matches:
         return matches[0]
     return text
+
+
+def extract_text_from_markdown_triple_backticks(raw_str):
+    """
+    Use regular expression to find JSON content between outermost curly brackets
+    """
+    match = regex.search(r'\{(?:[^{}]|(?R))*\}', raw_str)
+    if match:
+        json_content = match.group(0)
+        return json_content
+    else:
+        return ""
