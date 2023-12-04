@@ -29,7 +29,7 @@
                     "name": "Standard Error",
                     "param": "measure",
                     "type": "FLOAT",
-                    "description": "standard error or CPI"
+                    "description": "standard error of CPI"
                 },
                 {
                     "name": "Percent Change",
