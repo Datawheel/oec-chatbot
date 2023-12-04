@@ -9,7 +9,7 @@ from os import getenv
 from dotenv import load_dotenv
 from langchain.llms import OpenAI
 from utils.table_selection.table_selector import get_table_schemas
-from utils.table_selection.table_details import get_table_api_base
+from utils.table_selection.table_details import get_table_api_base, get_drilldown_levels
 from utils.preprocessors.text import *
 from utils.api_data_request.similarity_search import *
 
@@ -55,7 +55,7 @@ def get_api_components_messages(table):
     return (
         message +
         f"""
-        The following is the table you can query, along with its description, columns and the definition of their enums:\n
+        The following is the table you can query, along with its description, and a list of its columns, where param specifies whether they are variables or measures.:\n
         ---------------------\n
         {get_table_schemas([table])}
         ---------------------\n
@@ -130,11 +130,13 @@ def cuts_processing(cuts, cube_name):
         var = cuts[i].split('=')[0].strip()
         cut = cuts[i].split('=')[1].strip()
 
+        var_levels = get_drilldown_levels(cube_name, var)
+
         if var == "Year" or var == "Month" or var == "Quarter":
             updated_cuts.append(f"{var}={cut}")
         else: 
-            drilldown_id, s = get_similar_content(cut, cube_name, var)
-            updated_cuts.append(f"{var}={drilldown_id}")
+            drilldown_id, drilldown_name, s = get_similar_content(cut, cube_name, var_levels)
+            updated_cuts.append(f"{drilldown_name}={drilldown_id}")
 
     api_params = '&' + "&".join(updated_cuts)
     

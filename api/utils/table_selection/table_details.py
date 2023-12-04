@@ -34,6 +34,16 @@ def get_table_api_base(table_name):
     return None
 
 
+def get_drilldown_levels(table_name, variable_name):
+    table_details = load_tables_json(TABLES_PATH)
+    for table in table_details.get("tables", []):
+        if table["name"] == table_name:
+            for column in table.get("columns", []):
+                if column["name"] == variable_name and "levels" in column:
+                    return column["levels"]
+    return None
+
+
 def get_table_schemas(table_names: List[str] = None) -> Tuple[str, str]:
     """
     Returns table name, columns and description. Also returns any custom type and valid values for a column (enums).

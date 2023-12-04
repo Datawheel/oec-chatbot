@@ -1,37 +1,4 @@
 {
-    "enums": [
-        {
-            "type": "PRODUCTS_1",
-            "valid_values": [
-                "Food",
-                "Energy",
-                "All items less food and energy",
-                "All items less food",
-                "All items less shelter",
-                "All items less food and shelter",
-                "All items less food, shelter, and energy",
-                "All items less food, shelter, energy, and used cars and trucks",
-                "All items less medical care",
-                "All items less energy",
-                "Commodities",
-                "Services",
-                "Durables",
-                "Nondurables",
-                "Housing",
-                "Education and communication",
-                "Recreation",
-                "Food and beverages",
-                "Other services",
-                "Apparel less footwear",
-                "Fuels and utilities",
-                "Medical care",
-                "Transportation",
-                "Utilities and public transportation",
-                "Household furnishings and operations",
-                "Other goods and services"
-            ]
-        }
-    ],
     "tables": [
         {
             "name": "Consumer Price Index - CPI",
@@ -42,13 +9,15 @@
                     "name": "Year",
                     "param": "variable",
                     "type": "INTEGER",
-                    "description": "year"
+                    "description": "year",
+                    "levels": ["Year"]
                 },
                 {
                     "name": "Month and Year",
                     "param": "variable",
                     "type": "INTEGER",
-                    "description": "year"
+                    "description": "month and year",
+                    "levels": ["Month and Year"]
                 },
                 {
                     "name": "Consumer Price Inde",
@@ -69,16 +38,11 @@
                     "description": "percentage change"
                 },
                 {
-                    "name": "Level 1.1",
+                    "name": "Products or Services",
                     "param": "variable",
                     "type": "TEXT",
-                    "description": "enums `PRODUCTS_1`, Level 1 classification of products"
-                },
-                {
-                    "name": "Level 2.1",
-                    "param": "variable",
-                    "type": "TEXT",
-                    "description": "Level 2.1 classification of products/services"
+                    "description": "Classification of products and services by levels",
+                    "levels": ["Level 1.1", "Level 2.1", "Level 2.2", "Level 3.3", "Level 4.4"]
                 }
             ]
         },
@@ -91,7 +55,8 @@
                     "name": "Year",
                     "param": "variable",
                     "type": "INTEGER",
-                    "description": "year"
+                    "description": "year",
+                    "levels": ["Year"]
                 },
                 {
                     "name": "Millions Of Dollars",
@@ -106,40 +71,32 @@
                     "description": "weight in thousands of tons of a certain shipment."
                 },
                 {
-                    "name": "Origin State",
+                    "name": "Origin",
                     "param": "variable",
                     "type": "TEXT",
-                    "description": "origin state"
+                    "description": "origin state or region",
+                    "levels": ["Origin State, Origin Region"]
                 },
                 {
-                    "name": "Origin Region",
+                    "name": "Destination",
                     "param": "variable",
                     "type": "TEXT",
-                    "description": "origin region"
-                },
-                {
-                    "name": "Destination State",
-                    "param": "variable",
-                    "type": "TEXT",
-                    "description": "destination state"
-                },
-                {
-                    "name": "Destination Region",
-                    "param": "variable",
-                    "type": "TEXT",
-                    "description": "destination region"
+                    "description": "destination state or region",
+                    "levels": ["Destination State, Destination Region"]
                 },
                 {
                     "name": "SCTG2",
                     "param": "variable",
                     "type": "TEXT",
-                    "description": "products based on SCTG classification (first level)." 
+                    "description": "products based on SCTG classification (first level).",
+                    "levels": ["SCTG2"]
                 },
                 {
                     "name": "Transportation Mode",
                     "param": "variable",
                     "type": "TEXT",
-                    "description": "mode of transportation or shipment." 
+                    "description": "mode of transportation or shipment.",
+                    "levels": ["Transportation Mode"]
                 } 
             ]
         },
@@ -162,23 +119,22 @@
                 {
                     "name": "Year",
                     "param": "variable",
-                    "type": "INTEGER"
+                    "type": "INTEGER",
+                    "levels": ["Year"]
                 },
                 {
-                    "name": "State",
+                    "name": "Geography",
                     "param": "variable",
                     "type": "TEXT",
-                    "description": "US states"
+                    "description": "US states or counties",
+                    "levels": ["State", "County"]
                 },
                 {
                     "name": "OPEID",
                     "param": "variable",
-                    "type": "School name according to the Office of Postsecondary Education Identifier"
-                },
-                {
-                    "name": "OPEID ID",
-                    "param": "variable",
-                    "type": "ID of schools according to the Office of Postsecondary Education Identifier"
+                    "type": "TEXT",
+                    "description": "School name according to the Office of Postsecondary Education Identifier",
+                    "levels": ["OPEID"]
                 }
             ]
         },
@@ -191,50 +147,46 @@
                     "name": "Year",
                     "param": "variable",
                     "type": "INTEGER",
-                    "description": "year"
+                    "levels": ["Year"]
                 },
                 {
-                    "name": "Nation",
-                    "param": "variable",
-                    "type": "TEXT"
-                },
-                {
-                    "name": "State",
-                    "param": "variable",
-                    "type": "TEXT"
-                },
-                {
-                    "name": "PUMA",
+                    "name": "Geography",
                     "param": "variable",
                     "type": "TEXT",
-                    "description": "public use microdata areas"
+                    "description": "includes Nation level, state or PUMA (public use microdata areas)",
+                    "levels": ["Nation", "State", "PUMA"]
                 },
                 {
                     "name": "Age",
                     "param": "variable",
-                    "type": "INTEGER"
+                    "type": "INTEGER",
+                    "levels": ["Age"]
                 },
                 {
                     "name": "Gender",
                     "param": "variable",
-                    "type": "TEXT"
+                    "type": "TEXT",
+                    "levels": ["Gender"]
                 },
                 {
                     "name": "Race",
                     "param": "variable",
-                    "type": "TEXT"
+                    "type": "TEXT",
+                    "levels": ["Race"]
                 },
                 {
-                    "name": "PUMS occupation",
+                    "name": "PUMS Occupation",
                     "param": "variable",
                     "type": "TEXT",
-                    "description": "PUMS Occupation classification"
+                    "description": "PUMS Occupation classification",
+                    "levels": ["Major Occupation Group", "Minor Occupation Group", "Broad Occupation", "Detailed Occupation"]
                 },
                 {
-                    "name": "PUMS industry",
+                    "name": "PUMS Industry",
                     "param": "variable",
                     "type": "TEXT",
-                    "description": "PUMS industry classification"
+                    "description": "PUMS industry classification",
+                    "levels": ["Industry Sector", "Industry Sub-Sector", "Industry Group"]
                 },
                 {
                     "name": "Average Wage",
