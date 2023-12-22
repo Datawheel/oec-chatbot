@@ -1,98 +1,44 @@
-from functools import wraps
-import json
+import datetime
+import random
+import string
+import os
+import time
 
 from sqlalchemy import text
+from sqlalchemy import create_engine
 
-from ..config import EVENTS_ENGINE
+POSTGRES_USERNAME = os.getenv('POSTGRES_USER')
+POSTGRES_PASSWORD = os.getenv('POSTGRES_PASSWORD')
+POSTGRES_URL = os.getenv('POSTGRES_URL')
+POSTGRES_DATABASE = os.getenv('POSTGRES_DB')
 
-def failsoft(func):
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        try:
-            result = func(*args, **kwargs)
-        except Exception as e:
-            print('error logging with ', e)
-            result = None
-        return result
-    return wrapper
+def generate_custom_id():
+    timestamp = str(int(time.time()))
+    random_chars = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
+    return f"ID-{timestamp}-{random_chars}"
 
 
-costs = {
-    "turbo":{
-        "input": .000002,
-        "output": .000002,
-    },
-    "gpt-4":{
-        "input": .00003,
-        "output": .00006,
-    }
-}
-
-
-def calculate_cost(model, input_tokens, output_tokens):
-    base_model = 'turbo'
-    if model.find('gpt-4') != -1:
-        base_model = 'gpt-4'
-    cost = costs[base_model]['input'] * input_tokens + costs[base_model]['output'] * output_tokens
-    return cost
-
-
-def log_apicall(duration, provider, model, input_tokens, output_tokens, service, purpose, session_id=None, success=True, log_message=None):
-    if not EVENTS_ENGINE:
-        return {"status": "no engine"}
-    cost = calculate_cost(model, input_tokens, output_tokens)
+def log_apicall(query, api_url, response):
+    ct = datetime.datetime.now()
+    custom_id = generate_custom_id()
 
     params = {
-        "duration": duration,
-        "provider": provider,
-        "model": model,
-        "input_tokens": input_tokens,
-        "output_tokens": output_tokens,
-        "service": service,
-        "purpose": purpose,
-        "cost": cost,
-        "success": success,
-        "session_id": session_id,
-        "log_message": log_message,
+        "query_id": custom_id,
+        "question": query,
+        "api_url": api_url,
+        "response": response,
+        "created_on": ct,
     }
 
     insert_query = text("""
-        INSERT INTO apicalls (duration, provider, model, input_tokens, output_tokens, service, purpose, cost, success, session_id, log_message)
-        VALUES (:duration, :provider, :model, :input_tokens, :output_tokens, :service, :purpose, :cost, :success, :session_id, :log_message)
+        INSERT INTO datausa_logs.logs (query_id, question, api_url, response, created_on)
+        VALUES (:query_id, :question, :api_url, :response, :created_on)
     """)
 
-    with EVENTS_ENGINE.connect() as conn:
+    engine = create_engine('postgresql+psycopg2://{}:{}@{}:5432/{}'.format(POSTGRES_USERNAME,POSTGRES_PASSWORD,POSTGRES_URL,POSTGRES_DATABASE))
+
+    with engine.connect() as conn:
         conn.execute(insert_query, params)
-        conn.commit()
-    
-    return {"status": "success"}
-
-
-@failsoft
-def log_apicall_failure(duration, provider, model, input_tokens, service, purpose, session_id=None):
-    if not EVENTS_ENGINE:
-        return {"status": "no engine"}
-
-    params = {
-        "duration": duration,
-        "provider": provider,
-        "model": model,
-        "input_tokens": input_tokens,
-        "output_tokens": 0,
-        "service": service,
-        "purpose": purpose,
-        "cost": 0,
-        "success": "false",
-        "session_id": session_id,
-    }
-
-    insert_query = text("""
-        INSERT INTO apicalls (duration, provider, model, input_tokens, output_tokens, service, purpose, cost, success, session_id)
-        VALUES (:duration, :provider, :model, :input_tokens, :output_tokens, :service, :purpose, :cost, :success, :session_id)
-    """)
-
-    with EVENTS_ENGINE.connect() as conn:
-        conn.execute(insert_query, params)
-        conn.commit()
+       # conn.commit()
     
     return {"status": "success"}

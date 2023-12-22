@@ -2,6 +2,7 @@ from src.utils.table_selection.table_selector import *
 from src.utils.table_selection.table_details import *
 from src.utils.api_data_request.api_generator import *
 from src.utils.data_analysis.data_analysis import *
+from src.utils.logs import *
 
 from os import getenv
 from dotenv import load_dotenv
@@ -16,5 +17,7 @@ def get_api(query):
     data, df = api_request(api_url)
 
     response = agent_answer(df, query)
+
+    log_apicall(query, api_url, response)
 
     return api_url, data, response
