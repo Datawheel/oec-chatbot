@@ -122,12 +122,12 @@ uvicorn src.main:app --reload
 ## How to build the docker image
 ```
 cd api/
-docker build -t oec-chat-api:<tag> .
+docker build -t datausa-chat:<tag> .
 ```
 
 ## How to run the docker image
 create a .env file with the required env variables
 ```
 cd api/
-docker run --env-file=./.env -p 80:80 oec-chat-api:<tag>
+docker run --env-file=./.env -p 80:80 datausa-chat:<tag>
 ```
