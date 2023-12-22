@@ -110,3 +110,24 @@ In order to add cubes, the steps are:
       - This process can be initiated by executing the `tables_to_db.py` script. During execution, the code will prompt for the API URL to fetch the drilldown members and IDs. Then, it will request the measure name in order to remove it from the dataframe before loading the data to the database.
       - The script then appends a column containing embeddings generated from the drilldown names using the same embedding model mentioned before.
       - This process needs to be repeated for each drilldown level within the cube or those required for making cuts. Time variables don't need to be loaded into the database, as well as any drilldown where both the name and ID remain identical.
+
+# API beeing served by FastAPI
+
+## How to run the api
+
+On local development, you can run the following code:
+```
+uvicorn src.main:app --reload
+```
+## How to build the docker image
+```
+cd api/
+docker build -t oec-chat-api:<tag> .
+```
+
+## How to run the docker image
+create a .env file with the required env variables
+```
+cd api/
+docker run --env-file=./.env -p 80:80 oec-chat-api:<tag>
+```
