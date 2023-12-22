@@ -34,9 +34,8 @@ def agent_answer(df, natural_language_query):
         Lets think it through step by step.
         """
     )
-    print("Prompt:", prompt)
 
-    llm = OpenAI(model_name='gpt-4-1106-preview', temperature=0, openai_api_key=openai_api_key)
+    llm = ChatOpenAI(model_name='gpt-4-1106-preview', temperature=0, openai_api_key=openai_api_key)
     agent =  create_pandas_dataframe_agent(llm, df, verbose=True)
     response = agent.run(prompt)
     print("\nAgent answer:", response)

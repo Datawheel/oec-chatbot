@@ -118,8 +118,6 @@ def get_relevant_tables_from_lm(natural_language_query, table_list = None, model
         "role": "user",
         "content": content
     })
-
-    print("Messages:\n", messages, "\n\n")
     
     while attempts < max_attempts:
         try:

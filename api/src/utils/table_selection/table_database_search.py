@@ -23,7 +23,6 @@ def get_similar_tables(vector, threshold=0, content_limit=1) -> List[str]:
     query = """select table_name, similarity from "match_table"('{}','{}' ,'{}'); """.format(vector[0].tolist().__str__(), str(threshold), str(content_limit))
     
     df = pd.read_sql(query, con=engine)
-    print("DF:", df)
     tables = df['table_name'].tolist()
 
     return tables
