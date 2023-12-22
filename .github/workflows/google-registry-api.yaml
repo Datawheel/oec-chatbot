@@ -65,10 +65,10 @@ on:
 
 env:
   GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
-  GCP_ARTIFACT_REGISTRY_NAME: ${{ vars.GCP_ARTIFACT_REGISTRY_NAME_API }}
+  GCP_ARTIFACT_REGISTRY_NAME: ${{ vars.GCP_ARTIFACT_REGISTRY_NAME }}
   GCP_ARTIFACT_REGISTRY_LOCATION: ${{ vars.GCP_ARTIFACT_REGISTRY_LOCATION }}
-  GCP_IMAGE_NAME: ${{ vars.GCP_IMAGE_NAME_API }}
-  GKE_APP_NAME: ${{ vars.GKE_APP_NAME_API }}
+  GCP_IMAGE_NAME: ${{ vars.GCP_IMAGE_NAME }}
+  GKE_APP_NAME: ${{ vars.GKE_APP_NAME }}
   GKE_APP_NAMESPACE: ${{ vars.GKE_APP_NAMESPACE }}
   GKE_CLUSTER: ${{ vars.GKE_CLUSTER }}
   GKE_ZONE: ${{ vars.GKE_ZONE }}
@@ -76,7 +76,7 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
-    environment: production
+    environment: api
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -94,16 +94,16 @@ jobs:
         run: |-
           gcloud builds submit \
             --quiet \
-            --timeout=25m \
+            --timeout=30m \
             --suppress-logs \
             --config=cloudbuild.yml \
-            --substitutions=_GCP_ARTIFACT_REGISTRY_LOCATION=${{ env.GCP_ARTIFACT_REGISTRY_LOCATION }},_GCP_PROJECT_ID=${{ env.GCP_PROJECT_ID }},_GCP_ARTIFACT_REGISTRY_NAME=${{ env.GCP_ARTIFACT_REGISTRY_NAME }},_GCP_IMAGE_NAME=${{ env.GCP_IMAGE_NAME }},_GITHUB_SHA=${{ github.sha }}
+            --substitutions=_GCP_PROJECT_ID=${{ env.GCP_PROJECT_ID }},_GCP_ARTIFACT_REGISTRY_NAME=${{ env.GCP_ARTIFACT_REGISTRY_NAME }},_GCP_ARTIFACT_REGISTRY_LOCATION=${{ env.GCP_ARTIFACT_REGISTRY_LOCATION }},_GCP_IMAGE_NAME=${{ env.GCP_IMAGE_NAME }},_GITHUB_SHA=${{ github.sha }}
         working-directory: ./api
 
   # deploy:
   #   needs: build
   #   runs-on: ubuntu-latest
-  #   environment: production
+  #   environment: api
   #   steps:
   #     - name: Checkout
   #       uses: actions/checkout@v3
