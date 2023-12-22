@@ -1,4 +1,15 @@
+dynaconf
 fastapi
-sqlalchemy
+jinja2
+langchain==0.0.218
 openai==0.27.4
+pandas
+psycopg2-binary
+python-dotenv
+python-multipart
+sentence_transformers
+sqlalchemy
+sqlmodel
 tiktoken==0.3.2
+typer
+uvicorn
