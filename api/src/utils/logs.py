@@ -18,7 +18,7 @@ def generate_custom_id():
     return f"ID-{timestamp}-{random_chars}"
 
 
-def log_apicall(query, api_url, response):
+def log_apicall(query, api_url, response, drilldowns, measures, cuts, cube):
     ct = datetime.datetime.now()
     custom_id = generate_custom_id()
 
@@ -28,11 +28,15 @@ def log_apicall(query, api_url, response):
         "api_url": api_url,
         "response": response,
         "created_on": ct,
+        "drilldowns": drilldowns,
+        "measures": measures,
+        "cuts": cuts,
+        "cube": cube
     }
 
     insert_query = text("""
-        INSERT INTO datausa_logs.logs (query_id, question, api_url, response, created_on)
-        VALUES (:query_id, :question, :api_url, :response, :created_on)
+        INSERT INTO datausa_logs.logs (query_id, question, api_url, response, created_on, drilldowns, measures, cuts, cube)
+        VALUES (:query_id, :question, :api_url, :response, :created_on, :drilldowns, :measures, :cuts, :cube)
     """)
 
     engine = create_engine('postgresql+psycopg2://{}:{}@{}:5432/{}'.format(POSTGRES_USERNAME,POSTGRES_PASSWORD,POSTGRES_URL,POSTGRES_DATABASE))

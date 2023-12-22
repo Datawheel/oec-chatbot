@@ -18,6 +18,6 @@ def get_api(query):
 
     response = agent_answer(df, query)
 
-    log_apicall(query, api_url, response)
+    log_apicall(query, api_url, response, v, m, c, table_db_llm[0])
 
     return api_url, data, response
