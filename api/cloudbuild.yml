@@ -20,9 +20,3 @@ steps:
 images:
   - "${_GCP_ARTIFACT_REGISTRY_LOCATION}-docker.pkg.dev/${_GCP_PROJECT_ID}/${_GCP_ARTIFACT_REGISTRY_NAME}/${_GCP_IMAGE_NAME}:${_GITHUB_SHA}"
   - "${_GCP_ARTIFACT_REGISTRY_LOCATION}-docker.pkg.dev/${_GCP_PROJECT_ID}/${_GCP_ARTIFACT_REGISTRY_NAME}/${_GCP_IMAGE_NAME}:latest"
-substitutions:
-  _GCP_ARTIFACT_REGISTRY_LOCATION: "us-central1"
-  _GCP_PROJECT_ID: "empty"
-  _GCP_ARTIFACT_REGISTRY_NAME: "empty"
-  _GCP_IMAGE_NAME: "empty"
-  _GITHUB_SHA: "empty"
