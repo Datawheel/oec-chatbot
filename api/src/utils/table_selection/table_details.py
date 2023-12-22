@@ -3,7 +3,7 @@ from typing import List, Tuple
 import re
 
 from os import getenv
-from utils.preprocessors.text import extract_text_from_markdown_single_backticks
+from src.utils.preprocessors.text import extract_text_from_markdown_single_backticks
 
 TABLES_PATH = getenv('TABLES_PATH')
 

@@ -8,9 +8,9 @@ import json
 from os import getenv
 from dotenv import load_dotenv
 from langchain.llms import OpenAI
-from utils.table_selection.table_details import get_table_api_base, get_drilldown_levels, get_table_columns, get_table_schemas
-from utils.preprocessors.text import *
-from utils.api_data_request.similarity_search import *
+from src.utils.table_selection.table_details import get_table_api_base, get_drilldown_levels, get_table_columns, get_table_schemas
+from src.utils.preprocessors.text import *
+from src.utils.api_data_request.similarity_search import *
 
 load_dotenv()
 

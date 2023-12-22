@@ -6,11 +6,11 @@ from sentence_transformers import SentenceTransformer
 from os import getenv
 from dotenv import load_dotenv
 
-from utils.table_selection.table_details import get_table_schemas, get_table_names
-from utils.table_selection.table_database_search import get_similar_tables
-from utils.few_shot_examples import get_few_shot_example_messages
-#from utils.messages import get_assistant_message_from_openai
-from utils.preprocessors.text import extract_text_from_markdown_triple_backticks
+from src.utils.table_selection.table_details import get_table_schemas, get_table_names
+from src.utils.table_selection.table_database_search import get_similar_tables
+from src.utils.few_shot_examples import get_few_shot_example_messages
+#from src.utils.messages import get_assistant_message_from_openai
+from src.utils.preprocessors.text import extract_text_from_markdown_triple_backticks
 
 load_dotenv()
 

@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 
-from utils.app import get_api
+from src.utils.app import get_api
 
 # fastapi instance declaration
 app = FastAPI()
