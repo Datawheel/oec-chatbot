@@ -10,6 +10,7 @@ python-multipart
 sentence_transformers
 sqlalchemy
 sqlmodel
+tabulate
 tiktoken==0.3.2
 typer
 uvicorn
