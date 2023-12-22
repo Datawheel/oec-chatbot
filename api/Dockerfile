@@ -38,4 +38,4 @@ COPY . .
 
 ENV PATH="/usr/app/venv/bin:$PATH"
 
-CMD [ "uvicorn", "api.main:app", "--proxy-headers", "--host", "0.0.0.0", "--port", "80" ]
+CMD [ "uvicorn", "src.main:app", "--proxy-headers", "--host", "0.0.0.0", "--port", "80" ]
