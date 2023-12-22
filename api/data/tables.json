@@ -1,84 +1,62 @@
 {
-    "enums": [
-        {
-            "type": "PRODUCTS_1",
-            "valid_values": [
-                "Food",
-                "Energy",
-                "All items less food and energy",
-                "All items less food",
-                "All items less shelter",
-                "All items less food and shelter",
-                "All items less food, shelter, and energy",
-                "All items less food, shelter, energy, and used cars and trucks",
-                "All items less medical care",
-                "All items less energy",
-                "Commodities",
-                "Services",
-                "Durables",
-                "Nondurables",
-                "Housing",
-                "Education and communication",
-                "Recreation",
-                "Food and beverages",
-                "Other services",
-                "Apparel less footwear",
-                "Fuels and utilities",
-                "Medical care",
-                "Transportation",
-                "Utilities and public transportation",
-                "Household furnishings and operations",
-                "Other goods and services"
-            ]
-        }
-    ],
     "tables": [
         {
             "name": "Consumer Price Index - CPI",
             "api": "Tesseract",
             "description": "Table 'Consumer Price Index - CPI' has price index for products, encompassing over 200 expenditure categories grouped into major segments (food and beverages, housing, apparel, recreation, and other goods).",
-            "columns": [
-                {
-                    "name": "Year",
-                    "param": "variable",
-                    "type": "INTEGER",
-                    "description": "year"
-                },
-                {
-                    "name": "Month and Year",
-                    "param": "variable",
-                    "type": "INTEGER",
-                    "description": "year"
-                },
+            "measures": [
                 {
                     "name": "Consumer Price Inde",
-                    "param": "measure",
-                    "type": "FLOAT",
                     "description": "consumer price index"
                 },
                 {
                     "name": "Standard Error",
-                    "param": "measure",
-                    "type": "FLOAT",
-                    "description": "standard error or CPI"
+                    "description": "standard error of CPI"
                 },
                 {
                     "name": "Percent Change",
-                    "param": "measure",
-                    "type": "FLOAT",
                     "description": "percentage change"
+                }
+            ],
+            "variables": [
+                {
+                    "name": "Year",
+                    "description": "periodicity of the data",
+                    "parent dimension": "Time",
+                    "hierarchies": ["Year", "Month and Year"]
+                },
+                {
+                    "name": "Month and Year",
+                    "description": "periodicity of the data with the format YYYYMM (example March of 2015 is 201503)",
+                    "parent dimension": "Time",
+                    "hierarchies": ["Year", "Month and Year"]
                 },
                 {
                     "name": "Level 1.1",
-                    "param": "variable",
-                    "type": "TEXT",
-                    "description": "enums `PRODUCTS_1`, Level 1 classification of products"
+                    "description": "most general level of products and services",
+                    "parent dimension": "Products or Services",
+                    "hierarchies": ["Level 1.1", "Level 2.2", "Level 3.3", "Level 4.4", "Level 5.5"]
                 },
                 {
-                    "name": "Level 2.1",
-                    "param": "variable",
-                    "type": "TEXT",
-                    "description": "Level 2.1 classification of products/services"
+                    "name": "Level 2.2",
+                    "parent dimension": "Products or Services",
+                    "hierarchies": ["Level 1.1", "Level 2.2", "Level 3.3", "Level 4.4", "Level 5.5"]
+                },
+                {
+                    "name": "Level 3.3",
+                    "parent dimension": "Products or Services",
+                    "hierarchies": ["Level 1.1", "Level 2.2", "Level 3.3", "Level 4.4", "Level 5.5"]
+                },
+                {
+                    "name": "Level 4.4",
+                    "parent dimension": "Products or Services",
+                    "hierarchies": ["Level 1.1", "Level 2.2", "Level 3.3", "Level 4.4", "Level 5.5"]
+                },
+                {
+                    "name": "Level 5.5",
+                    "description": "most detailed level of products and services",
+                    "parent dimension": "Products or Services",
+                    "hierarchies": ["Level 1.1", "Level 2.2", "Level 3.3", "Level 4.4", "Level 5.5"]
                 }
             ]
         },
@@ -86,99 +64,97 @@
             "name": "dot_faf",
             "api": "Tesseract",
             "description": "Table 'dot_faf' has freight movement among states and major metropolitan areas by all modes of transportation. Shows which goods are shipped from one region of the US to another region, according to type of commodity, mode of shipment, value, and weight.",
-            "columns": [
-                {
-                    "name": "Year",
-                    "param": "variable",
-                    "type": "INTEGER",
-                    "description": "year"
-                },
+            "measures": [
                 {
                     "name": "Millions Of Dollars",
-                    "param": "measure",
-                    "type": "FLOAT",
                     "description": "value in millions of dollars of a certain shipment."             
                 },
                 {
                     "name": "Thousands Of Tons",
-                    "param": "measure",
-                    "type": "FLOAT",
                     "description": "weight in thousands of tons of a certain shipment."
-                },
+                }
+            ],
+            "variables": [
                 {
-                    "name": "Origin State",
-                    "param": "variable",
-                    "type": "TEXT",
-                    "description": "origin state"
-                },
-                {
-                    "name": "Origin Region",
-                    "param": "variable",
-                    "type": "TEXT",
-                    "description": "origin region"
-                },
-                {
-                    "name": "Destination State",
-                    "param": "variable",
-                    "type": "TEXT",
-                    "description": "destination state"
-                },
-                {
-                    "name": "Destination Region",
-                    "param": "variable",
-                    "type": "TEXT",
-                    "description": "destination region"
+                    "name": "Year",
+                    "description": "year",
+                    "parent dimension": "Year",
+                    "hierarchies": ["Year"]
                 },
                 {
                     "name": "SCTG2",
-                    "param": "variable",
-                    "type": "TEXT",
-                    "description": "products based on SCTG classification (first level)." 
+                    "description": "products based on SCTG classification (first level).",
+                    "parent dimension": "SCTG2",
+                    "hierarchies": ["SCTG2"]
                 },
                 {
                     "name": "Transportation Mode",
-                    "param": "variable",
-                    "type": "TEXT",
-                    "description": "mode of transportation or shipment." 
-                } 
+                    "description": "mode of transportation or shipment.",
+                    "parent dimension": "Transportation Mode",
+                    "hierarchies": ["Transportation Mode"]
+                },
+                {
+                    "name": "Origin State",
+                    "description": "Origin state",
+                    "parent dimension": "Origin",
+                    "hierarchies": ["Origin State", "Origin Region"]
+                },
+                {
+                    "name": "Origin Region",
+                    "description": "Origin region",
+                    "parent dimension": "Origin",
+                    "hierarchies": ["Origin State", "Origin Region"]
+                },
+                {
+                    "name": "Destination Region",
+                    "description": "Destination region",
+                    "parent dimension": "Destination",
+                    "hierarchies": ["Destination State", "Destination Region"]
+                },
+                {
+                    "name": "Destination Region",
+                    "description": "Destination region",
+                    "parent dimension": "Destination",
+                    "hierarchies": ["Destination State", "Destination Region"]
+                }
             ]
         },
         {
             "name": "ed_defaults",
             "api": "Tesseract",
             "description": "Table `ed_defaults` has cohort default rates of schools.",
-            "columns": [
+            "measures": [
                 {
                     "name": "Borrowers in Default",
-                    "param": "measure",
-                    "type": "INTEGER",
                     "description": "Number of borrowers in default"
                 },
                 {
-                    "name": "Default Rate",
-                    "param": "measure",
-                    "type": "FLOAT"
-                },
+                    "name": "Default Rate"
+                }
+            ],
+            "variables": [
                 {
                     "name": "Year",
-                    "param": "variable",
-                    "type": "INTEGER"
+                    "parent dimension": "Year",
+                    "hierarchies": ["Year"]
                 },
                 {
                     "name": "State",
-                    "param": "variable",
-                    "type": "TEXT",
-                    "description": "US states"
+                    "description": "US states",
+                    "parent dimension": "Geography",
+                    "hierarchies": ["State", "County"]
+                },
+                {
+                    "name": "County",
+                    "description": "US counties",
+                    "parent dimension": "Geography",
+                    "hierarchies": ["State", "County"]
                 },
                 {
                     "name": "OPEID",
-                    "param": "variable",
-                    "type": "School name according to the Office of Postsecondary Education Identifier"
-                },
-                {
-                    "name": "OPEID ID",
-                    "param": "variable",
-                    "type": "ID of schools according to the Office of Postsecondary Education Identifier"
+                    "description": "School name according to the Office of Postsecondary Education Identifier",
+                    "parent dimension": "OPEID",
+                    "hierarchies": ["OPEID"]
                 }
             ]
         },
@@ -186,75 +162,100 @@
             "name": "pums_5",
             "api": "Mondrian",
             "description": "Table 'pums_5' has data on total population and average wages by Year, Nation, State or PUMA, age, gender, race, PUMS occupation and PUMS industry. You can query any combination of these.",
-            "columns": [
+            "measures": [
+                {
+                    "name": "Average Wage"
+                },
+                {
+                    "name": "Total Population"
+                },
+                {
+                    "name": "Average Income"
+                },
+                {
+                    "name": "Average Age"
+                }
+            ],
+            "variables": [
                 {
                     "name": "Year",
-                    "param": "variable",
-                    "type": "INTEGER",
-                    "description": "year"
+                    "parent dimension": "Year",
+                    "hierarchies": ["Year"]
                 },
                 {
                     "name": "Nation",
-                    "param": "variable",
-                    "type": "TEXT"
+                    "description": "national level data (USA)",
+                    "parent dimension": "Geography",
+                    "hierarchies": ["Nation", "State", "PUMA"]
                 },
                 {
                     "name": "State",
-                    "param": "variable",
-                    "type": "TEXT"
+                    "description": "US states",
+                    "parent dimension": "Geography",
+                    "hierarchies": ["Nation", "State", "PUMA"]
                 },
                 {
                     "name": "PUMA",
-                    "param": "variable",
-                    "type": "TEXT",
-                    "description": "public use microdata areas"
+                    "description": "US PUMAs (public use microdata areas)",
+                    "parent dimension": "Geography",
+                    "hierarchies": ["Nation", "State", "PUMA"]
                 },
                 {
                     "name": "Age",
-                    "param": "variable",
-                    "type": "INTEGER"
+                    "parent dimension": "Age",
+                    "hierarchies": ["Age"]
                 },
                 {
                     "name": "Gender",
-                    "param": "variable",
-                    "type": "TEXT"
+                    "parent dimension": "Gender",
+                    "hierarchies": ["Gender"]
                 },
                 {
                     "name": "Race",
-                    "param": "variable",
-                    "type": "TEXT"
+                    "parent dimension": "Race",
+                    "hierarchies": ["Race"]
                 },
                 {
-                    "name": "PUMS occupation",
-                    "param": "variable",
-                    "type": "TEXT",
-                    "description": "PUMS Occupation classification"
+                    "name": "Major Occupation Group",
+                    "description": "PUMS Occupation most general classification",
+                    "parent dimension": "PUMS Occupation",
+                    "hierarchies": ["Major Occupation Group", "Minor Occupation Group", "Broad Occupation", "Detailed Occupation"]
                 },
                 {
-                    "name": "PUMS industry",
-                    "param": "variable",
-                    "type": "TEXT",
-                    "description": "PUMS industry classification"
+                    "name": "Minor Occupation Group",
+                    "description": "PUMS minor Occupation classification",
+                    "parent dimension": "PUMS Occupation",
+                    "hierarchies": ["Major Occupation Group", "Minor Occupation Group", "Broad Occupation", "Detailed Occupation"]
                 },
                 {
-                    "name": "Average Wage",
-                    "param": "measure",
-                    "type": "INTEGER"
+                    "name": "Broad Occupation",
+                    "description": "PUMS broad Occupation classification",
+                    "parent dimension": "PUMS Occupation",
+                    "hierarchies": ["Major Occupation Group", "Minor Occupation Group", "Broad Occupation", "Detailed Occupation"]
                 },
                 {
-                    "name": "Total Population",
-                    "param": "measure",
-                    "type": "INTEGER"
+                    "name": "Detailed Occupation",
+                    "description": "PUMS most detailed Occupation classification",
+                    "parent dimension": "PUMS Occupation",
+                    "hierarchies": ["Major Occupation Group", "Minor Occupation Group", "Broad Occupation", "Detailed Occupation"]
                 },
                 {
-                    "name": "Average Income",
-                    "param": "measure",
-                    "type": "INTEGER"
+                    "name": "Industry Sector",
+                    "description": "PUMS industry sector classification (most general classification)",
+                    "parent dimension": "PUMS Industry",
+                    "hierarchies": ["Industry Sector", "Industry Sub-Sector", "Industry Group"]
                 },
                 {
-                    "name": "Average Age",
-                    "param": "measure",
-                    "type": "INTEGER"
+                    "name": "Industry Sub-Sector",
+                    "description": "PUMS industry sub-sector classification",
+                    "parent dimension": "PUMS Industry",
+                    "hierarchies": ["Industry Sector", "Industry Sub-Sector", "Industry Group"]
+                },
+                {
+                    "name": "Industry Group",
+                    "description": "PUMS industry group classification (most detailed classification)",
+                    "parent dimension": "PUMS Industry",
+                    "hierarchies": ["Industry Sector", "Industry Sub-Sector", "Industry Group"]
                 }
             ]
         }

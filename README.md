@@ -66,3 +66,50 @@ This repository contains scripts for a chatbot that leverages artificial intelli
 ### 3. Data Analysis/Processing
 
 - To be continued...
+
+
+## Adding cubes
+
+Currently, the cubes available to be queried by the chatbot are:
+
+   - Consumer Price Index - CPI
+   - dot_faf
+   - [in progress] pums_5
+
+In order to add cubes, the steps are:
+
+   1. Add the cube to the tables.json file. The following fields must be filled:
+      - name
+      - api (Tesseract or Mondrian)
+      - description
+      - columns (include only measures and primary dimensions)
+         - for variables: Add only the main dimension; include any dimension hierarchies in the "levels" key.
+            ```json
+               {
+                  "name": "Geography",
+                  "param": "variable",
+                  "type": "TEXT",
+                  "description": "US states or counties",
+                  "levels": ["State", "County"]
+               }
+            ```
+
+         - for measures:
+            ```json
+               {
+                  "name": "Millions Of Dollars",
+                  "param": "measure",
+                  "type": "FLOAT",
+                  "description": "value in millions of dollars of a certain shipment."   
+               }
+            ```
+
+   2. Add the cube to the database (datausa_tables.cubes), filling the following columns:
+      - table_name
+      - table_description
+      - embedding (embedding of the table's description is represented as a 384-dimensional vector, derived using the `SentenceTransformer('multi-qa-MiniLM-L6-cos-v1')` model)
+
+   3. Add drilldown members & ids to the db (datausa_drilldowns.drilldowns)
+      - This process can be initiated by executing the `tables_to_db.py` script. During execution, the code will prompt for the API URL to fetch the drilldown members and IDs. Then, it will request the measure name in order to remove it from the dataframe before loading the data to the database.
+      - The script then appends a column containing embeddings generated from the drilldown names using the same embedding model mentioned before.
+      - This process needs to be repeated for each drilldown level within the cube or those required for making cuts. Time variables don't need to be loaded into the database, as well as any drilldown where both the name and ID remain identical.

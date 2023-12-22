@@ -8,8 +8,7 @@ import json
 from os import getenv
 from dotenv import load_dotenv
 from langchain.llms import OpenAI
-from utils.table_selection.table_selector import get_table_schemas
-from utils.table_selection.table_details import get_table_api_base
+from utils.table_selection.table_details import get_table_api_base, get_drilldown_levels, get_table_columns, get_table_schemas
 from utils.preprocessors.text import *
 from utils.api_data_request.similarity_search import *
 
@@ -29,21 +28,23 @@ MONDRIAN_API = getenv('MONDRIAN_API')
 def get_api_components_messages(table):
     message = (
         """
-        You are an expert data scientist. You are given a natural language query from a user and need to identify the variables, measures and filters that are relevant and are needed to retrieve this data through an API.\n
-        Return a JSON object with these variables, measures and filters to be applied to answer the following natural language query:\n
+        You are an expert data scientist working with data organized in a multidimensional format, such as in OLAP cubes.
+        You are given the following natural language query from a user and information of a cube that contains the data to answer this query.
+
         ---------------\n
         {natural_language_query}
         \n---------------\n
+
+        Your goal is to identify the variables, measures and filters that are relevant and are needed in order to retrieve this data from the cube through an API.
         Respond in JSON format with your answer separated into the following fields: 
-        \"variables\" which is a list of strings that contain the variables. This are usually time variables, locations, or others.\n
-        \"measures\" which is a list of strings that contain the relevant measures. Any numeric variable like wages, population.\n
+        \"variables\" which is a list of strings that contain the variables.\n
+        \"measures\" which is a list of strings that contain the relevant measures.\n
         \"filters\" which is a list of strings that contain the filters in the form of 'variable = filtered_value'.\n
 
         Write your answer in markdown format.\n
         """
     )
 
-    #response_part = "<json with variables, measures and filters>"
     response_part = """
         {{
             "variables": "",
@@ -55,21 +56,24 @@ def get_api_components_messages(table):
     return (
         message +
         f"""
-        The following is the table you can query, along with its description, columns and the definition of their enums:\n
+        The following JSON contains the information of the cube you can query, with its measures, dimensions and hierarchies:\n
         ---------------------\n
-        {get_table_schemas([table])}
+        {get_table_columns([table])}
         ---------------------\n
 
         in your answer, provide the following information:\n
-        
+
         - <one to two sentence comment explaining why the chosen variables, measures and filters can answer the query>\n
-        - <for each variable, measure and filter identified, comment double checking that they exist in the table>\n
+        - <for each variable, measure and filter identified, comment double checking that they exist in the table with the specified name>\n
         - the markdown formatted like this:\n
         ```
         {response_part}
         ```
-
-        Provide only the list of variables, measures and filters, and nothing else after.
+        Provide only the list of variables, measures and filters, and nothing else after.\n
+        A few rules to take into consideration:\n
+        - You cannot apply filters to different variables with the same parent dimension. Choose only one (the most relevant or most granular)\n
+        - Assume the latest year to be 2023.\n
+        - For cases where the query requires to filter by a certain range of years or months, please specify all of them separately.
         """
     )
 
@@ -83,7 +87,7 @@ def get_api_params_from_lm(natural_language_query, table = None, model="gpt-4", 
 
     content = get_api_components_messages(table).format(
         natural_language_query = natural_language_query,
-    )
+        )
 
     messages = []
     messages.append({
@@ -123,22 +127,33 @@ def get_api_params_from_lm(natural_language_query, table = None, model="gpt-4", 
     return variables, measures, cuts
 
 
-def cuts_processing(cuts, cube_name):
-    updated_cuts = []
+def cuts_processing(cuts, cube_name, drilldowns):
+    updated_cuts = {}
 
     for i in range(len(cuts)):
         var = cuts[i].split('=')[0].strip()
         cut = cuts[i].split('=')[1].strip()
 
-        if var == "Year" or var == "Month" or var == "Quarter":
-            updated_cuts.append(f"{var}={cut}")
-        else: 
-            drilldown_id, s = get_similar_content(cut, cube_name, var)
-            updated_cuts.append(f"{var}={drilldown_id}")
+        var_levels = get_drilldown_levels(cube_name, var)
+        if var == "Year" or var == "Month" or var == "Quarter" or var == "Month and Year":
+            if var in updated_cuts:
+                updated_cuts[var].append(cut)
+            else:
+                updated_cuts[var] = [cut]
+        else:
+            drilldown_id, drilldown_name, s = get_similar_content(cut, cube_name, var_levels)
 
-    api_params = '&' + "&".join(updated_cuts)
+            if drilldown_name != var: 
+                drilldowns = drilldowns.replace(var, drilldown_name)
+
+            if drilldown_name in updated_cuts:
+                updated_cuts[drilldown_name].append(drilldown_id)
+            else:
+                updated_cuts[drilldown_name] = [drilldown_id]
+            
+    api_params = '&' + '&'.join([f"{key}={','.join(values)}" for key, values in updated_cuts.items()])
     
-    return api_params
+    return api_params, drilldowns
 
 
 def api_build(table, drilldowns, measures, cuts, limit = ""):
@@ -148,11 +163,11 @@ def api_build(table, drilldowns, measures, cuts, limit = ""):
         drilldowns[i] = clean_string(drilldowns[i])
 
     for i in range(len(measures)):
-        measures[i] = clean_string(measures[i])
+        measures[i] = clean_string(measures[i].replace("Index", "Inde"))
 
     drilldowns_str = "&drilldowns=" + ','.join(drilldowns)
     measures_str = "&measures=" + ','.join(measures)
-    cuts_str = cuts_processing(cuts, table)
+    cuts_str, drilldowns_str = cuts_processing(cuts, table, drilldowns_str)
 
     if base == "Mondrian": base = MONDRIAN_API
     else: base = TESSERACT_API + "cube=" + table

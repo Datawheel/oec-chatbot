@@ -2,7 +2,7 @@ import re
 import regex
 
 def clean_string(text):
-    return text.replace(", ", "%2C").replace(" ,", "%2C").replace(".", "").strip().replace(" ", "+")
+    return text.replace(", ", "%2C").replace(" ,", "%2C").strip()
 
 
 def string_to_vars(text):
