@@ -1,0 +1,28 @@
+steps:
+  # [START cloudbuild_image_yaml]
+  # Start from cached image
+  - name: "gcr.io/cloud-builders/docker"
+    entrypoint: "bash"
+    args: ["-c", "docker pull ${_GCP_ARTIFACT_REGISTRY_LOCATION}-docker.pkg.dev/${_GCP_PROJECT_ID}/${_GCP_ARTIFACT_REGISTRY_NAME}/${_GCP_IMAGE_NAME}:latest || exit 0"]
+  # Docker Build
+  - name: "gcr.io/cloud-builders/docker"
+    args: [
+      "build",
+      "-t",
+      "${_GCP_ARTIFACT_REGISTRY_LOCATION}-docker.pkg.dev/${_GCP_PROJECT_ID}/${_GCP_ARTIFACT_REGISTRY_NAME}/${_GCP_IMAGE_NAME}:${_GITHUB_SHA}",
+      "-t",
+      "${_GCP_ARTIFACT_REGISTRY_LOCATION}-docker.pkg.dev/${_GCP_PROJECT_ID}/${_GCP_ARTIFACT_REGISTRY_NAME}/${_GCP_IMAGE_NAME}:latest",
+      "--cache-from",
+      "${_GCP_ARTIFACT_REGISTRY_LOCATION}-docker.pkg.dev/${_GCP_PROJECT_ID}/${_GCP_ARTIFACT_REGISTRY_NAME}/${_GCP_IMAGE_NAME}:latest",
+      "."
+    ]
+  # [END cloudbuild_image_yaml]
+images:
+  - "${_GCP_ARTIFACT_REGISTRY_LOCATION}-docker.pkg.dev/${_GCP_PROJECT_ID}/${_GCP_ARTIFACT_REGISTRY_NAME}/${_GCP_IMAGE_NAME}:${_GITHUB_SHA}"
+  - "${_GCP_ARTIFACT_REGISTRY_LOCATION}-docker.pkg.dev/${_GCP_PROJECT_ID}/${_GCP_ARTIFACT_REGISTRY_NAME}/${_GCP_IMAGE_NAME}:latest"
+substitutions:
+  _GCP_ARTIFACT_REGISTRY_LOCATION: "us-central1"
+  _GCP_PROJECT_ID: "empty"
+  _GCP_ARTIFACT_REGISTRY_NAME: "empty"
+  _GCP_IMAGE_NAME: "empty"
+  _GITHUB_SHA: "empty"
