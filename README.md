@@ -20,6 +20,8 @@ This repository contains scripts for a chatbot that leverages artificial intelli
      3. **`table_selection/`**
         - All scripts needed to lookup the relevant table/cube that contains the data needed to answer a user's query.
 
+     4. **`data_analysis/`**
+        - Contains scripts used for data analysis (mainly using [langchain](https://python.langchain.com/docs/get_started/introduction)).
 
 
 ## General Workflow
@@ -54,7 +56,6 @@ This repository contains scripts for a chatbot that leverages artificial intelli
      }
 ```
 
-
    3. Extracts the JSON from the LM's output string.
 
    4. For the cuts, a similarity search is done over the corresponding dimension members to extract its' id.
@@ -82,25 +83,21 @@ In order to add cubes, the steps are:
       - name
       - api (Tesseract or Mondrian)
       - description
-      - columns (include only measures and primary dimensions)
-         - for variables: Add only the main dimension; include any dimension hierarchies in the "levels" key.
-            ```json
-               {
-                  "name": "Geography",
-                  "param": "variable",
-                  "type": "TEXT",
-                  "description": "US states or counties",
-                  "levels": ["State", "County"]
-               }
-            ```
-
-         - for measures:
+      - measures
             ```json
                {
                   "name": "Millions Of Dollars",
-                  "param": "measure",
-                  "type": "FLOAT",
                   "description": "value in millions of dollars of a certain shipment."   
+               }
+            ```
+      - variables
+         - Add each level separately, filling the following fields for each:
+            ```json
+               {
+                  "name": "State",
+                  "description": "US states",
+                  "parent dimension": "Geography",
+                  "hierarchies": ["State", "County"]
                }
             ```
 
