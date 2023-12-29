@@ -143,8 +143,12 @@ def cuts_processing(cuts, cube_name, drilldowns):
         else:
             drilldown_id, drilldown_name, s = get_similar_content(cut, cube_name, var_levels)
 
-            if drilldown_name != var: 
-                drilldowns = drilldowns.replace(var, drilldown_name)
+            if drilldown_name != var:
+                    drilldowns.remove(var)
+                    if drilldown_name not in drilldowns:
+                        drilldowns.append(drilldown_name)
+
+            print('\nDrilldowns:', drilldowns)
 
             if drilldown_name in updated_cuts:
                 updated_cuts[drilldown_name].append(drilldown_id)
@@ -165,9 +169,9 @@ def api_build(table, drilldowns, measures, cuts, limit = ""):
     for i in range(len(measures)):
         measures[i] = clean_string(measures[i].replace("Index", "Inde"))
 
-    drilldowns_str = "&drilldowns=" + ','.join(drilldowns)
     measures_str = "&measures=" + ','.join(measures)
-    cuts_str, drilldowns_str = cuts_processing(cuts, table, drilldowns_str)
+    cuts_str, drilldowns = cuts_processing(cuts, table, drilldowns)
+    drilldowns_str = "&drilldowns=" + ','.join(drilldowns)
 
     if base == "Mondrian": base = MONDRIAN_API
     else: base = TESSERACT_API + "cube=" + table
