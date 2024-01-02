@@ -4,7 +4,7 @@ FROM python:3.11-slim as build
 # update prerequisites
 RUN apt-get update
 RUN apt-get install -y --no-install-recommends \
-	build-essential \
+  build-essential \
   gcc \
   libpq-dev
 
@@ -28,7 +28,7 @@ WORKDIR /usr/app
 # update prerequisites
 RUN apt-get update
 RUN apt-get install -y --no-install-recommends \
-	build-essential \
+  build-essential \
   gcc \
   libpq-dev
 
