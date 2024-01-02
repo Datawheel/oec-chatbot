@@ -56,10 +56,10 @@ serviceAccount:
   # If not set and create is true, a name is generated using the fullname template
   name: ""
 
-configMap:
+# configMap:
   # <VARNAME>: <VARVALUE>
 
-secrets:
+# secrets:
   # <SECRETNAME>: <BASE64-SECRETVALUE>
 
 ingress:
