@@ -55,7 +55,7 @@
 #    Container Registry vs Artifact Registry   - https://cloud.google.com/blog/products/application-development/understanding-artifact-registry-vs-container-registry
 #    Principle of least privilege              - https://cloud.google.com/blog/products/identity-security/dont-get-pwned-practicing-the-principle-of-least-privilege
 #    Deploy CloudRun Github Actions            - https://github.com/google-github-actions/deploy-cloudrun
-name: "[Google Cloud] Build to Registry and Deploy to GKE"
+name: "[Google Cloud] Build to Registry and Deploy via Helm"
 
 on:
   push:
@@ -72,6 +72,7 @@ env:
   GKE_APP_NAMESPACE: ${{ vars.GKE_APP_NAMESPACE }}
   GKE_CLUSTER: ${{ vars.GKE_CLUSTER }}
   GKE_ZONE: ${{ vars.GKE_ZONE }}
+  ACTIONS_ALLOW_UNSECURE_COMMANDS: true
 
 jobs:
   build:
@@ -88,41 +89,73 @@ jobs:
         with:
           project_id: '${{ env.GCP_PROJECT_ID }}'
           credentials_json: '${{ secrets.GCP_SA_KEY }}'
+      
+      # Install Cloud SDK
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v1
+        with:
+          install_components: "beta"
 
       # Build image on Google Cloud Artifact Registry
       - name: Build Docker Image
         run: |-
           gcloud builds submit \
             --quiet \
-            --timeout=30m \
-            --suppress-logs \
+            --timeout=40m \
             --config=cloudbuild.yml \
-            --substitutions=_GCP_PROJECT_ID=${{ env.GCP_PROJECT_ID }},_GCP_ARTIFACT_REGISTRY_NAME=${{ env.GCP_ARTIFACT_REGISTRY_NAME }},_GCP_ARTIFACT_REGISTRY_LOCATION=${{ env.GCP_ARTIFACT_REGISTRY_LOCATION }},_GCP_IMAGE_NAME=${{ env.GCP_IMAGE_NAME }},_GITHUB_SHA=${{ github.sha }}
+            --substitutions=_GCP_PROJECT_ID=${{ env.GCP_PROJECT_ID }},_GCP_ARTIFACT_REGISTRY_NAME=${{ env.GCP_ARTIFACT_REGISTRY_NAME }},_GCP_ARTIFACT_REGISTRY_LOCATION=${{ env.GCP_ARTIFACT_REGISTRY_LOCATION }},_GCP_IMAGE_NAME=${{ env.GCP_IMAGE_NAME }},_GCP_IMAGE_TAG=${{ github.sha }},_GCP_IMAGE_ENVIRONMENT={{ env.GKE_APP_NAMESPACE }}
         working-directory: ./api
 
-  # deploy:
-  #   needs: build
-  #   runs-on: ubuntu-latest
-  #   environment: api
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v3
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: api
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
 
-  #     # Authentication via credentials json
-  #     - name: Google Auth
-  #       id: auth
-  #       uses: 'google-github-actions/auth@v2'
-  #       with:
-  #         project_id: '${{ vars.GCP_PROJECT_ID }}'
-  #         credentials_json: '${{ secrets.GCP_SA_KEY }}'
+      # Authentication via credentials json
+      - name: Google Auth
+        id: auth
+        uses: 'google-github-actions/auth@v2'
+        with:
+          project_id: '${{ vars.GCP_PROJECT_ID }}'
+          credentials_json: '${{ secrets.GCP_SA_KEY }}'
       
-  #     # Get google kubernetes engine credentials
-  #     - name: Get GKE Credentials
-  #       uses: google-github-actions/get-gke-credentials@v0
-  #       with:
-  #         cluster_name: ${{ env.GKE_CLUSTER }}
-  #         location: ${{ env.GKE_ZONE }}
+      # Get google kubernetes engine credentials
+      - name: Get GKE Credentials
+        uses: google-github-actions/get-gke-credentials@v0
+        with:
+          cluster_name: ${{ env.GKE_CLUSTER }}
+          location: ${{ env.GKE_ZONE }}
+      
+      # Transform GitHub secrets to base64 encoded
+      - name: Set encoded secret values
+        run: |
+          echo "ENCODED_POSTGRES_PASSWORD=$(echo -n "${{ secrets.POSTGRES_PASSWORD }}" | base64 | tr -d '\n')" >> $GITHUB_ENV
 
-  #     # Restart deployment by deleting old pod
-  #     - name: Restart Deployment
-  #       run: kubectl delete pod -n ${{ env.GKE_APP_NAMESPACE }} -l app=${{ env.GKE_APP_NAME }}
+      # Install Helm chart
+      - name: Helm install
+        uses: WyriHaximus/github-action-helm3@v2
+        with:
+          exec: |
+            helm upgrade --install --create-namespace \
+              --namespace ${{ env.GKE_APP_NAMESPACE }} \
+              --set app.environment=${{ env.GKE_APP_NAMESPACE }} \
+              --set app.release=${{ env.GKE_APP_NAMESPACE }} \
+              --set image.repository=${{ env.GCP_ARTIFACT_REGISTRY_LOCATION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.GCP_ARTIFACT_REGISTRY_NAME }}/${{ env.GCP_IMAGE_NAME }} \
+              --set image.tag=${{ github.sha }} \
+              --set nameOverride=${{ env.GKE_APP_NAME }} \
+              --set fullnameOverride=${{ env.GKE_APP_NAME }} \
+              --set configMap.FEW_SHOT_PATH=${{ vars.FEW_SHOT_PATH }} \
+              --set configMap.MONDRIAN_API=${{ vars.MONDRIAN_API }} \
+              --set configMap.OPENAI_KEY=${{ vars.OPENAI_KEY }} \
+              --set configMap.POSTGRES_DB=${{ vars.POSTGRES_DB }} \
+              --set configMap.POSTGRES_URL=${{ vars.POSTGRES_URL }} \
+              --set configMap.POSTGRES_USER=${{ vars.POSTGRES_USER }} \
+              --set configMap.TABLES_PATH=${{ vars.TABLES_PATH }} \
+              --set configMap.TESSERACT_API=${{ vars.TESSERACT_API }} \
+              --set configMap.TOKENIZERS_PARALLELISM=${{ vars.TOKENIZERS_PARALLELISM }} \
+              --set secrets.POSTGRES_PASSWORD=$ENCODED_POSTGRES_PASSWORD \
+              ${{ env.GKE_APP_NAME }} --values=./helm/values.yaml ./helm
+          working-directory: ./api

@@ -101,14 +101,14 @@ export default function ChatPage() {
               >
                 Enter your question
               </Text>
-)}
+            )}
             value={searchText}
             size="xl"
             onKeyDown={(e) => {
               if (e.key === "Enter") {
                 searchAction();
               }
-              e.key;
+              // e.key;
             }}
             onChange={(e) => setSearchText(e.target.value)}
             rightSection={(
