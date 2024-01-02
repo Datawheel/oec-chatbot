@@ -159,5 +159,4 @@ jobs:
               --set configMap.TOKENIZERS_PARALLELISM=${{ vars.TOKENIZERS_PARALLELISM }} \
               --set secrets.OPENAI_KEY=$ENCODED_OPENAI_KEY \
               --set secrets.POSTGRES_PASSWORD=$ENCODED_POSTGRES_PASSWORD \
-              ${{ env.GKE_APP_NAME }} --values=./helm/values.yaml ./helm
-          working-directory: ./api
+              ${{ env.GKE_APP_NAME }} --values=./helm/values-api.yaml ./helm
