@@ -133,6 +133,7 @@ jobs:
       - name: Set encoded secret values
         run: |
           echo "ENCODED_POSTGRES_PASSWORD=$(echo -n "${{ secrets.POSTGRES_PASSWORD }}" | base64 | tr -d '\n')" >> $GITHUB_ENV
+          echo "ENCODED_OPENAI_KEY=$(echo -n "${{ secrets.OPENAI_KEY }}" | base64 | tr -d '\n')" >> $GITHUB_ENV
 
       # Install Helm chart
       - name: Helm install
@@ -149,13 +150,13 @@ jobs:
               --set fullnameOverride=${{ env.GKE_APP_NAME }} \
               --set configMap.FEW_SHOT_PATH=${{ vars.FEW_SHOT_PATH }} \
               --set configMap.MONDRIAN_API=${{ vars.MONDRIAN_API }} \
-              --set configMap.OPENAI_KEY=${{ vars.OPENAI_KEY }} \
               --set configMap.POSTGRES_DB=${{ vars.POSTGRES_DB }} \
               --set configMap.POSTGRES_URL=${{ vars.POSTGRES_URL }} \
               --set configMap.POSTGRES_USER=${{ vars.POSTGRES_USER }} \
               --set configMap.TABLES_PATH=${{ vars.TABLES_PATH }} \
               --set configMap.TESSERACT_API=${{ vars.TESSERACT_API }} \
               --set configMap.TOKENIZERS_PARALLELISM=${{ vars.TOKENIZERS_PARALLELISM }} \
+              --set secrets.OPENAI_KEY=$ENCODED_OPENAI_KEY \
               --set secrets.POSTGRES_PASSWORD=$ENCODED_POSTGRES_PASSWORD \
               ${{ env.GKE_APP_NAME }} --values=./helm/values.yaml ./helm
           working-directory: ./api
