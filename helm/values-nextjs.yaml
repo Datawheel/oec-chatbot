@@ -18,8 +18,8 @@ resources:
     cpu: 10m
     memory: 128Mi
   limits:
-    cpu: 200m
-    memory: 512Mi
+    cpu: 50m
+    memory: 264Mi
 
 livenessProbe:
   failureThreshold: 3
@@ -57,7 +57,7 @@ serviceAccount:
   name: "datausa-chat-nextjs"
 
 # configMap:
-#   TOKENIZERS_PARALLELISM: "false"
+#   <VARIABLE>: <VARIABLE_VALUE>
 
 # secrets:
 #   <SECRET>: <BASE64_SECRET_VALUE>

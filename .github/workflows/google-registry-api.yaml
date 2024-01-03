@@ -80,6 +80,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     environment: api
+    if: ${{ !contains(github.event.head_commit.message, '#update') }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -126,7 +127,60 @@ jobs:
       
       # Get google kubernetes engine credentials
       - name: Get GKE Credentials
-        uses: google-github-actions/get-gke-credentials@v0
+        uses: google-github-actions/get-gke-credentials@v2
+        with:
+          cluster_name: ${{ env.GKE_CLUSTER }}
+          location: ${{ env.GKE_ZONE }}
+      
+      # Transform GitHub secrets to base64 encoded
+      - name: Set encoded secret values
+        run: |
+          echo "ENCODED_POSTGRES_PASSWORD=$(echo -n "${{ secrets.POSTGRES_PASSWORD }}" | base64 | tr -d '\n')" >> $GITHUB_ENV
+          echo "ENCODED_OPENAI_KEY=$(echo -n "${{ secrets.OPENAI_KEY }}" | base64 | tr -d '\n')" >> $GITHUB_ENV
+
+      # Install Helm chart
+      - name: Helm install
+        uses: WyriHaximus/github-action-helm3@v2
+        with:
+          exec: |
+            helm upgrade --install --create-namespace \
+              --namespace ${{ env.GKE_APP_NAMESPACE }} \
+              --set app.environment=${{ env.GKE_APP_NAMESPACE }} \
+              --set app.release=${{ env.GKE_APP_NAMESPACE }} \
+              --set image.repository=${{ env.GCP_ARTIFACT_REGISTRY_LOCATION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.GCP_ARTIFACT_REGISTRY_NAME }}/${{ env.GCP_IMAGE_NAME }} \
+              --set image.tag=${{ github.sha }} \
+              --set nameOverride=${{ env.GKE_APP_NAME }} \
+              --set fullnameOverride=${{ env.GKE_APP_NAME }} \
+              --set configMap.FEW_SHOT_PATH=${{ vars.FEW_SHOT_PATH }} \
+              --set configMap.MONDRIAN_API=${{ vars.MONDRIAN_API }} \
+              --set configMap.POSTGRES_DB=${{ vars.POSTGRES_DB }} \
+              --set configMap.POSTGRES_URL=${{ vars.POSTGRES_URL }} \
+              --set configMap.POSTGRES_USER=${{ vars.POSTGRES_USER }} \
+              --set configMap.TABLES_PATH=${{ vars.TABLES_PATH }} \
+              --set configMap.TESSERACT_API=${{ vars.TESSERACT_API }} \
+              --set secrets.OPENAI_KEY=$ENCODED_OPENAI_KEY \
+              --set secrets.POSTGRES_PASSWORD=$ENCODED_POSTGRES_PASSWORD \
+              ${{ env.GKE_APP_NAME }} --values=./helm/values-api.yaml ./helm
+  
+  update:
+    runs-on: ubuntu-latest
+    environment: api
+    if: ${{ contains(github.event.head_commit.message, '#update') }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      # Authentication via credentials json
+      - name: Google Auth
+        id: auth
+        uses: 'google-github-actions/auth@v2'
+        with:
+          project_id: '${{ vars.GCP_PROJECT_ID }}'
+          credentials_json: '${{ secrets.GCP_SA_KEY }}'
+      
+      # Get google kubernetes engine credentials
+      - name: Get GKE Credentials
+        uses: google-github-actions/get-gke-credentials@v2
         with:
           cluster_name: ${{ env.GKE_CLUSTER }}
           location: ${{ env.GKE_ZONE }}
