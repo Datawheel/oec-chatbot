@@ -57,7 +57,7 @@ serviceAccount:
   name: ""
 
 configMap:
-  test: test
+  test: "test"
 
 secrets:
   test: dGVzdA==
