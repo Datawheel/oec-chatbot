@@ -9,7 +9,3 @@ steps:
     - --cache=true
     - --cache-ttl=336h
   # [END cloudbuild_image_yaml]
-substitutions:
-  # List of custom environmental variables required ar buildtime
-  # with the format _VARNAME: VARVALUE
-  _ENVIRONMENT: development
