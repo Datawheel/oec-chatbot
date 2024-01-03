@@ -60,7 +60,7 @@ configMap:
   TOKENIZERS_PARALLELISM: "false"
 
 # secrets:
-#   test: dGVzdA==
+#   <SECRET>: <BASE64_SECRET_VALUE>
 
 ingress:
   enabled: true
