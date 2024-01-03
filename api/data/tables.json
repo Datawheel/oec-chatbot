@@ -106,8 +106,8 @@
                     "hierarchies": ["Origin State", "Origin Region"]
                 },
                 {
-                    "name": "Destination Region",
-                    "description": "Destination region",
+                    "name": "Destination State",
+                    "description": "Destination state",
                     "parent dimension": "Destination",
                     "hierarchies": ["Destination State", "Destination Region"]
                 },

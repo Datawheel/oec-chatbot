@@ -129,7 +129,7 @@ def get_api_params_from_lm(natural_language_query, table = None, model="gpt-4", 
 
 def cuts_processing(cuts, cube_name, drilldowns):
     updated_cuts = {}
-
+    
     for i in range(len(cuts)):
         var = cuts[i].split('=')[0].strip()
         cut = cuts[i].split('=')[1].strip()
@@ -148,7 +148,6 @@ def cuts_processing(cuts, cube_name, drilldowns):
                     if drilldown_name not in drilldowns:
                         drilldowns.append(drilldown_name)
 
-            print('\nDrilldowns:', drilldowns)
 
             if drilldown_name in updated_cuts:
                 updated_cuts[drilldown_name].append(drilldown_id)
