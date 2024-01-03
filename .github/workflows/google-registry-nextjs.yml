@@ -56,11 +56,15 @@
 #   Container Registry vs Artifact Registry   - https://cloud.google.com/blog/products/application-development/understanding-artifact-registry-vs-container-registry
 #   Principle of least privilege              - https://cloud.google.com/blog/products/identity-security/dont-get-pwned-practicing-the-principle-of-least-privilege
 #   Deploy CloudRun Github Actions            - https://github.com/google-github-actions/deploy-cloudrun
-name: Build and Deploy to GKE using Helm
+name: "[GCP] Build API to Registry and Deploy via Helm"
 
 on:
   push:
-    branches: [ "develop" ]
+    branches: [ "main" ]
+    paths:
+      - .github/workflows/**
+      - helm/**
+      - nextjs/**
 
 env:
   GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
@@ -76,7 +80,7 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
-    environment: develop
+    environment: nextjs
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -96,7 +100,7 @@ jobs:
             --quiet \
             --timeout=30m \
             --config=cloudbuild.yml \
-            --substitutions=_GCP_ARTIFACT_REGISTRY_LOCATION=${{ vars.GCP_ARTIFACT_REGISTRY_LOCATION }},_GCP_PROJECT_ID=${{ vars.GCP_PROJECT_ID }},_GCP_ARTIFACT_REGISTRY_NAME=${{ vars.GCP_ARTIFACT_REGISTRY_NAME }},_GCP_IMAGE_NAME=${{ vars.GCP_IMAGE_NAME }},_GITHUB_SHA=${{ github.sha }}
+            --substitutions=_GCP_ARTIFACT_REGISTRY_LOCATION=${{ vars.GCP_ARTIFACT_REGISTRY_LOCATION }},_GCP_PROJECT_ID=${{ vars.GCP_PROJECT_ID }},_GCP_ARTIFACT_REGISTRY_NAME=${{ vars.GCP_ARTIFACT_REGISTRY_NAME }},_GCP_IMAGE_NAME=${{ vars.GCP_IMAGE_NAME }},_GITHUB_SHA=${{ github.sha }},_NEXT_PUBLIC_CHAT_API=${{ vars.NEXT_PUBLIC_CHAT_API }},_NEXT_PUBLIC_TESSERACT_API=${{ vars.NEXT_PUBLIC_TESSERACT_API }}
 
       # Uncomment for adding the latest tag to the latest image created
       - name: Add 'Latest' Tag to Development Environments
@@ -104,12 +108,12 @@ jobs:
           gcloud beta artifacts docker tags add \
             --quiet \
             ${{ env.GCP_ARTIFACT_REGISTRY_LOCATION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.GCP_ARTIFACT_REGISTRY_NAME }}/${{ env.GCP_IMAGE_NAME }}:${{ github.sha }} \
-            ${{ env.GCP_ARTIFACT_REGISTRY_LOCATION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.GCP_ARTIFACT_REGISTRY_NAME }}/${{ env.GCP_IMAGE_NAME }}:latest
+            ${{ env.GCP_ARTIFACT_REGISTRY_LOCATION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.GCP_ARTIFACT_REGISTRY_NAME }}/${{ env.GCP_IMAGE_NAME }}:${{ env.GKE_APP_NAMESPACE }}
 
   deploy:
     needs: build
     runs-on: ubuntu-latest
-    environment: develop
+    environment: nextjs
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -122,6 +126,12 @@ jobs:
           project_id: ${{ env.GCP_PROJECT_ID }}
           credentials_json: ${{ secrets.GCP_SA_KEY }}
 
+      # Install Cloud SDK
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v1
+        with:
+          install_components: "beta"
+
       # Get google kubernetes engine credentials
       - name: Get GKE Credentials
         uses: google-github-actions/get-gke-credentials@v0
@@ -129,8 +139,25 @@ jobs:
           cluster_name: ${{ env.GKE_CLUSTER }}
           location: ${{ env.GKE_ZONE }}
 
+      # Transform GitHub secrets to base64 encoded
+      # - name: Set encoded secret values
+      #   run: |
+      #     echo "ENCODED_POSTGRES_PASSWORD=$(echo -n "${{ secrets.POSTGRES_PASSWORD }}" | base64 | tr -d '\n')" >> $GITHUB_ENV
+      #     echo "ENCODED_OPENAI_KEY=$(echo -n "${{ secrets.OPENAI_KEY }}" | base64 | tr -d '\n')" >> $GITHUB_ENV
+
       # Install Helm chart
       - name: Helm install
         uses: WyriHaximus/github-action-helm3@v2
         with:
-          exec: helm upgrade --install --create-namespace --namespace ${{ env.GKE_APP_NAMESPACE }} --set app.environment=${{ env.GKE_APP_NAMESPACE }} --set app.release=${{ env.GKE_APP_RELEASE }} --set image.repository=${{ env.GCP_ARTIFACT_REGISTRY_LOCATION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.GCP_ARTIFACT_REGISTRY_NAME }}/${{ env.GCP_IMAGE_NAME }} --set image.tag=${{ github.sha }} --set nameOverride=${{ env.GKE_APP_NAME }} --set fullnameOverride=${{ env.GKE_APP_NAME }} ${{ env.GKE_APP_NAME }} ./helm --values=./helm/values.yaml 
+          exec: |
+            helm upgrade --install --create-namespace \
+              --namespace ${{ env.GKE_APP_NAMESPACE }} \
+              --set app.environment=${{ env.GKE_APP_NAMESPACE }} \
+              --set app.release=${{ env.GKE_APP_NAMESPACE }} \
+              --set image.repository=${{ env.GCP_ARTIFACT_REGISTRY_LOCATION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.GCP_ARTIFACT_REGISTRY_NAME }}/${{ env.GCP_IMAGE_NAME }} \
+              --set image.tag=${{ env.GKE_APP_NAMESPACE }} \
+              --set nameOverride=${{ env.GKE_APP_NAME }} \
+              --set fullnameOverride=${{ env.GKE_APP_NAME }} \
+              --set configMap.NEXT_PUBLIC_CHAT_API=${{ vars.NEXT_PUBLIC_CHAT_API }} \
+              --set configMap.NEXT_PUBLIC_TESSERACT_API=${{ vars.NEXT_PUBLIC_TESSERACT_API }} \
+              ${{ env.GKE_APP_NAME }} --values=./helm/values-nextjs.yaml ./helm

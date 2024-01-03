@@ -3,9 +3,13 @@ on:
   push:
     branches:
       - main
+    paths:
+      - nextjs/**
   pull_request:
     branches:
       - main
+    paths:
+      - nextjs/**
 jobs:
   test:
     name: Run eslint

@@ -25,8 +25,8 @@ COPY . .
 ENV NEXT_TELEMETRY_DISABLED 1
 
 # If the instance require environment at build time, add them here as ARG
-# ARG NEXT_PUBLIC_CMS
-ARG NEXT_PUBLIC_TESSERACT
+ARG NEXT_PUBLIC_CHAT_API
+ARG NEXT_PUBLIC_TESSERACT_API
 
 # If using npm comment below and use this
 RUN npm run build

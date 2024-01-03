@@ -4,7 +4,8 @@ steps:
   - name: 'gcr.io/kaniko-project/executor:latest'
     args:
     - --destination=$_GCP_ARTIFACT_REGISTRY_LOCATION-docker.pkg.dev/$_GCP_PROJECT_ID/$_GCP_ARTIFACT_REGISTRY_NAME/$_GCP_IMAGE_NAME:$_GITHUB_SHA
-    # - --build-arg=<VARNAME>=$_<VARNAME>
+    - --build-arg=NEXT_PUBLIC_CHAT_API=$_NEXT_PUBLIC_CHAT_API
+    - --build-arg=NEXT_PUBLIC_TESSERACT_API=$_NEXT_PUBLIC_TESSERACT_API
     - --cache=true
     - --cache-ttl=336h
   # [END cloudbuild_image_yaml]
