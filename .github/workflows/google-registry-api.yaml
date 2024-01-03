@@ -157,7 +157,6 @@ jobs:
               --set configMap.POSTGRES_USER="${{ vars.POSTGRES_USER }}" \
               --set configMap.TABLES_PATH="${{ vars.TABLES_PATH }}" \
               --set configMap.TESSERACT_API="${{ vars.TESSERACT_API }}" \
-              --set configMap.TOKENIZERS_PARALLELISM="${{ vars.TOKENIZERS_PARALLELISM }}" \
               --set secrets.OPENAI_KEY=$ENCODED_OPENAI_KEY \
               --set secrets.POSTGRES_PASSWORD=$ENCODED_POSTGRES_PASSWORD \
               ${{ env.GKE_APP_NAME }} --values=./helm/values-api.yaml ./helm
