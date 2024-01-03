@@ -61,8 +61,8 @@ on:
   push:
     branches: [ "main" ]
     paths:
-      - .github/workflows/**
-      - helm/**
+      - .github/workflows/google-registry-api.yaml
+      - helm/values-api.yaml
       - api/**
 
 env:
