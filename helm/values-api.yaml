@@ -57,10 +57,10 @@ serviceAccount:
   name: ""
 
 configMap:
-  test: "test"
+  TOKENIZERS_PARALLELISM: "false"
 
-secrets:
-  test: dGVzdA==
+# secrets:
+#   test: dGVzdA==
 
 ingress:
   enabled: true
