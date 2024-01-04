@@ -183,8 +183,15 @@ def api_build(table, drilldowns, measures, cuts, limit = ""):
 def api_request(url):
     try:
         r = requests.get(url)
-        # df = pd.DataFrame.from_dict(r.json()['data'])
-        json_data = r.json()['data']
-        df = pd.DataFrame.from_dict(r.json()['data'])
-    except: raise ValueError('Invalid API url:', url)
-    return json_data, df
+        r.raise_for_status()
+
+        if 'data' in r.json():
+            json_data = r.json()['data']
+            df = pd.DataFrame.from_dict(r.json()['data'])
+            return json_data, df, ""
+
+    except: 
+        json_data = json.loads('{}')
+        df = pd.DataFrame()
+        return json_data, df, "No data found."
+        #raise ValueError('Invalid API url:', url)

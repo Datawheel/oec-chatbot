@@ -15,10 +15,13 @@ def get_api(query):
     v, m, c = get_api_params_from_lm(query, table_db_llm[0], model = 'gpt-4-1106-preview')
     api_url = api_build(table = table_db_llm[0], drilldowns = v, measures = m, cuts = c)
     print("API:", api_url)
-    data, df = api_request(api_url)
+    data, df, response = api_request(api_url)
 
-    response = agent_answer(df, query)
+    if (response == "No data found."):
+        return api_url, data, response
+    
+    else:
+        response = agent_answer(df, query)
+        log_apicall(query, api_url, response, v, m, c, table_db_llm[0])
 
-    log_apicall(query, api_url, response, v, m, c, table_db_llm[0])
-
-    return api_url, data, response
+        return api_url, data, response
