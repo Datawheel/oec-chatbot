@@ -1,6 +1,6 @@
 steps:
   # [START cloudbuild_image_yaml]
-  # Start from last build
+  # Start from previous build
   - name: "gcr.io/cloud-builders/docker"
     entrypoint: "bash"
     args: ["-c", "docker pull ${_GCP_ARTIFACT_REGISTRY_LOCATION}-docker.pkg.dev/${_GCP_PROJECT_ID}/${_GCP_ARTIFACT_REGISTRY_NAME}/${_GCP_IMAGE_NAME}:${_GCP_IMAGE_ENVIRONMENT} || exit 0"]
