@@ -26,5 +26,3 @@ def get_api(query):
         log_apicall(query, api_url, response, v, m, c, table_db[0])
 
         return api_url, data, response
-    
-get_api('How much did the CPI of commodities change between 2015 and 2020?')
