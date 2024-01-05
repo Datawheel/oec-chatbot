@@ -21,7 +21,7 @@ def _get_table_selection_message_with_descriptions(table_names: List[str] = None
     message = (
         """
         You are an expert data scientist.\n
-        Return a JSON object with relevant SQL tables for answering the following natural language query:\n
+        Return a JSON object with the relevant SQL tables to answer the following natural language query:\n
         ---------------\n
         {natural_language_query}
         \n---------------\n
@@ -36,16 +36,15 @@ def _get_table_selection_message_with_descriptions(table_names: List[str] = None
         return (
             message +
             f"""
-            The following are the tables you can query and the definition of their enums:\n
+            The following are the tables you can query:\n
             ---------------------\n
             {get_table_schemas(table_names)}
             ---------------------\n
 
             in your answer, provide the following information:\n
             
-            - <one to two sentence comment explaining what tables can be relevant goes here>\n
-            - <for each table identified, comment double checking the table is in the schema above along with what the first column in the table is or (none) if it doesn't exist. be careful that any tables suggested were actually above>\n
-            - <if any tables were incorrectly identified, make a note here about what tables from the schema should actually be used if any>\n
+            - <one to two sentence comment explaining why the chosen table is relevant goes here>\n
+            - <for each table identified, comment double checking the table is in the schema above along with what the first column in the table is or (none) if it doesn't exist>\n
             - the markdown formatted like this:\n
             ```\n
             <json of the tables>\n
@@ -66,9 +65,8 @@ def _get_table_selection_message_with_descriptions(table_names: List[str] = None
 
             in your answer, provide the following information:\n
             
-            - <one to two sentence comment explaining what tables can be relevant goes here>\n
             - <comment double checking the table is the one above along with what the first column in the table is or (none) if it doesn't exist.>\n
-            - <finally select the most relevant table that can be used to answer the query.>
+            - <select the most relevant table that can be used to answer the query.>
             - the markdown formatted like this:\n
             ```\n
             <json of the most relevant table>\n
