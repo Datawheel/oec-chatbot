@@ -124,7 +124,7 @@ export default function ChatPage() {
         <ChatResults
           chatResponse={chatApiResponse}
          // source={`${NEXT_PUBLIC_TESSERACT}${chatApiResponse.query.url}`}
-         source={'https://datausa.io/'}
+          source="https://datausa.io/"
         />
         )}
         <Loading visible={dataLoading} text="We're loading your data results, please wait..." />
