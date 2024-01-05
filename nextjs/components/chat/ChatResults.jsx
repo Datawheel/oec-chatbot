@@ -20,7 +20,7 @@ function ChatResults({chatResponse, source}) {
         Source:
         {" "}
         <Anchor href={source} target="_blank">
-          Observatory of Economic Complexity
+          DataUSA
         </Anchor>
       </Text>
     </Stack>
