@@ -107,7 +107,7 @@ jobs:
             --quiet \
             --timeout=30m \
             --config=cloudbuild.yml \
-            --substitutions=_GCP_ARTIFACT_REGISTRY_LOCATION=${{ vars.GCP_ARTIFACT_REGISTRY_LOCATION }},_GCP_PROJECT_ID=${{ vars.GCP_PROJECT_ID }},_GCP_ARTIFACT_REGISTRY_NAME=${{ vars.GCP_ARTIFACT_REGISTRY_NAME }},_GCP_IMAGE_NAME=${{ vars.GCP_IMAGE_NAME }},_GITHUB_SHA=${{ github.sha }},_NEXT_PUBLIC_CHAT_API=${{ vars.NEXT_PUBLIC_CHAT_API }},_NEXT_PUBLIC_TESSERACT_API=${{ vars.NEXT_PUBLIC_TESSERACT_API }}
+            --substitutions=_GCP_ARTIFACT_REGISTRY_LOCATION=${{ vars.GCP_ARTIFACT_REGISTRY_LOCATION }},_GCP_PROJECT_ID=${{ vars.GCP_PROJECT_ID }},_GCP_ARTIFACT_REGISTRY_NAME=${{ vars.GCP_ARTIFACT_REGISTRY_NAME }},_GCP_IMAGE_NAME=${{ vars.GCP_IMAGE_NAME }},_GITHUB_SHA=${{ github.sha }},_GCP_IMAGE_ENVIRONMENT=${{ env.GKE_APP_NAMESPACE }},_NEXT_PUBLIC_CHAT_API=${{ vars.NEXT_PUBLIC_CHAT_API }},_NEXT_PUBLIC_TESSERACT_API=${{ vars.NEXT_PUBLIC_TESSERACT_API }}
         working-directory: ./nextjs
 
   deploy:
