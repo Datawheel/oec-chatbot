@@ -94,6 +94,12 @@ jobs:
           project_id: ${{ env.GCP_PROJECT_ID }}
           credentials_json: ${{ secrets.GCP_SA_KEY }}
 
+      # Install Cloud SDK
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v1
+        with:
+          install_components: "beta"
+
       # Build image on Google Cloud Artifact Registry
       - name: Build Docker Image
         run: |-
@@ -103,14 +109,6 @@ jobs:
             --config=cloudbuild.yml \
             --substitutions=_GCP_ARTIFACT_REGISTRY_LOCATION=${{ vars.GCP_ARTIFACT_REGISTRY_LOCATION }},_GCP_PROJECT_ID=${{ vars.GCP_PROJECT_ID }},_GCP_ARTIFACT_REGISTRY_NAME=${{ vars.GCP_ARTIFACT_REGISTRY_NAME }},_GCP_IMAGE_NAME=${{ vars.GCP_IMAGE_NAME }},_GITHUB_SHA=${{ github.sha }},_NEXT_PUBLIC_CHAT_API=${{ vars.NEXT_PUBLIC_CHAT_API }},_NEXT_PUBLIC_TESSERACT_API=${{ vars.NEXT_PUBLIC_TESSERACT_API }}
         working-directory: ./nextjs
-
-      # Uncomment for adding the latest tag to the latest image created
-      - name: Add 'Latest' Tag to Development Environments
-        run: |-
-          gcloud beta artifacts docker tags add \
-            --quiet \
-            ${{ env.GCP_ARTIFACT_REGISTRY_LOCATION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.GCP_ARTIFACT_REGISTRY_NAME }}/${{ env.GCP_IMAGE_NAME }}:${{ github.sha }} \
-            ${{ env.GCP_ARTIFACT_REGISTRY_LOCATION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.GCP_ARTIFACT_REGISTRY_NAME }}/${{ env.GCP_IMAGE_NAME }}:${{ env.GKE_APP_NAMESPACE }}
 
   deploy:
     needs: build
