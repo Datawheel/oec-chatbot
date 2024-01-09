@@ -1,16 +1,16 @@
-import datetime
 import random
 import string
-import os
 import time
 
+from datetime import datetime
+from os import getenv
 from sqlalchemy import text
 from sqlalchemy import create_engine
 
-POSTGRES_USERNAME = os.getenv('POSTGRES_USER')
-POSTGRES_PASSWORD = os.getenv('POSTGRES_PASSWORD')
-POSTGRES_URL = os.getenv('POSTGRES_URL')
-POSTGRES_DATABASE = os.getenv('POSTGRES_DB')
+POSTGRES_USERNAME = getenv('POSTGRES_USER')
+POSTGRES_PASSWORD = getenv('POSTGRES_PASSWORD')
+POSTGRES_URL = getenv('POSTGRES_URL')
+POSTGRES_DATABASE = getenv('POSTGRES_DB')
 
 def generate_custom_id():
     timestamp = str(int(time.time()))
@@ -19,7 +19,7 @@ def generate_custom_id():
 
 
 def log_apicall(query, api_url, response, drilldowns, measures, cuts, cube):
-    ct = datetime.datetime.now()
+    ct = datetime.now()
     custom_id = generate_custom_id()
 
     params = {
@@ -43,6 +43,6 @@ def log_apicall(query, api_url, response, drilldowns, measures, cuts, cube):
 
     with engine.connect() as conn:
         conn.execute(insert_query, params)
-       # conn.commit()
-    
+        conn.commit()
+
     return {"status": "success"}
