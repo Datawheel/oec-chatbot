@@ -27,6 +27,3 @@ def get_api(query):
         log_apicall(query, api_url, response, v, m, c, table_db[0])
 
         return api_url, data, response
-    
-
-get_api('what was the growth in the inflation rate of housing between 2018 and 2020?')
