@@ -46,13 +46,16 @@ export default function ChatPage() {
     setLoading(true);
 
     const searchApi = (new URL(`/query/${searchText}`, NEXT_PUBLIC_CHAT_API)).href;
-    axios.get(searchApi, {signal: controller.current.signal})
+    axios.get(searchApi, {signal: controller.current.signal, timeout: 30000})
       .then((resp) => {
         setchatApiResponse(resp.data);
         handleData(resp.data.query.url);
         setLoading(false);
       })
-      .catch(() => undefined);
+      .catch((error) => {
+        console.error("Error al realizar la consulta:", error);
+        setLoading(false);
+    });
   };
 
   const handleData = async (url) => {
@@ -64,7 +67,10 @@ export default function ChatPage() {
         setchatDataResponse(resp.data);
         setdataLoading(false);
       })
-      .catch(() => undefined);
+      .catch((error) => {
+        console.error("Error al realizar la consulta:", error);
+        setLoading(false);
+    });
   };
 
   const searchAction = () => {
