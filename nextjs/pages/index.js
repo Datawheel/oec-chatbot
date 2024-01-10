@@ -46,7 +46,7 @@ export default function ChatPage() {
     setLoading(true);
 
     const searchApi = (new URL(`/query/${searchText}`, NEXT_PUBLIC_CHAT_API)).href;
-    axios.get(searchApi, {signal: controller.current.signal, timeout: 30000})
+    axios.get(searchApi, {signal: controller.current.signal})
       .then((resp) => {
         setchatApiResponse(resp.data);
         handleData(resp.data.query.url);
