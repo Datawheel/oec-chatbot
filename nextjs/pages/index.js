@@ -55,7 +55,7 @@ export default function ChatPage() {
       .catch((error) => {
         console.error("Error al realizar la consulta:", error);
         setLoading(false);
-    });
+      });
   };
 
   const handleData = async (url) => {
@@ -70,7 +70,7 @@ export default function ChatPage() {
       .catch((error) => {
         console.error("Error al realizar la consulta:", error);
         setLoading(false);
-    });
+      });
   };
 
   const searchAction = () => {
