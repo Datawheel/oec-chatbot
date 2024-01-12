@@ -29,6 +29,7 @@ def agent_answer(df, natural_language_query):
         If you can't answer the question with the provided data, please answer with "I can't answer your question with the available data".
         Lets think it through step by step.
         Do not write 'python' anywhere.
+        Avoid any further comments not related to the question itself.
         """
     )
 
