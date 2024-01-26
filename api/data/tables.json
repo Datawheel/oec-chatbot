@@ -258,6 +258,135 @@
                     "hierarchies": ["Industry Sector", "Industry Sub-Sector", "Industry Group"]
                 }
             ]
+        },
+        {
+            "name": "Data_USA_Senate_election",
+            "api": "Tesseract",
+            "description": "Table `Data_USA_Senate_election` has data on number of votes by senate candidate, party and state.",
+            "measures": [
+                {
+                    "name": "Candidate Votes",
+                    "description": "Contains the total votes for a House candidate in a certain year."
+                },
+                {
+                    "name": "Total Votes",
+                    "description": "Contains the total votes in a certain state for a certain year."
+                }
+            ],
+            "variables": [
+                {
+                    "name": "Candidate",
+                    "parent dimension": "Candidate",
+                    "hierarchies": ["Candidate"]
+                },
+                {
+                    "name": "State",
+                    "description": "US states",
+                    "parent dimension": "State",
+                    "hierarchies": ["State"]
+                },
+                {
+                    "name": "Party",
+                    "description": "Political party of the candidate",
+                    "parent dimension": "Party",
+                    "hierarchies": ["Party"]
+                },
+                {
+                    "name": "Year",
+                    "parent dimension": "Year",
+                    "hierarchies": ["Year"]
+                }
+            ]
+        },
+        {
+            "name": "Data_USA_President_election",
+            "api": "Tesseract",
+            "description": "Table `Data_USA_President_election` has data on number votes by presidential candidate, party and state.",
+            "measures": [
+                {
+                    "name": "Candidate Votes",
+                    "description": "Contains the total votes for a presidential candidate in a certain year."
+                },
+                {
+                    "name": "Total Votes",
+                    "description": "Contains the total votes in a certain state for a certain year."
+                }
+            ],
+            "variables": [
+                {
+                    "name": "Candidate",
+                    "parent dimension": "Candidate",
+                    "hierarchies": ["Candidate"]
+                },
+                {
+                    "name": "State",
+                    "description": "US states",
+                    "parent dimension": "Geography",
+                    "hierarchies": ["State"]
+                },
+                {
+                    "name": "County",
+                    "description": "US counties",
+                    "parent dimension": "Geography",
+                    "hierarchies": ["State County", "County"]
+                },
+                {
+                    "name": "Party",
+                    "description": "Political party of the candidate",
+                    "parent dimension": "Party",
+                    "hierarchies": ["Party"]
+                },
+                {
+                    "name": "Year",
+                    "parent dimension": "Year",
+                    "hierarchies": ["Year"]
+                }
+            ]
+        },
+        {
+            "name": "Data_USA_House_election",
+            "api": "Tesseract",
+            "description": "Table `Data_USA_House_election` has data on number votes by House candidate, party and state.",
+            "measures": [
+                {
+                    "name": "Candidate Votes",
+                    "description": "Contains the total votes for a presidential candidate in a certain year."
+                },
+                {
+                    "name": "Total Votes",
+                    "description": "Contains the total votes in a certain state for a certain year."
+                }
+            ],
+            "variables": [
+                {
+                    "name": "Candidate",
+                    "parent dimension": "Candidate",
+                    "hierarchies": ["Candidate"]
+                },
+                {
+                    "name": "State",
+                    "description": "US states",
+                    "parent dimension": "Geography",
+                    "hierarchies": ["State", "Congressional District"]
+                },
+                {
+                    "name": "Congressional District",
+                    "description": "US counties",
+                    "parent dimension": "Geography",
+                    "hierarchies": ["State", "Congressional District"]
+                },
+                {
+                    "name": "Party",
+                    "description": "Political party of the candidate",
+                    "parent dimension": "Party",
+                    "hierarchies": ["Party"]
+                },
+                {
+                    "name": "Year",
+                    "parent dimension": "Year",
+                    "hierarchies": ["Year"]
+                }
+            ]
         }
     ]
 }
