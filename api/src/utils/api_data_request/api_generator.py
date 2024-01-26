@@ -166,14 +166,14 @@ def api_build(table, drilldowns, measures, cuts, limit = ""):
         drilldowns[i] = clean_string(drilldowns[i])
 
     for i in range(len(measures)):
-        measures[i] = clean_string(measures[i].replace("Index", "Inde"))
+        measures[i] = clean_string(measures[i])
 
     measures_str = "&measures=" + ','.join(measures)
     cuts_str, drilldowns = cuts_processing(cuts, table, drilldowns)
     drilldowns_str = "&drilldowns=" + ','.join(drilldowns)
 
     if base == "Mondrian": base = MONDRIAN_API
-    else: base = TESSERACT_API + "cube=" + table
+    else: base = TESSERACT_API + "data.jsonrecords?cube=" + table
     
     url = base + drilldowns_str + measures_str + cuts_str
 

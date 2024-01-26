@@ -6,7 +6,7 @@
             "description": "Table 'Consumer Price Index - CPI' has price index for products, encompassing over 200 expenditure categories grouped into major segments (food and beverages, housing, apparel, recreation, and other goods).",
             "measures": [
                 {
-                    "name": "Consumer Price Inde",
+                    "name": "Consumer Price Index",
                     "description": "consumer price index"
                 },
                 {
