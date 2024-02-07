@@ -7,8 +7,7 @@ import json
 
 from os import getenv
 from dotenv import load_dotenv
-from langchain.llms import OpenAI
-from src.utils.table_selection.table_details import get_table_api_base, get_drilldown_levels, get_table_columns, get_table_schemas
+from src.utils.table_selection.table_details import *
 from src.utils.preprocessors.text import *
 from src.utils.api_data_request.similarity_search import *
 
@@ -26,24 +25,6 @@ MONDRIAN_API = getenv('MONDRIAN_API')
 
 
 def get_api_components_messages(table):
-    message = (
-        """
-        You are an expert data scientist working with data organized in a multidimensional format, such as in OLAP cubes.
-        You are given the following natural language query from a user and information of a cube that contains the data to answer this query.
-
-        ---------------\n
-        {natural_language_query}
-        \n---------------\n
-
-        Your goal is to identify the variables, measures and filters that are relevant and are needed in order to retrieve this data from the cube through an API.
-        Respond in JSON format with your answer separated into the following fields: 
-        \"variables\" which is a list of strings that contain the variables.\n
-        \"measures\" which is a list of strings that contain the relevant measures.\n
-        \"filters\" which is a list of strings that contain the filters in the form of 'variable = filtered_value'.\n
-
-        Write your answer in markdown format.\n
-        """
-    )
 
     response_part = """
         {{
@@ -53,18 +34,22 @@ def get_api_components_messages(table):
         }}
         """
 
-    return (
-        message +
-        f"""
-        The following JSON contains the information of the cube you can query, with its measures, dimensions and hierarchies:\n
+    message = f"""
+        You are an expert data scientist working with data organized in a multidimensional format, such as in OLAP cubes.
+        You are given the following JSON containing the information of a cube that contains data to answer a user's question. 
         ---------------------\n
-        {get_table_columns([table])}
+        {table.columns_description()}
         ---------------------\n
 
-        in your answer, provide the following information:\n
+        Your goal is to identify the variables, measures and filters needed in order to retrieve the data from the cube through an API.
+        You should respond in JSON format with your answer separated into the following fields:\n
 
-        - <one to two sentence comment explaining why the chosen variables, measures and filters can answer the query>\n
-        - <for each variable, measure and filter identified, comment double checking that they exist in the table with the specified name>\n
+            \"variables\" which is a list of strings that contain the variables.\n
+            \"measures\" which is a list of strings that contain the relevant measures.\n
+            \"filters\" which is a list of strings that contain the filters in the form of 'variable = filtered_value'.\n
+
+        in your answer, written in markdown format, provide the following information:\n
+        - <one sentence comment explaining why the chosen variables, measures and filters can answer the query>\n
         - the markdown formatted like this:\n
         ```
         {response_part}
@@ -75,24 +60,27 @@ def get_api_components_messages(table):
         - Assume the latest year to be 2023.\n
         - For cases where the query requires to filter by a certain range of years or months, please specify all of them separately.
         """
-    )
+
+    return message
 
 
 def get_api_params_from_lm(natural_language_query, table = None, model="gpt-4", top_matches=False):
     """
-    Identify relevant tables for answering a natural language query via LM
+    Identify API parameters to retrieve the data
     """
     max_attempts = 5
     attempts = 0
 
-    content = get_api_components_messages(table).format(
-        natural_language_query = natural_language_query,
-        )
+    content = get_api_components_messages(table)
 
-    messages = []
+    messages = [{
+        "role": "system",
+        "content": content
+    }]
+
     messages.append({
         "role": "user",
-        "content": content
+        "content": natural_language_query
     })
     
     while attempts < max_attempts:
@@ -127,21 +115,21 @@ def get_api_params_from_lm(natural_language_query, table = None, model="gpt-4", 
     return variables, measures, cuts
 
 
-def cuts_processing(cuts, cube_name, drilldowns):
+def cuts_processing(cuts, table, table_manager, drilldowns):
     updated_cuts = {}
     
     for i in range(len(cuts)):
         var = cuts[i].split('=')[0].strip()
         cut = cuts[i].split('=')[1].strip()
 
-        var_levels = get_drilldown_levels(cube_name, var)
+        var_levels = get_drilldown_levels(table_manager, table.name, var)
         if var == "Year" or var == "Month" or var == "Quarter" or var == "Month and Year":
             if var in updated_cuts:
                 updated_cuts[var].append(cut)
             else:
                 updated_cuts[var] = [cut]
         else:
-            drilldown_id, drilldown_name, s = get_similar_content(cut, cube_name, var_levels)
+            drilldown_id, drilldown_name, s = get_similar_content(cut, table.name, var_levels)
 
             if drilldown_name != var:
                     drilldowns.remove(var)
@@ -159,8 +147,8 @@ def cuts_processing(cuts, cube_name, drilldowns):
     return api_params, drilldowns
 
 
-def api_build(table, drilldowns, measures, cuts, limit = ""):
-    base = get_table_api_base(table)
+def api_build(table, table_manager, drilldowns, measures, cuts, limit = ""):
+    base = table.api
     
     for i in range(len(drilldowns)):
         drilldowns[i] = clean_string(drilldowns[i])
@@ -169,11 +157,11 @@ def api_build(table, drilldowns, measures, cuts, limit = ""):
         measures[i] = clean_string(measures[i])
 
     measures_str = "&measures=" + ','.join(measures)
-    cuts_str, drilldowns = cuts_processing(cuts, table, drilldowns)
+    cuts_str, drilldowns = cuts_processing(cuts, table, table_manager, drilldowns)
     drilldowns_str = "&drilldowns=" + ','.join(drilldowns)
 
     if base == "Mondrian": base = MONDRIAN_API
-    else: base = TESSERACT_API + "data.jsonrecords?cube=" + table
+    else: base = TESSERACT_API + "data.jsonrecords?cube=" + table.name
     
     url = base + drilldowns_str + measures_str + cuts_str
 
@@ -194,4 +182,3 @@ def api_request(url):
         json_data = json.loads('{}')
         df = pd.DataFrame()
         return json_data, df, "No data found."
-        #raise ValueError('Invalid API url:', url)
