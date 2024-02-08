@@ -6,10 +6,9 @@ from sentence_transformers import SentenceTransformer
 from os import getenv
 from dotenv import load_dotenv
 
-from src.utils.table_selection.table_details import get_table_schemas, get_table_names
+from src.utils.table_selection.table_details import *
 from src.utils.table_selection.table_database_search import get_similar_tables
 from src.utils.few_shot_examples import get_few_shot_example_messages
-#from src.utils.messages import get_assistant_message_from_openai
 from src.utils.preprocessors.text import extract_text_from_markdown_triple_backticks
 
 load_dotenv()
@@ -17,64 +16,30 @@ load_dotenv()
 OPENAI_KEY = getenv("OPENAI_KEY")
 openai.api_key = OPENAI_KEY
 
-def _get_table_selection_message_with_descriptions(table_names: List[str] = None, top_matches = False):
+def _get_table_selection_message_with_descriptions(table_manager, table_names: List[str] = None):
     message = (
-        """
-        You are an expert data scientist.\n
-        Return a JSON object with the relevant SQL tables to answer the following natural language query:\n
-        ---------------\n
-        {natural_language_query}
-        \n---------------\n
-        Respond in JSON format with your answer in a field named \"tables\" which is a list of strings.\n
-        Respond with an empty list if you cannot identify any relevant tables.\n
+        f"""
+        You are an expert data analyst. 
+        You are given a question from a user, and a list of tables you are able to query. 
+        Select the most relevant table that could contain the data to answer the user's question:\n
+
+        ---------------------\n
+        {table_manager.get_table_schemas(table_names)}
+        ---------------------\n
+
+        In your answer, provide the following information:\n
+        - <one to two sentence comment explaining why the chosen table is relevant goes here, double checking it exists in the list provided before>\n
+        - The markdown JSON with your answer in a field named \"table\" which contains the name of the selected table, formatted like this:\n
+        ```\n
+        <json of the tables>\n
+        ```\n
+
         Write your answer in markdown format.\n
+
+        Provide only the list of related tables and nothing else after.
         """
     )
-
-    if top_matches == True:
-
-        return (
-            message +
-            f"""
-            The following are the tables you can query:\n
-            ---------------------\n
-            {get_table_schemas(table_names)}
-            ---------------------\n
-
-            in your answer, provide the following information:\n
-            
-            - <one to two sentence comment explaining why the chosen table is relevant goes here>\n
-            - <for each table identified, comment double checking the table is in the schema above along with what the first column in the table is or (none) if it doesn't exist>\n
-            - the markdown formatted like this:\n
-            ```\n
-            <json of the tables>\n
-            ```\n
-
-            Provide only the list of related tables and nothing else after.
-            """
-        )
-    
-    else:
-        return (
-            message +
-            f"""
-            The following is a table that can be used to answer the natural language query, along with the definition of its enums:\n
-            ---------------------\n
-            {get_table_schemas(table_names)}
-            ---------------------\n
-
-            in your answer, provide the following information:\n
-            
-            - <comment double checking the table is the one above along with what the first column in the table is or (none) if it doesn't exist.>\n
-            - <select the most relevant table that can be used to answer the query.>
-            - the markdown formatted like this:\n
-            ```\n
-            <json of the most relevant table>\n
-            ```\n
-
-            Provide only the most relevant table and nothing else after.
-            """
-        )
+    return message
 
 
 def _get_table_selection_messages() -> List[str]:
@@ -86,12 +51,10 @@ def _get_table_selection_messages() -> List[str]:
     return default_messages
 
 
-def get_relevant_tables_from_database(natural_language_query, embedding_model = 'multi-qa-MiniLM-L6-cos-v1', content_limit=1) -> List[str]:
+def get_relevant_tables_from_database(natural_language_query, embedding_model = 'multi-qa-MiniLM-L6-cos-v1', content_limit = 1) -> List[str]:
     """
     Returns a list of the top k table names (matches the embedding vector of the NLQ with the stored vectors of each table)
     """
-    #vector = get_embedding(natural_language_query, "text-embedding-ada-002")
-
     model = SentenceTransformer(embedding_model) # 384
     vector = model.encode([natural_language_query])
 
@@ -100,27 +63,29 @@ def get_relevant_tables_from_database(natural_language_query, embedding_model = 
     return list(results)
 
 
-def get_relevant_tables_from_lm(natural_language_query, table_list = None, model="gpt-4", session_id=None, top_matches=False) -> List[str]:
+def get_relevant_tables_from_lm(natural_language_query, table_manager, table_list = None, model = "gpt-4") -> List[str]:
     """
     Identify relevant tables for answering a natural language query via LM
     """
     max_attempts = 5
     attempts = 0
 
-    content = _get_table_selection_message_with_descriptions(table_list, top_matches=top_matches).format(
-        natural_language_query = natural_language_query,
-    )
+    content = _get_table_selection_message_with_descriptions(table_manager, table_list)
 
-    messages = _get_table_selection_messages().copy()
+    messages = [{
+        "role": "system",
+        "content": content
+    }]
+
     messages.append({
         "role": "user",
-        "content": content
+        "content": natural_language_query
     })
     
     while attempts < max_attempts:
         try:
             response = openai.ChatCompletion.create(
-                model="gpt-4",
+                model=model,
                 messages=messages,
                 temperature=0
                 )
@@ -142,16 +107,18 @@ def get_relevant_tables_from_lm(natural_language_query, table_list = None, model
     tables_json_str = extract_text_from_markdown_triple_backticks(output_text)
     print("\nTables:", tables_json_str)
 
-    table_list = json.loads(tables_json_str).get("tables")
+    table_list = json.loads(tables_json_str).get("table")
 
     return table_list
 
 
-def request_tables_to_lm_from_db(natural_language_query, content_limit=3):
+def request_tables_to_lm_from_db(natural_language_query, table_manager, content_limit=3):
     """
     Extracts most similar tables from database using embeddings and similarity functions, and then lets the llm choose the most relevant one.
     """
-    tables = get_relevant_tables_from_database(natural_language_query, content_limit=content_limit)
-    gpt_selected_table = get_relevant_tables_from_lm(natural_language_query, table_list = tables, top_matches=True)
+    tables = get_relevant_tables_from_database(natural_language_query, content_limit = content_limit)
+    gpt_selected_table_str = get_relevant_tables_from_lm(natural_language_query, table_manager, table_list = tables)
+
+    gpt_selected_table = table_manager.get_table(gpt_selected_table_str)
 
     return gpt_selected_table
