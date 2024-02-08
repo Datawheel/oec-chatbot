@@ -11,7 +11,7 @@ from dotenv import load_dotenv
 load_dotenv()
 TABLES_PATH = getenv('TABLES_PATH')
 
-def get_api(query, TABLES_PATH):
+def get_api(query, TABLES_PATH=TABLES_PATH):
     start_time = time.time()
 
     manager = TableManager(TABLES_PATH)
