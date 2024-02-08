@@ -6,12 +6,7 @@ from src.utils.api_data_request.api_generator import *
 from src.utils.data_analysis.data_analysis import *
 from src.utils.logs import *
 
-from dotenv import load_dotenv
-
-load_dotenv()
-TABLES_PATH = getenv('TABLES_PATH')
-
-def get_api(query, TABLES_PATH=TABLES_PATH):
+def get_api(query, TABLES_PATH):
     start_time = time.time()
 
     manager = TableManager(TABLES_PATH)
