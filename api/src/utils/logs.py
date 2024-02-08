@@ -31,7 +31,7 @@ def log_apicall(query, api_url, response, drilldowns, measures, cuts, cube, dura
         "drilldowns": drilldowns,
         "measures": measures,
         "cuts": cuts,
-        "cube": cube,
+        "cube": cube.name,
         "duration": duration
     }
 

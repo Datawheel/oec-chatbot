@@ -30,12 +30,12 @@ def get_api(query, TABLES_PATH):
 
     if (response == "No data found." or df.empty):
         
-        log_apicall(query, "", response, "", "", "", table[0], duration)
+        log_apicall(query, "", response, "", "", "", table, duration)
         
         return api_url, data, response
     
     else:
         response = agent_answer(df, query)
-        log_apicall(query, api_url, response, variables, measures, cuts, table[0], duration)
+        log_apicall(query, api_url, response, variables, measures, cuts, table, duration)
 
         return api_url, data, response
