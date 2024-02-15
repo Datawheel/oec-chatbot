@@ -6,7 +6,7 @@ import {IconSearch} from "@tabler/icons-react";
 import {
   Container, TextInput, Title, Text, ActionIcon, Stack, Loader, Box,
 } from "@mantine/core";
-
+import Chatbot from "@/components/chat/Chatbot";
 import ChatResults from "../components/chat/ChatResults";
 import DataResults from "../components/chat/DataResults";
 // import RelatedResults from "../../components/chat/RelatedResults";
@@ -136,6 +136,9 @@ export default function ChatPage() {
         <Loading visible={dataLoading} text="We're loading your data results, please wait..." />
         {(chatDataResponse && !dataLoading) && <DataResults dataResponse={chatDataResponse} />}
         {/* {(chatApiResponse && chatDataResponse) && <RelatedResults context={chatApiResponse.context} neighbors={chatDataResponse.neighbors} />} */}
+      </Container>
+      <Container>
+        <Chatbot />
       </Container>
     </>
   );
