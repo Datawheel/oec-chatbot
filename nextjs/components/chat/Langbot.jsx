@@ -7,7 +7,10 @@ import { RunnableBranch, RunnableSequence, RunnablePassthrough, RunnableLambda, 
 import { StringOutputParser } from "@langchain/core/output_parsers";
 import axios from 'axios';
 process.env["LANGCHAIN_VERBOSE"] = true;
+const NEXT_PUBLIC_CHAT_API = process.env.NEXT_PUBLIC_CHAT_API;
 
+
+//Models
 const model = new ChatOllama({
     baseUrl: 'https://caleuche-ollama.datawheel.us',
     model: "llama2:7b-chat-q8_0",//'mixtral',
@@ -23,7 +26,7 @@ const model_adv = new Ollama({
     verbose:true
 });
                             
-                              
+//Prompts                              
 const categories = ['Senate election', 'House election',
                 'President election', 'Consumer Price Index', 
                 'Freight movement', 'Other topic', 'Not a question'];
@@ -163,6 +166,8 @@ const route = (info) => {
 const action = async (init) => {
     const info = init.line;
     console.log(`In action fn: ${Object.keys(info).map(k => [k,info[k]])}`);
+    let updater = init.input.updater;
+    let handleTable = init.input.handleTable;
 
     if(info.action.toLowerCase().includes('>>answer: complete')){
 
@@ -171,16 +176,18 @@ const action = async (init) => {
         let searchText = info.question.split(':');
         searchText = searchText[searchText.length-1];
         console.log(searchText);
-        // http://localhost:3000
-        const searchApi = (new URL(`/query/${searchText}`, 'http://localhost:3000/query/')).href;
+        // http://localhost:3000/query/'
+        // https://chat-api-dev.datausa.io/query/'
+        const searchApi = (new URL(`/query/${searchText}`, NEXT_PUBLIC_CHAT_API)).href;
         axios.get(searchApi, {signal: controller.signal})
             .then((response) =>  {
                 console.log(response);
                 resp = response.data.query.answer;
-                let updater = init.input.updater;
+                handleTable(response.data.query.url);
                 updater((prevMessages) => [...prevMessages.slice(0, -1), { text: resp, user: false }]);
             }).catch((error) => {
-                console.error(error.response.data)
+                console.error(error);
+                updater((prevMessages) => [...prevMessages.slice(0, -1), { text: 'Error!, try again', user: false }]);
             });
         return {
                 content: "Good question! let's check the data...", 
@@ -206,8 +213,8 @@ const altern_chain = RunnableSequence.from([
 const newChatMessageHistory = new ChatMessageHistory();
 newChatMessageHistory.addAIMessage('Hi, ready to help you');
 //newChatMessageHistory.addUserMessage('Who is the president?');
-console.log(category_prompts);
-export default async function Langbot(newMessage, setMessages) {
+
+export default async function Langbot(newMessage, setMessages, handleTable) {
 
     newChatMessageHistory.addUserMessage(newMessage);
     
@@ -217,6 +224,7 @@ export default async function Langbot(newMessage, setMessages) {
                 m => `${m.lc_id[2]==='AIMessage'?' [AI]':' [User]'}:${m.content};`
             ),
         updater: setMessages,
+        handleTable: handleTable,
     });
     
 }
