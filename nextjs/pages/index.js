@@ -2,7 +2,7 @@ import Image from "next/image";
 import {NextSeo} from "next-seo";
 import {useRef, useState} from "react";
 import {
-  Container, TextInput, Title, Stack,
+  Container, Title, Stack,
 } from "@mantine/core";
 import Chatbot from "@/components/chat/Chatbot";
 // import RelatedResults from "../../components/chat/RelatedResults";
@@ -33,7 +33,6 @@ export default function ChatPage() {
             Welcome to DataUSA Chat
           </Title>
           </Stack>
-        
       </Container>
       <Container>
         <Chatbot />

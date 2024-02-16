@@ -1,9 +1,9 @@
 //import { ChatOpenAI } from "@langchain/openai";
 import { ChatOllama } from "@langchain/community/chat_models/ollama";
 import { Ollama } from '@langchain/community/llms/ollama';
-import { ChatPromptTemplate, MessagesPlaceholder, PromptTemplate } from "@langchain/core/prompts";
+import { ChatPromptTemplate, PromptTemplate } from "@langchain/core/prompts";
 import { ChatMessageHistory } from "langchain/stores/message/in_memory";
-import { RunnableBranch, RunnableSequence, RunnablePassthrough, RunnableLambda, RunnableParallel } from '@langchain/core/runnables'
+import { RunnableSequence, RunnablePassthrough, RunnableLambda, RunnableParallel } from '@langchain/core/runnables'
 import { StringOutputParser } from "@langchain/core/output_parsers";
 import axios from 'axios';
 process.env["LANGCHAIN_VERBOSE"] = true;
@@ -23,6 +23,7 @@ const model_adv = new Ollama({
     baseUrl: 'https://caleuche-ollama.datawheel.us',
     model: 'mixtral:8x7b-instruct-v0.1-q4_K_M',
     temperature: 0,
+    numGpu: -1,
     verbose:true
 });
                             
@@ -48,9 +49,9 @@ question: How many dollars in electronics were transported from Texas to Califor
 
 question: Who is the president?
 >>analysis: The question does not mention a political party and state or a candidate name.<<,
->>answer: missing political party, state and candidate name<<
+>>answer: political party, state and candidate name<<
 
-Here is a question:\n{question}
+Here is a question: {question}
 `;
 
 const electionVars = ['political party', 'US state', ' candidate name']
@@ -126,18 +127,18 @@ const class_parser = (info) => {
 };
 
 const classify_one = ChatPromptTemplate.fromTemplate(
-    `Summarize the conversation in a single line question, then, classify the Summary in one 
+    `Summarize the conversation in a single line question if possible, then, classify the Summary in one 
     of these categories: ${categories}. Do it as shown in following examples: 
     
-    >>conversation: '''[AI]:Hi, I'm ready to help;,[User]:Hi;''',
+    >>conversation: '''[AI]:Hi, I'm ready to help;,[User]:Hi;[END]''',
     >>Summary: 'Greetings.' 
     >>Category: 'not a question'
 
-    >>conversation: '''[AI]:Hi, I'm ready to help;,[User]:Which party won the latest presidential election?;''',
+    >>conversation: '''[AI]:Hi, I'm ready to help;,[User]:Which party won the latest presidential election?;[END]''',
     >>Summary: 'User's question is: Which party won the latest presidential election?'
     >>Category: 'President election'
 
-    >>conversation: '''[AI]:Hi, I'm ready to help;,[User]:Who is the president?;,[User]:the current president;,[User]:of US''',
+    >>conversation: '''[AI]:Hi, I'm ready to help;,[User]:Who is the president?;,[User]:the current president;,[User]:of US;[END]''',
     >>Summary: 'User's question is: Who is the current president of US?'
     >>Category: 'President election'
 
@@ -192,7 +193,11 @@ const action = async (init) => {
         return {
                 content: "Good question! let's check the data...", 
                 question: resp};
+    } else if(info.action.toLowerCase().includes('>>answer: ')){
+        //ask for additional info
+        return {content: `please, specify in your question: ${info.action.split(':').slice(-1,)[0].replace('<<','')}`};
     } else {
+        //pass route response
         return {content: info.action};
     }
 };
@@ -221,7 +226,7 @@ export default async function Langbot(newMessage, setMessages, handleTable) {
     return await altern_chain.invoke({
         //question: newMessage,
         history: (await newChatMessageHistory.getMessages()).map(
-                m => `${m.lc_id[2]==='AIMessage'?' [AI]':' [User]'}:${m.content};`
+                m => `${m.lc_id[2]==='AIMessage'?' [AI]':' [User]'}:${m.content};[END]`
             ),
         updater: setMessages,
         handleTable: handleTable,
