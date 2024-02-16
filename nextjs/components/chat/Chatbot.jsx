@@ -2,11 +2,9 @@ import React, { useState } from 'react';
 import styles from './chatbot.module.css';
 import Langbot from './Langbot';
 import axios from "axios";
-import ChatpageOG from "@/components/chat/ChatpageOG";
-import ChatResults from "./ChatResults";
 import DataResults from "./DataResults";
 import {
-  TextInput, Title, Text, ActionIcon, Stack, Loader, Box,
+  TextInput, Text, ActionIcon, Stack, Loader, Box,
 } from "@mantine/core";
 import {IconSearch} from "@tabler/icons-react";
 
@@ -15,7 +13,7 @@ function Loading({visible, text}) {
   if (!visible) return;
   // eslint-disable-next-line consistent-return
   return (
-    <Box h="100px" my={90}>
+    <Box h="40px" my={90}>
       <Stack>
         <Text ta="center">{text}</Text>
         <Loader variant="bars" mx="auto" />
