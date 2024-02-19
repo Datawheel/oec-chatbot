@@ -1,36 +1,33 @@
-//import { ChatOpenAI } from "@langchain/openai";
 import { ChatOllama } from "@langchain/community/chat_models/ollama";
 import { Ollama } from '@langchain/community/llms/ollama';
 import { ChatPromptTemplate, PromptTemplate } from "@langchain/core/prompts";
 import { ChatMessageHistory } from "langchain/stores/message/in_memory";
 import { RunnableSequence, RunnablePassthrough, RunnableLambda, RunnableParallel } from '@langchain/core/runnables'
-import { StringOutputParser } from "@langchain/core/output_parsers";
+import { StringOutputParser, JsonOutputParser } from "@langchain/core/output_parsers";
 import axios from 'axios';
 process.env["LANGCHAIN_VERBOSE"] = true;
 const NEXT_PUBLIC_CHAT_API = process.env.NEXT_PUBLIC_CHAT_API;
 
 
 //Models
-const model = new ChatOllama({
+const model = new Ollama({
     baseUrl: 'https://caleuche-ollama.datawheel.us',
-    model: "llama2:7b-chat-q8_0",//'mixtral',
+    model: "llama2:7b-chat-q8_0",
     temperature: 0,
-    system: '',
-    verbose:true
+    verbose: true
+  }).bind({
+    seed: 123,
   });
 
 const model_adv = new Ollama({
     baseUrl: 'https://caleuche-ollama.datawheel.us',
     model: 'mixtral:8x7b-instruct-v0.1-q4_K_M',
+    system: '',
     temperature: 0,
-    numGpu: -1,
-    verbose:true
+    verbose: true
 });
                             
 //Prompts                              
-const categories = ['Senate election', 'House election',
-                'President election', 'Consumer Price Index', 
-                'Freight movement', 'Other topic', 'Not a question'];
 
 const baseCategoryPrompt = `You are an expert analyzing questions content. 
     Check if a question explicitly mentions all of the following elements:`;
@@ -102,6 +99,10 @@ const category_prompts = [
             'How many tons of plastic were moved from Texas to California by truck during 2021?']
     },
     {
+        'name': 'Greetings',
+        'prompt_template': 'Greet back',
+    },
+    {
         'name': 'Other topic',
         'prompt_template':'Say: >>>DataUSA does not have information about that topic, please ask another question<<<',
         'examples': ['What is the GDP per capita?'],
@@ -110,54 +111,60 @@ const category_prompts = [
         'name': 'Not a question',
         'prompt_template':'Say: >>>please, write your query as a question<<<',
         'examples': ['hi, how are you?'],
-    }
-    
-]
+    },
+];
 
 
 // Chain
 
 const class_parser = (info) => {
-    let stringArray = info.split('>>');
-    console.log(`In class_parser: ${stringArray}`);
+    console.log(`In class_parser: ${Object.keys(info).map(k => [k, info[k]])}`);
     return {
-        question: stringArray[stringArray.length-2],
-        action: stringArray[stringArray.length-1]
+        question: info.summary,
+        category: info.category
     };
 };
 
-const classify_one = ChatPromptTemplate.fromTemplate(
-    `Summarize the conversation in a single line question if possible, then, classify the Summary in one 
-    of these categories: ${categories}. Do it as shown in following examples: 
-    
-    >>conversation: '''[AI]:Hi, I'm ready to help;,[User]:Hi;[END]''',
-    >>Summary: 'Greetings.' 
-    >>Category: 'not a question'
+/*
+TODOS:
+- Head Function calling
+- Provide variables to user
+- Multiple question in history (select just the latest)
+*/
 
-    >>conversation: '''[AI]:Hi, I'm ready to help;,[User]:Which party won the latest presidential election?;[END]''',
-    >>Summary: 'User's question is: Which party won the latest presidential election?'
-    >>Category: 'President election'
 
-    >>conversation: '''[AI]:Hi, I'm ready to help;,[User]:Who is the president?;,[User]:the current president;,[User]:of US;[END]''',
-    >>Summary: 'User's question is: Who is the current president of US?'
-    >>Category: 'President election'
+const classify_one = PromptTemplate.fromTemplate(
+    `Summarize in conversation as a question, then classify the Summary into one 
+    of these categories: ${category_prompts.map(c=>c.name)}.Respond in JSON format as shown in following examples: 
+        {{"conversation": "[AI]:Hi, I'm ready to help;,[User]:Hi;[.]",
+        "summary": "User said Hi", 
+        "category": "Greetings",}}
 
-    Now is your turn.
-    >>conversation: '''{history}''',
-    >>Summary: 
-    `
-).pipe(model).pipe(new StringOutputParser()).pipe(RunnableLambda.from(class_parser));
+        {{"conversation": "[AI]:Hi, I'm ready to help;,[User]:Which party won the latest presidential election?;[.]",
+        "summary": "User's question is: Which party won the latest presidential election?",
+        "category": "President election",}}
+
+        {{"conversation": "[AI]:Hi, I'm ready to help;,[User]:Who is the president?;,[User]:the current president;,[User]:of US;[.],
+        "summary": "User's question is: Who is the current president of US?",
+        "category": "President election",}}
+
+    Here is a conversation: {history}.`
+
+).pipe(model.bind({system: 'You are an expert in classification', format:'json'}))
+.pipe(new JsonOutputParser())
+.pipe(RunnableLambda.from(class_parser));
+//.pipe(new StringOutputParser())
 
 const route = (info) => {
     console.log(`In route: ${Object.keys(info)}`);
     for (const c of category_prompts.slice(0,-2)) {
-        if (info.action.toLowerCase().includes(c.name.toLowerCase())) {
+        if (info.category.toLowerCase().includes(c.name.toLowerCase())) {
             console.log(`Class: ${c.name}`);
             return PromptTemplate.fromTemplate(c.prompt_template).pipe(model_adv);
         }
     };
 
-    if(info.action.toLowerCase().includes('not a question')) {
+    if(info.category.toLowerCase().includes('not a question')) {
         return 'Please, formulate a question';
     } else {
         return 'DataUSA does not have information regarding that topic, please ask another question';
@@ -192,10 +199,12 @@ const action = async (init) => {
             });
         return {
                 content: "Good question! let's check the data...", 
-                question: resp};
+                question: resp
+            };
+
     } else if(info.action.toLowerCase().includes('>>answer: ')){
         //ask for additional info
-        return {content: `please, specify in your question: ${info.action.split(':').slice(-1,)[0].replace('<<','')}`};
+        return {content: `please, specify in your question: ${info.action.split(':').slice(-1,)[0].split('<<')[0]}`};
     } else {
         //pass route response
         return {content: info.action};
@@ -215,21 +224,22 @@ const altern_chain = RunnableSequence.from([
     RunnableLambda.from(action),
 ]);
 
+
 const newChatMessageHistory = new ChatMessageHistory();
 newChatMessageHistory.addAIMessage('Hi, ready to help you');
-//newChatMessageHistory.addUserMessage('Who is the president?');
+//newChatMessageHistory.addUserMessage('How many tons of plastic were moved from Texas to California by truck during 2021?');
+
 
 export default async function Langbot(newMessage, setMessages, handleTable) {
 
     newChatMessageHistory.addUserMessage(newMessage);
     
     return await altern_chain.invoke({
-        //question: newMessage,
         history: (await newChatMessageHistory.getMessages()).map(
-                m => `${m.lc_id[2]==='AIMessage'?' [AI]':' [User]'}:${m.content};[END]`
-            ),
+                m => `${m.lc_id[2]==='AIMessage'?' [AI]':' [User]'}:${m.content};`
+            ) + '[.]',
         updater: setMessages,
         handleTable: handleTable,
     });
     
-}
+};
