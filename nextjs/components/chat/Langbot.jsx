@@ -34,19 +34,22 @@ const baseCategoryPrompt = `You are an expert analyzing questions content.
 
 const baseOutputPrompt = 
 `. If it does reply '''COMPLETE'''. If it doesn't, the list of the missing elements. 
-Answer in the following format: 
->>analysis: [your analysis]<<,
->>answer: [your answer]<<
+Answer in the following JSON format:
+
+{{"analysis": "[your analysis]",
+"answer": "[your answer]"}}
 
 Here is some examples:
 
 question: How many dollars in electronics were transported from Texas to California during 2020 by truck?
->>analysis: The question explicitly mentions a product, a transport medium, and at least one state.<<,
->>answer: COMPLETE<<
+
+{{"analysis": "The question explicitly mentions a product, a transport medium, and at least one state.",
+"answer": "COMPLETE"}}
 
 question: Who is the president?
->>analysis: The question does not mention a political party and state or a candidate name.<<,
->>answer: political party, state and candidate name<<
+
+{{"analysis": "The question does not mention a political party and state or a candidate name.",
+"answer": "political party, state and candidate name"}}
 
 Here is a question: {question}
 `;
@@ -130,11 +133,12 @@ TODOS:
 - Head Function calling
 - Provide variables to user
 - Multiple question in history (select just the latest)
+- implement logs
 */
 
 
 const classify_one = PromptTemplate.fromTemplate(
-    `Summarize in conversation as a question, then classify the Summary into one 
+    `Summarize in conversation as a question, then classify the summary into one 
     of these categories: ${category_prompts.map(c=>c.name)}.Respond in JSON format as shown in following examples: 
         {{"conversation": "[AI]:Hi, I'm ready to help;,[User]:Hi;[.]",
         "summary": "User said Hi", 
@@ -153,14 +157,14 @@ const classify_one = PromptTemplate.fromTemplate(
 ).pipe(model.bind({system: 'You are an expert in classification', format:'json'}))
 .pipe(new JsonOutputParser())
 .pipe(RunnableLambda.from(class_parser));
-//.pipe(new StringOutputParser())
 
 const route = (info) => {
     console.log(`In route: ${Object.keys(info)}`);
     for (const c of category_prompts.slice(0,-2)) {
         if (info.category.toLowerCase().includes(c.name.toLowerCase())) {
             console.log(`Class: ${c.name}`);
-            return PromptTemplate.fromTemplate(c.prompt_template).pipe(model_adv);
+            let newChain = PromptTemplate.fromTemplate(c.prompt_template)
+            return c.name === 'Greetings'? newChain.pipe(model_adv):newChain.pipe(model_adv.bind({format: 'json'})).pipe(new JsonOutputParser());                  
         }
     };
 
@@ -173,43 +177,47 @@ const route = (info) => {
 
 const action = async (init) => {
     const info = init.line;
-    console.log(`In action fn: ${Object.keys(info).map(k => [k,info[k]])}`);
+    console.log(`In action fn: ${Object.keys(info).map(k => [k, info[k]])}`);
     let updater = init.input.updater;
     let handleTable = init.input.handleTable;
 
-    if(info.action.toLowerCase().includes('>>answer: complete')){
+    if(info.action.hasOwnProperty('answer')) {
+        if(info.action.answer.toLowerCase() === 'complete'){
 
-        let controller = new AbortController();
-        let resp = '...';
-        let searchText = info.question.split(':');
-        searchText = searchText[searchText.length-1];
-        console.log(searchText);
-        // http://localhost:3000/query/'
-        // https://chat-api-dev.datausa.io/query/'
-        const searchApi = (new URL(`/query/${searchText}`, NEXT_PUBLIC_CHAT_API)).href;
-        axios.get(searchApi, {signal: controller.signal})
-            .then((response) =>  {
-                console.log(response);
-                resp = response.data.query.answer;
-                handleTable(response.data.query.url);
-                updater((prevMessages) => [...prevMessages.slice(0, -1), { text: resp, user: false }]);
-            }).catch((error) => {
-                console.error(error);
-                updater((prevMessages) => [...prevMessages.slice(0, -1), { text: 'Error!, try again', user: false }]);
-            });
-        return {
-                content: "Good question! let's check the data...", 
-                question: resp
-            };
+            let controller = new AbortController();
+            let resp = '...';
+            let searchText = info.question.split(':');
+            searchText = searchText[searchText.length-1];
+            console.log(searchText);
+            // http://localhost:3000/query/'
+            // https://chat-api-dev.datausa.io/query/'
+            const searchApi = (new URL(`/query/${searchText}`, NEXT_PUBLIC_CHAT_API)).href;
+            axios.get(searchApi, {signal: controller.signal})
+                .then((response) =>  {
+                    console.log(response);
+                    resp = response.data.query.answer;
+                    handleTable(response.data.query.url);
+                    updater((prevMessages) => [...prevMessages.slice(0, -1), { text: resp, user: false }]);
+                }).catch((error) => {
+                    console.error(error);
+                    updater((prevMessages) => [...prevMessages.slice(0, -1), { text: 'Error!, try again', user: false }]);
+                });
+            return {
+                    content: "Good question! let's check the data...", 
+                    question: resp
+                };
 
-    } else if(info.action.toLowerCase().includes('>>answer: ')){
-        //ask for additional info
-        return {content: `please, specify in your question: ${info.action.split(':').slice(-1,)[0].split('<<')[0]}`};
+        } else {
+            //ask for additional info
+            return {content: `please, specify in your question: ${info.action.answer}`};
+        }
     } else {
         //pass route response
         return {content: info.action};
     }
 };
+
+//Main chain
 
 const altern_chain = RunnableSequence.from([
     RunnableParallel.from({
@@ -224,7 +232,7 @@ const altern_chain = RunnableSequence.from([
     RunnableLambda.from(action),
 ]);
 
-
+// Memory
 const newChatMessageHistory = new ChatMessageHistory();
 newChatMessageHistory.addAIMessage('Hi, ready to help you');
 //newChatMessageHistory.addUserMessage('How many tons of plastic were moved from Texas to California by truck during 2021?');
