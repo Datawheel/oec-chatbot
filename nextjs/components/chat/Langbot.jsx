@@ -4,14 +4,16 @@ import { ChatPromptTemplate, PromptTemplate } from "@langchain/core/prompts";
 import { ChatMessageHistory } from "langchain/stores/message/in_memory";
 import { RunnableSequence, RunnablePassthrough, RunnableLambda, RunnableParallel } from '@langchain/core/runnables'
 import { StringOutputParser, JsonOutputParser } from "@langchain/core/output_parsers";
+import { ConsoleCallbackHandler } from "@langchain/core/tracers/console";
 import axios from 'axios';
-process.env["LANGCHAIN_VERBOSE"] = true;
+//process.env["LANGCHAIN_VERBOSE"] = true;
 const NEXT_PUBLIC_CHAT_API = process.env.NEXT_PUBLIC_CHAT_API;
 
 /*
 TODOS:
 - [x] handle fail json format
 - [] implement logs
+- [] Rebase github
 - [] Implement auto-testing
 - [] Head Function calling
 - [] Provide variables to user
@@ -23,9 +25,9 @@ const model = new Ollama({
     baseUrl: 'https://caleuche-ollama.datawheel.us',
     model: "llama2:7b-chat-q8_0",
     temperature: 0,
-    verbose: true
   }).bind({
     seed: 123,
+    runName: 'basic_llama'
   });
 
 const model_adv = new Ollama({
@@ -33,17 +35,18 @@ const model_adv = new Ollama({
     model: 'mixtral:8x7b-instruct-v0.1-q4_K_M',//'gemma:7b-instruct-q4_K_M',//
     system: '',
     temperature: 0,
-    verbose: true
+}).bind({
+    seed: 123,
+    runName: 'advance_mixtral',
 });
                             
 //Prompts                              
-
-const baseCategoryPrompt = `You are an expert analyzing questions content. 
+const baseCategoryPrompt = `You are an expert analyzing questions content.
     Check if a question explicitly mentions all of the following elements:`;
 
 const baseOutputPrompt = 
 `. If it does reply '''COMPLETE'''. If it doesn't, the list of the missing elements. 
-Answer in the following always this JSON format and nothing else:
+Answer in the following JSON format:
 
 {{"analysis": "[your analysis]",
 "answer": "[your answer]"}}
@@ -62,8 +65,26 @@ question: Who is the president?
 
 Here is a question: {question}
 `;
+const alternativeOutputPrompt = 
+`. If it does reply '''COMPLETE'''. If it doesn't, the list of the missing elements. 
+All output must be in valid JSON format. Don't add explanation beyond the JSON. Follow this examples:
 
-const electionVars = ['political party', 'US state', ' candidate name']
+question: How many dollars in electronics were transported from Texas to California?
+{{"analysis": "The question explicitly mentions a product, and at least one state but no transport.",
+"answer": "transport medium"}}
+
+question: How many dollars in electronics were transported from Texas to California during 2020 by truck?
+{{"analysis": "The question explicitly mentions a product, a transport medium, and at least one state.",
+"answer": "COMPLETE"}}
+
+question: Who is the president?
+{{"analysis": "The question does not mention a political party and state or a candidate name.",
+"answer": "political party, state and candidate name"}}
+
+question: {question}
+`;
+
+const electionVars = ['political party', 'US state', ' candidate name'];
 
 const category_prompts = [
     {
@@ -71,6 +92,7 @@ const category_prompts = [
         'metrics': ['number of votes'],
         'optional_vars': ['year'],
         'prompt_template':`${baseCategoryPrompt} ${electionVars} ${baseOutputPrompt}`,
+        'prompt_alternative':`${baseCategoryPrompt} ${electionVars} ${alternativeOutputPrompt}`,
         'examples':[
             'What candidate to senate from the republican party received the most amount of votes in California during the 2020 elections?']
     },
@@ -79,6 +101,7 @@ const category_prompts = [
         'metrics': ['number of votes'],
         'optional_vars': ['year'],
         'prompt_template':`${baseCategoryPrompt} ${electionVars} ${baseOutputPrompt}`,
+        'prompt_alternative':`${baseCategoryPrompt} ${electionVars} ${alternativeOutputPrompt}`,
         'examples':[
             'What democrat candidate to the US house of representatives received the least amount of  votes in Washington during the 2010 elections?',
             'What party received the least amount of votes during the 2010 US house of representatives elections in the state of Washington?']
@@ -88,6 +111,7 @@ const category_prompts = [
         'metrics': ['number of votes'],
         'optional_vars': ['year'],
         'prompt_template':`${baseCategoryPrompt} ${electionVars} ${baseOutputPrompt}`,
+        'prompt_alternative':`${baseCategoryPrompt} ${electionVars} ${alternativeOutputPrompt}`,
         'examples': [
             'What candidates from the republican and democratic parties received the most amount of votes across the country during the 2016 presidential elections?']
     },
@@ -96,6 +120,7 @@ const category_prompts = [
         'metrics': ['cuantity', 'price metric'],
         'optional_vars': ['year'],
         'prompt_template':`${baseCategoryPrompt} ${['product name', 'date']} ${baseOutputPrompt}`,
+        'prompt_alternative':`${baseCategoryPrompt} ${['product name', 'date']} ${alternativeOutputPrompt}`,
         'examples': [
             'How much was the CPI of eggs in January of 2013?',
             'How much was the YoY variation of the CPI of eggs in January of 2014?']
@@ -105,7 +130,9 @@ const category_prompts = [
         'metrics': ['amount', 'money'],
         'optional_vars': ['year'],
         'prompt_template':`${baseCategoryPrompt} ${[
-            'product name', 'state', 'transportation medium']} ${baseOutputPrompt}`, 
+            'product name', 'US state', 'transportation medium']} ${baseOutputPrompt}`, 
+        'prompt_alternative':`${baseCategoryPrompt} ${[
+            'product name', 'US state', 'transportation medium']} ${alternativeOutputPrompt}`,
         'examples': [
             'How many dollars in electronics were transported from Texas to California during 2020 by truck?',
             'How many tons of plastic were moved from Texas to California by truck during 2021?']
@@ -113,21 +140,53 @@ const category_prompts = [
     {
         'name': 'Greetings',
         'prompt_template': 'Greet back',
+        'prompt_alternative':'Greet back',
         'examples': [],
     },
     {
         'name': 'Other topic',
         'prompt_template':'Say: >>>DataUSA does not have information about that topic, please ask another question<<<',
+        'prompt_alternative':'Say: >>>DataUSA does not have information about that topic, please ask another question<<<',
         'examples': ['What is the GDP per capita?'],
     },
     {
         'name': 'Not a question',
         'prompt_template':'Say: >>>please, write your query as a question<<<',
+        'prompt_alternative':'Say: >>>please, write your query as a question<<<',
         'examples': ['hi, how are you?'],
     },
 ];
 
-// Chain
+const classify_prompt = PromptTemplate.fromTemplate(
+    `Summarize in conversation as a question, then classify the summary into one 
+    of these categories: ${category_prompts.map(c=>c.name)}. All output must be in valid JSON. Don't add explanation beyond the JSON as shown in the following examples: 
+        {{"conversation": "[AI]:Hi, I'm ready to help;,[User]:Hi;[.]",
+        "summary": "User said Hi",
+        "explanation":"The user simply said hi", 
+        "category": "Greetings",}}
+
+        {{"conversation": "[AI]:Hi, I'm ready to help;,[User]:Which party won the latest presidential election?;[.]",
+        "summary": "Which party won the latest presidential election?",
+        "explanation":"User asked for the party that won the latest presidential election", 
+        "category": "President election",}}
+
+        {{"conversation": "[AI]:Hi, I'm ready to help;,[User]:Who is the president?;,[User]:the current president;,[User]:of US;[.],
+        "summary": "Who is the current president of US?",
+        "explanation":"User asked who is the president, and added details later", 
+        "category": "President election",}}
+
+    Here is a conversation: {history}.`
+);
+
+
+// Chains
+
+/**
+ * Adhoc function to parse JSON object from chain and return object with question and category 
+ * properties only
+ * @param {object} info JSON object
+ * @returns object with question and category properties
+ */
 const class_parser = (info) => {
     console.log(`In class_parser: ${Object.keys(info).map(k => [k, info[k]])}`);
     return {
@@ -137,36 +196,44 @@ const class_parser = (info) => {
 };
 
 
-const classify_one = PromptTemplate.fromTemplate(
-    `Summarize in conversation as a question, then classify the summary into one 
-    of these categories: ${category_prompts.map(c=>c.name)}.Respond always in JSON format as shown in following examples: 
-        {{"conversation": "[AI]:Hi, I'm ready to help;,[User]:Hi;[.]",
-        "summary": "User said Hi", 
-        "category": "Greetings",}}
+const classifyOne = classify_prompt
+    .pipe(model.bind(
+        {system: 'You are an linguistic expert in summarization and classification tasks.', format:'json'}))
+    .pipe(new JsonOutputParser())
+    .pipe(RunnableLambda.from(class_parser));
 
-        {{"conversation": "[AI]:Hi, I'm ready to help;,[User]:Which party won the latest presidential election?;[.]",
-        "summary": "User's question is: Which party won the latest presidential election?",
-        "category": "President election",}}
+const classifyTwo = classify_prompt
+    .pipe(model_adv.bind(
+        {system: 'You are an linguistic expert in summarization and classification tasks. You can only output valid JSON.', format:'json'}))
+    .pipe(new JsonOutputParser())
+    .pipe(RunnableLambda.from(class_parser)); 
 
-        {{"conversation": "[AI]:Hi, I'm ready to help;,[User]:Who is the president?;,[User]:the current president;,[User]:of US;[.],
-        "summary": "User's question is: Who is the current president of US?",
-        "category": "President election",}}
 
-    Here is a conversation: {history}.`
-
-).pipe(
-    model.bind({system: 'You are an expert in classification', format:'json'})
-)
-.pipe(new JsonOutputParser())
-.pipe(RunnableLambda.from(class_parser));
-
+/**
+ * Route prompts for categories from classify_num chain
+ * @param {*} info 
+ * @returns string or JSON with answer property for action function
+ */
 const route = (info) => {
     console.log(`In route: ${Object.keys(info)}`);
     for (const c of category_prompts.slice(0,-2)) {
         if (info.category.toLowerCase().includes(c.name.toLowerCase())) {
             console.log(`Class: ${c.name}`);
-            let newChain = PromptTemplate.fromTemplate(c.prompt_template)
-            return c.name === 'Greetings'? newChain.pipe(model_adv):newChain.pipe(model_adv.bind({format: 'json'})).pipe(new JsonOutputParser());                  
+
+            let newChain = PromptTemplate.fromTemplate(c.prompt_template);
+            let alterChain = PromptTemplate.fromTemplate(c.prompt_alternative);
+
+            if (c.name === 'Greetings') {
+                newChain = newChain.pipe(model);
+                alterChain = alterChain.pipe(model_adv);
+            } else {
+                newChain = newChain.pipe(model_adv.bind({format: 'json'})).pipe(new JsonOutputParser());
+                alterChain = alterChain.pipe(model_adv.bind({format: 'json'})).pipe(new JsonOutputParser());
+            };
+            return  newChain.withFallbacks({
+                fallbacks: [alterChain]
+            });
+                             
         }
     };
 
@@ -177,6 +244,11 @@ const route = (info) => {
     }
 };
 
+/**
+ * Call API or pass previous step messages
+ * @param {*} init object with line and input property
+ * @returns return object with content property as chain output
+ */
 const action = async (init) => {
     const info = init.line;
     console.log(`In action fn: ${Object.keys(info).map(k => [k, info[k]])}`);
@@ -219,11 +291,12 @@ const action = async (init) => {
     }
 };
 
+
 //Main chain
 const altern_chain = RunnableSequence.from([
     RunnableParallel.from({
         line: RunnableSequence.from([
-            classify_one.withFallbacks({fallbacks: [classify_one]}),
+            classifyOne.withFallbacks({fallbacks: [classifyTwo]}),
             {
                 question: (input) => input.question,
                 action: RunnableLambda.from(route),
@@ -231,15 +304,16 @@ const altern_chain = RunnableSequence.from([
         input: new RunnablePassthrough()
     }),
     RunnableLambda.from(action),
-]);
+]).bind({callbacks:[new ConsoleCallbackHandler()]});
+
 
 // Memory
 const newChatMessageHistory = new ChatMessageHistory();
 newChatMessageHistory.addAIMessage('Hi, ready to help you');
 //newChatMessageHistory.addUserMessage('How many tons of plastic were moved from Texas to California by truck during 2021?');
 
-
-const  runTest = async (category_prompts) => {
+/*
+const test1 = async (category_prompts) => {
 
     const tests = [
         {
@@ -288,6 +362,11 @@ const  runTest = async (category_prompts) => {
             conversation: ['hat is the most selling product of ohi'],
             expectedCategory: 'freight movement',
         },
+        {
+            titleCase: 'non-structured but valid',
+            conversation: ['How many votes did Biden get in the latest election?'],
+            expectedCategory: 'president election',
+        }
     ];
     
     category_prompts.forEach( c => {
@@ -328,20 +407,22 @@ const test2 = async () => {
     let store = []
     let stream = await altern_chain.streamEvents({
         history: "[AI]:Hi, I'm ready to help;,[User]:Which party won the latest presidential election?;[.]",
-        updater: a => a,
-        handleTable: a => a, 
-    },{version: "v1"},
-    //{ excludeTypes: ["llm","prompt"] }
+        updater: a => console.log(a),
+        handleTable: a => console.log(a), 
+    },
+    {version: "v1"},
+    { excludeTypes: ["prompt","llm"] }
     );
 
     for await (const chunk of stream) {
         console.log(JSON.stringify(chunk));
-        for (const c of chunk.ops){
-            store.push(c);
-        }   
+        store.push(chunk);
+        //for (const c of chunk.ops){store.push(c);}   
     };
 
     console.log(store);
+    return store;
+    
     /*
     console.log(
         store.reduce((acc, val)=>{
@@ -353,14 +434,23 @@ const test2 = async () => {
             return acc
         }, {})
         );
-    */
-
 };
 
-test2();
-//runTest(category_prompts);
+const test3 = async () => {
+    return await altern_chain.invoke({
+        history: "[AI]:Hi, I'm ready to help;,[User]:Which party won the latest presidential election?;[.]",
+        updater: a => console.log(a),
+        handleTable: a => console.log(a), 
+    },
+    
+    );
+}
+*/
 
-
+//const out_test = await test(category_prompts);
+//const out_test = await test2();
+//const out_test = await test3();
+//console.log(out_test);
 
 export default async function Langbot(newMessage, setMessages, handleTable) {
 
@@ -372,6 +462,5 @@ export default async function Langbot(newMessage, setMessages, handleTable) {
             ) + '[.]',
         updater: setMessages,
         handleTable: handleTable,
-    });
-    
+    });  
 };
