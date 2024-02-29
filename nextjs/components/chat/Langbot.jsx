@@ -6,19 +6,61 @@ import { RunnableSequence, RunnablePassthrough, RunnableLambda, RunnableParallel
 import { StringOutputParser, JsonOutputParser } from "@langchain/core/output_parsers";
 import { ConsoleCallbackHandler } from "@langchain/core/tracers/console";
 import axios from 'axios';
+import { BaseCallbackHandler } from "@langchain/core/callbacks/base";
 //process.env["LANGCHAIN_VERBOSE"] = true;
 const NEXT_PUBLIC_CHAT_API = process.env.NEXT_PUBLIC_CHAT_API;
 
 /*
 TODOS:
 - [x] handle fail json format
-- [] implement logs
+- [x] implement logs
 - [] Rebase github
 - [] Implement auto-testing
 - [] Head Function calling
 - [] Provide variables to user
 - [] Multiple question in history (select just the latest)
 */
+
+//handler
+
+class logsHandler extends BaseCallbackHandler {
+    name = "logsHandler";
+
+    constructor(outFile, _fields) {
+        super(...arguments);
+        this.outFile = outFile;
+      }
+  
+    async handleChainStart(chain) {
+      console.log(`Entering new chain: ${Object.keys(chain)} ${chain.type}`);
+      this.outFile.push(chain);
+    }
+    async handleChainEnd(chain) {
+        console.log(`Finish chain:  ${Object.keys(chain)} `);
+        this.outFile.push(chain);
+      }
+    async handleChainError(chain) {
+        console.log(`Error chain:  ${Object.keys(chain)} `);
+        this.outFile.push(chain);
+      }
+    
+    async handleLLMStart(chain) {
+        console.log(`Starting llm:  ${Object.keys(chain)} `);
+        this.outFile.push(chain);
+      }
+    
+    async handleLLMEnd(chain) {
+        console.log(`Finish llm:  ${Object.keys(chain)} `);
+        this.outFile.push(chain);
+      }
+    async handleLLMError(chain) {
+        console.log(`Error llm:  ${Object.keys(chain)} `);
+        this.outFile.push(chain);
+      }
+    
+
+}
+
 
 //Models
 const model = new Ollama({
@@ -304,7 +346,7 @@ const altern_chain = RunnableSequence.from([
         input: new RunnablePassthrough()
     }),
     RunnableLambda.from(action),
-]).bind({callbacks:[new ConsoleCallbackHandler()]});
+]);
 
 
 // Memory
@@ -455,12 +497,21 @@ const test3 = async () => {
 export default async function Langbot(newMessage, setMessages, handleTable) {
 
     newChatMessageHistory.addUserMessage(newMessage);
-    
-    return await altern_chain.invoke({
+
+    const logger = [];
+
+    let ans = await altern_chain
+    .bind({callbacks:[
+        //new ConsoleCallbackHandler(),
+        new logsHandler(logger),
+        ]})
+    .invoke({
         history: (await newChatMessageHistory.getMessages()).map(
                 m => `${m.lc_id[2]==='AIMessage'?' [AI]':' [User]'}:${m.content};`
             ) + '[.]',
         updater: setMessages,
         handleTable: handleTable,
-    });  
+    });
+    console.log(logger);
+    return ans
 };
