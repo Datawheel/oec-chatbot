@@ -1,8 +1,8 @@
 import { Ollama } from '@langchain/community/llms/ollama';
-import { ChatPromptTemplate, PromptTemplate } from "@langchain/core/prompts";
+import { PromptTemplate } from "@langchain/core/prompts";
 import { ChatMessageHistory } from "langchain/stores/message/in_memory";
 import { RunnableSequence, RunnablePassthrough, RunnableLambda, RunnableParallel } from '@langchain/core/runnables'
-import { StringOutputParser, JsonOutputParser } from "@langchain/core/output_parsers";
+import { JsonOutputParser } from "@langchain/core/output_parsers";
 import { ConsoleCallbackHandler } from "@langchain/core/tracers/console";
 import axios from 'axios';
 import { BaseCallbackHandler } from "@langchain/core/callbacks/base";
