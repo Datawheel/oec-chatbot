@@ -1,4 +1,3 @@
-import { ChatOllama } from "@langchain/community/chat_models/ollama";
 import { Ollama } from '@langchain/community/llms/ollama';
 import { ChatPromptTemplate, PromptTemplate } from "@langchain/core/prompts";
 import { ChatMessageHistory } from "langchain/stores/message/in_memory";
