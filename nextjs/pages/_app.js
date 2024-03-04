@@ -9,7 +9,7 @@ export default function App(props) {
       <DefaultSeo title="DataUSA Chat" titleTemplate="%s | DataUSA Chat" />
       <MantineProvider
         withGlobalStyles
-        withNormalizeCSS
+        
         theme={{
           /** Put your mantine theme override here */
           colorScheme: "dark",
