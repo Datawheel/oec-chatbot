@@ -73,7 +73,8 @@ const Chatbot = () => {
             key={index}
             className={`${styles.message} ${message.user ? styles.userMessage : styles.aiMessage}`}
           >
-            {(message.text==='...')? <Loading visible={loading}/> : message.text }
+            { message.text }
+            {loading? <Loading />:<></>}
           </div>
         ))}
       </div>

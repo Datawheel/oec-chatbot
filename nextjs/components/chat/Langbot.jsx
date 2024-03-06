@@ -13,7 +13,7 @@ const NEXT_PUBLIC_CHAT_API = process.env.NEXT_PUBLIC_CHAT_API;
 TODOS:
 - [x] handle fail json format
 - [x] implement logs
-- [] Rebase github
+- [x] Rebase github
 - [] Implement auto-testing
 - [] Head Function calling
 - [] Provide variables to user
@@ -22,7 +22,7 @@ TODOS:
 
 //handler
 
-class logsHandler extends BaseCallbackHandler {
+export class logsHandler extends BaseCallbackHandler {
     name = "logsHandler";
 
     constructor(outFile, _fields) {
@@ -55,8 +55,7 @@ class logsHandler extends BaseCallbackHandler {
     async handleLLMError(chain) {
         console.log(`Error llm:  ${Object.keys(chain)} `);
         this.outFile.push(chain);
-      }
-    
+      }    
 
 }
 
@@ -158,11 +157,11 @@ const category_prompts = [
     },
     {
         'name':'Consumer Price Index',
-        'metrics': ['cuantity', 'price metric'],
+        'metrics':['cuantity', 'price metric'],
         'optional_vars': ['year'],
         'prompt_template':`${baseCategoryPrompt} ${['product name', 'date']} ${baseOutputPrompt}`,
         'prompt_alternative':`${baseCategoryPrompt} ${['product name', 'date']} ${alternativeOutputPrompt}`,
-        'examples': [
+        'examples':[
             'How much was the CPI of eggs in January of 2013?',
             'How much was the YoY variation of the CPI of eggs in January of 2014?']
     },
@@ -197,6 +196,8 @@ const category_prompts = [
         'examples': ['hi, how are you?'],
     },
 ];
+
+//export const category_prompts2 = (()=> {return category_prompts})();
 
 const classify_prompt = PromptTemplate.fromTemplate(
     `Summarize in conversation as a question, then classify the summary into one 
@@ -334,7 +335,7 @@ const action = async (init) => {
 
 
 //Main chain
-const altern_chain = RunnableSequence.from([
+export const altern_chain = RunnableSequence.from([
     RunnableParallel.from({
         line: RunnableSequence.from([
             classifyOne.withFallbacks({fallbacks: [classifyTwo]}),
@@ -493,11 +494,11 @@ const test3 = async () => {
 //const out_test = await test3();
 //console.log(out_test);
 
-export default async function Langbot(newMessage, setMessages, handleTable) {
+export default async function Langbot(newMessage, setMessages, handleTable, logger=[]) {
 
     newChatMessageHistory.addUserMessage(newMessage);
 
-    const logger = [];
+    //const logger = [];
 
     let ans = await altern_chain
     .bind({callbacks:[
@@ -514,3 +515,4 @@ export default async function Langbot(newMessage, setMessages, handleTable) {
     console.log(logger);
     return ans
 };
+
