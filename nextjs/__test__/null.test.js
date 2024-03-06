@@ -1,5 +1,5 @@
 //import Langbot  from '@/components/chat/Langbot'
-//import DataResults from "@/components/chat/DataResults";
+import DataResults from "@/components/chat/DataResults";
 
 const opa = ['hi']
 
