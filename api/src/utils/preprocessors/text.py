@@ -1,3 +1,4 @@
+import json
 import re
 import regex
 
@@ -62,3 +63,41 @@ def extract_text_from_markdown_triple_backticks(raw_str):
         return json_content
     else:
         return ""
+    
+
+def parse_to_json(concatenated_str):
+    """
+    Parses a concatenated string containing multiple JSON objects into a list of parsed JSON dictionaries.
+    """
+    json_strs = concatenated_str.split("\n")
+    parsed_json_list = []
+
+    for json_str in json_strs:
+        if json_str.strip():
+            parsed_json_list.append(json.loads(json_str))
+
+    return parsed_json_list
+
+
+def parse_response(json_data):
+    """
+    Parses LLama response to a continuous string.
+    """
+    json_data = parse_to_json(json_data)
+    parsed_response = ""
+
+    for item in json_data:
+        if "response" in item:
+            parsed_response += item["response"]
+
+    return parsed_response
+
+
+def clean_api_url(input_string):
+    characters_to_remove = "\"'`;"
+    
+    cleaned_string = input_string
+    for char in characters_to_remove:
+        cleaned_string = cleaned_string.replace(char, '')
+    
+    return cleaned_string
