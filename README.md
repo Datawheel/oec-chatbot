@@ -95,13 +95,14 @@ In order to add one cube, the steps are:
       - name
       - api (Tesseract or Mondrian)
       - description
-      - measures
-            ```json
-               {
-                  "name": "Millions Of Dollars",
-                  "description": "value in millions of dollars of a certain shipment."   
-               }
-            ```
+      - measures:
+         ```json
+            {
+               "name": "Millions Of Dollars",
+               "description": "value in millions of dollars of a shipment"
+            }
+         ```
+
       - dimensions
          - Add each hierarchy separately, filling the following fields for each:
             ```json
