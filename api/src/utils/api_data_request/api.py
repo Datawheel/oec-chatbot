@@ -129,10 +129,9 @@ def cuts_processing(cuts, table, table_manager, api):
 
 def api_build(table, table_manager, drilldowns, measures, cuts, limit = ""):
     """
-    Receives the the drilldowns, measures and filters obtained from the LLM.
+    Receives the drilldowns, measures and filters obtained from the LLM and adds them as attributes to the api instance.
     """
-    base = "Tesseract"
-    #table.api
+    base = table.api
 
     if base == "Mondrian": base = MONDRIAN_API
     else: base = TESSERACT_API + "data.jsonrecords?"
@@ -146,19 +145,3 @@ def api_build(table, table_manager, drilldowns, measures, cuts, limit = ""):
     cuts_processing(cuts, table, table_manager, api)
 
     return api
-
-
-def api_request(url):
-    try:
-        r = requests.get(url)
-        r.raise_for_status()
-
-        if 'data' in r.json():
-            json_data = r.json()['data']
-            df = pd.DataFrame.from_dict(r.json()['data'])
-            return json_data, df, ""
-
-    except: 
-        json_data = json.loads('{}')
-        df = pd.DataFrame()
-        return json_data, df, "No data found."
