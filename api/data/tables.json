@@ -18,45 +18,76 @@
                     "description": "percentage change"
                 }
             ],
-            "variables": [
+            "dimensions": [
                 {
-                    "name": "Year",
-                    "description": "periodicity of the data",
-                    "parent dimension": "Time",
-                    "hierarchies": ["Year", "Month and Year"]
+                    "name": "Time",
+                    "description": "Periodicity of the data (monthly or annual).",
+                    "hierarchies": [
+                        {
+                            "name": "Month and Year",
+                            "description": "'Month and Year' has the format YYYYMM (example March of 2015 is 201503)",
+                            "levels": [
+                                "Year",
+                                "Month and Year"
+                            ]
+                        }
+                    ]
                 },
                 {
-                    "name": "Month and Year",
-                    "description": "periodicity of the data with the format YYYYMM (example March of 2015 is 201503)",
-                    "parent dimension": "Time",
-                    "hierarchies": ["Year", "Month and Year"]
-                },
-                {
-                    "name": "Level 1.1",
-                    "description": "most general level of products and services",
-                    "parent dimension": "Products or Services",
-                    "hierarchies": ["Level 1.1", "Level 2.2", "Level 3.3", "Level 4.4", "Level 5.5"]
-                },
-                {
-                    "name": "Level 2.2",
-                    "parent dimension": "Products or Services",
-                    "hierarchies": ["Level 1.1", "Level 2.2", "Level 3.3", "Level 4.4", "Level 5.5"]
-                },
-                {
-                    "name": "Level 3.3",
-                    "parent dimension": "Products or Services",
-                    "hierarchies": ["Level 1.1", "Level 2.2", "Level 3.3", "Level 4.4", "Level 5.5"]
-                },
-                {
-                    "name": "Level 4.4",
-                    "parent dimension": "Products or Services",
-                    "hierarchies": ["Level 1.1", "Level 2.2", "Level 3.3", "Level 4.4", "Level 5.5"]
-                },
-                {
-                    "name": "Level 5.5",
-                    "description": "most detailed level of products and services",
-                    "parent dimension": "Products or Services",
-                    "hierarchies": ["Level 1.1", "Level 2.2", "Level 3.3", "Level 4.4", "Level 5.5"]
+                    "name": "Products or Services",
+                    "description": "contains levels of products and services",
+                    "hierarchies": [
+                        {
+                            "name": "Level 1.1",
+                            "levels": [
+                                "Level 1.1",
+                                "Level 2.2",
+                                "Level 3.3",
+                                "Level 4.4",
+                                "Level 5.5"
+                            ]
+                        },
+                        {
+                            "name": "Level 2.2",
+                            "levels": [
+                                "Level 1.1",
+                                "Level 2.2",
+                                "Level 3.3",
+                                "Level 4.4",
+                                "Level 5.5"
+                            ]
+                        },
+                        {
+                            "name": "Level 3.3",
+                            "levels": [
+                                "Level 1.1",
+                                "Level 2.2",
+                                "Level 3.3",
+                                "Level 4.4",
+                                "Level 5.5"
+                            ]
+                        },
+                        {
+                            "name": "Level 4.4",
+                            "levels": [
+                                "Level 1.1",
+                                "Level 2.2",
+                                "Level 3.3",
+                                "Level 4.4",
+                                "Level 5.5"
+                            ]
+                        },
+                        {
+                            "name": "Level 5.5",
+                            "levels": [
+                                "Level 1.1",
+                                "Level 2.2",
+                                "Level 3.3",
+                                "Level 4.4",
+                                "Level 5.5"
+                            ]
+                        }
+                    ]
                 }
             ]
         },
@@ -67,55 +98,74 @@
             "measures": [
                 {
                     "name": "Millions Of Dollars",
-                    "description": "value in millions of dollars of a certain shipment."             
+                    "description": "value in millions of dollars of a certain shipment."
                 },
                 {
                     "name": "Thousands Of Tons",
                     "description": "weight in thousands of tons of a certain shipment."
                 }
             ],
-            "variables": [
+            "dimensions": [
                 {
                     "name": "Year",
-                    "description": "year",
-                    "parent dimension": "Year",
-                    "hierarchies": ["Year"]
+                    "hierarchies": [
+                        {
+                            "name": "Year",
+                            "levels": [
+                                "Year"
+                            ]
+                        }
+                    ]
                 },
                 {
                     "name": "SCTG2",
                     "description": "products based on SCTG classification (first level).",
-                    "parent dimension": "SCTG2",
-                    "hierarchies": ["SCTG2"]
+                    "hierarchies": [
+                        {
+                            "name": "SCTG2",
+                            "levels": [
+                                "SCTG2"
+                            ]
+                        }
+                    ]
                 },
                 {
                     "name": "Transportation Mode",
                     "description": "mode of transportation or shipment.",
-                    "parent dimension": "Transportation Mode",
-                    "hierarchies": ["Transportation Mode"]
+                    "hierarchies": [
+                        {
+                            "name": "Transportation Mode",
+                            "levels": [
+                                "Transportation Mode"
+                            ]
+                        }
+                    ]
                 },
                 {
-                    "name": "Origin State",
-                    "description": "Origin state",
-                    "parent dimension": "Origin",
-                    "hierarchies": ["Origin State", "Origin Region"]
+                    "name": "Origin",
+                    "description": "Origin region or state of the shipment",
+                    "hierarchies": [
+                        {
+                            "name": "Origin Region",
+                            "levels": [
+                                "Origin State",
+                                "Origin Region"
+                            ]
+                        }
+                    ]
                 },
                 {
-                    "name": "Origin Region",
-                    "description": "Origin region",
-                    "parent dimension": "Origin",
-                    "hierarchies": ["Origin State", "Origin Region"]
-                },
-                {
-                    "name": "Destination State",
-                    "description": "Destination state",
-                    "parent dimension": "Destination",
-                    "hierarchies": ["Destination State", "Destination Region"]
-                },
-                {
-                    "name": "Destination Region",
-                    "description": "Destination region",
-                    "parent dimension": "Destination",
-                    "hierarchies": ["Destination State", "Destination Region"]
+                    "name": "Destination",
+                    "description": "Destination region or state of the shipment",
+                    "hierarchies": [
+                        {
+                            "name": "Destination Region",
+                            "levels": [
+                                "Destination State",
+                                "Destination Region"
+                            ]
+                        }
+                    ]
                 }
             ]
         },
@@ -132,29 +182,42 @@
                     "name": "Default Rate"
                 }
             ],
-            "variables": [
+            "dimensions": [
                 {
                     "name": "Year",
-                    "parent dimension": "Year",
-                    "hierarchies": ["Year"]
+                    "hierarchies": [
+                        {
+                            "name": "Year",
+                            "levels": [
+                                "Year"
+                            ]
+                        }
+                    ]
                 },
                 {
-                    "name": "State",
-                    "description": "US states",
-                    "parent dimension": "Geography",
-                    "hierarchies": ["State", "County"]
-                },
-                {
-                    "name": "County",
-                    "description": "US counties",
-                    "parent dimension": "Geography",
-                    "hierarchies": ["State", "County"]
+                    "name": "Geography",
+                    "description": "geographical dimension of the data, either state or county level.",
+                    "hierarchies": [
+                        {
+                            "name": "County",
+                            "levels": [
+                                "State",
+                                "County"
+                            ]
+                        }
+                    ]
                 },
                 {
                     "name": "OPEID",
                     "description": "School name according to the Office of Postsecondary Education Identifier",
-                    "parent dimension": "OPEID",
-                    "hierarchies": ["OPEID"]
+                    "hierarchies": [
+                        {
+                            "name": "OPEID",
+                            "levels": [
+                                "OPEID"
+                            ]
+                        }
+                    ]
                 }
             ]
         },
@@ -176,86 +239,94 @@
                     "name": "Average Age"
                 }
             ],
-            "variables": [
+            "dimensions": [
                 {
                     "name": "Year",
-                    "parent dimension": "Year",
-                    "hierarchies": ["Year"]
+                    "hierarchies": [
+                        {
+                            "name": "Year",
+                            "levels": [
+                                "Year"
+                            ]
+                        }
+                    ]
                 },
                 {
-                    "name": "Nation",
-                    "description": "national level data (USA)",
-                    "parent dimension": "Geography",
-                    "hierarchies": ["Nation", "State", "PUMA"]
-                },
-                {
-                    "name": "State",
-                    "description": "US states",
-                    "parent dimension": "Geography",
-                    "hierarchies": ["Nation", "State", "PUMA"]
-                },
-                {
-                    "name": "PUMA",
-                    "description": "US PUMAs (public use microdata areas)",
-                    "parent dimension": "Geography",
-                    "hierarchies": ["Nation", "State", "PUMA"]
+                    "name": "Geography",
+                    "description": "geographical dimension of the data, either national, state or PUMA level.",
+                    "hierarchies": [
+                        {
+                            "name": "PUMA",
+                            "levels": [
+                                "Nation",
+                                "State",
+                                "PUMA"
+                            ]
+                        }
+                    ]
                 },
                 {
                     "name": "Age",
-                    "parent dimension": "Age",
-                    "hierarchies": ["Age"]
+                    "hierarchies": [
+                        {
+                            "name": "Age",
+                            "levels": [
+                                "Age"
+                            ]
+                        }
+                    ]
                 },
                 {
                     "name": "Gender",
-                    "parent dimension": "Gender",
-                    "hierarchies": ["Gender"]
+                    "description": "Gender dimension (female or male).",
+                    "hierarchies": [
+                        {
+                            "name": "Gender",
+                            "levels": [
+                                "Gender"
+                            ]
+                        }
+                    ]
                 },
                 {
                     "name": "Race",
-                    "parent dimension": "Race",
-                    "hierarchies": ["Race"]
+                    "hierarchies": [
+                        {
+                            "name": "Race",
+                            "levels": [
+                                "Race"
+                            ]
+                        }
+                    ]
                 },
                 {
-                    "name": "Major Occupation Group",
-                    "description": "PUMS Occupation most general classification",
-                    "parent dimension": "PUMS Occupation",
-                    "hierarchies": ["Major Occupation Group", "Minor Occupation Group", "Broad Occupation", "Detailed Occupation"]
+                    "name": "PUMS Occupation",
+                    "description": "PUMS Occupation classification",
+                    "hierarchies": [
+                        {
+                            "name": "Detailed Occupation",
+                            "levels": [
+                                "Major Occupation Group",
+                                "Minor Occupation Group",
+                                "Broad Occupation",
+                                "Detailed Occupation"
+                            ]
+                        }
+                    ]
                 },
                 {
-                    "name": "Minor Occupation Group",
-                    "description": "PUMS minor Occupation classification",
-                    "parent dimension": "PUMS Occupation",
-                    "hierarchies": ["Major Occupation Group", "Minor Occupation Group", "Broad Occupation", "Detailed Occupation"]
-                },
-                {
-                    "name": "Broad Occupation",
-                    "description": "PUMS broad Occupation classification",
-                    "parent dimension": "PUMS Occupation",
-                    "hierarchies": ["Major Occupation Group", "Minor Occupation Group", "Broad Occupation", "Detailed Occupation"]
-                },
-                {
-                    "name": "Detailed Occupation",
-                    "description": "PUMS most detailed Occupation classification",
-                    "parent dimension": "PUMS Occupation",
-                    "hierarchies": ["Major Occupation Group", "Minor Occupation Group", "Broad Occupation", "Detailed Occupation"]
-                },
-                {
-                    "name": "Industry Sector",
-                    "description": "PUMS industry sector classification (most general classification)",
-                    "parent dimension": "PUMS Industry",
-                    "hierarchies": ["Industry Sector", "Industry Sub-Sector", "Industry Group"]
-                },
-                {
-                    "name": "Industry Sub-Sector",
-                    "description": "PUMS industry sub-sector classification",
-                    "parent dimension": "PUMS Industry",
-                    "hierarchies": ["Industry Sector", "Industry Sub-Sector", "Industry Group"]
-                },
-                {
-                    "name": "Industry Group",
-                    "description": "PUMS industry group classification (most detailed classification)",
-                    "parent dimension": "PUMS Industry",
-                    "hierarchies": ["Industry Sector", "Industry Sub-Sector", "Industry Group"]
+                    "name": "PUMS Industry",
+                    "description": "PUMS industry classification",
+                    "hierarchies": [
+                        {
+                            "name": "Industry Group",
+                            "levels": [
+                                "Industry Sector",
+                                "Industry Sub-Sector",
+                                "Industry Group"
+                            ]
+                        }
+                    ]
                 }
             ]
         },
@@ -273,28 +344,52 @@
                     "description": "Contains the total votes in a certain state for a certain year."
                 }
             ],
-            "variables": [
+            "dimensions": [
                 {
                     "name": "Candidate",
-                    "parent dimension": "Candidate",
-                    "hierarchies": ["Candidate"]
+                    "description": "Name of Senate candidates.",
+                    "hierarchies": [
+                        {
+                            "name": "Candidate",
+                            "levels": [
+                                "Candidate"
+                            ]
+                        }
+                    ]
                 },
                 {
                     "name": "State",
-                    "description": "US states",
-                    "parent dimension": "State",
-                    "hierarchies": ["State"]
-                },
-                {
-                    "name": "Party",
-                    "description": "Political party of the candidate",
-                    "parent dimension": "Party",
-                    "hierarchies": ["Party"]
+                    "hierarchies": [
+                        {
+                            "name": "State",
+                            "levels": [
+                                "State"
+                            ]
+                        }
+                    ]
                 },
                 {
                     "name": "Year",
-                    "parent dimension": "Year",
-                    "hierarchies": ["Year"]
+                    "hierarchies": [
+                        {
+                            "name": "Year",
+                            "levels": [
+                                "Year"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "Party",
+                    "description": "Political party to which each candidate belongs to.",
+                    "hierarchies": [
+                        {
+                            "name": "Party",
+                            "levels": [
+                                "Party"
+                            ]
+                        }
+                    ]
                 }
             ]
         },
@@ -312,34 +407,70 @@
                     "description": "Contains the total votes in a certain state for a certain year."
                 }
             ],
-            "variables": [
+            "dimensions": [
                 {
                     "name": "Candidate",
-                    "parent dimension": "Candidate",
-                    "hierarchies": ["Candidate"]
+                    "description": "Name of President candidates.",
+                    "hierarchies": [
+                        {
+                            "name": "Candidate",
+                            "levels": [
+                                "Candidate"
+                            ]
+                        }
+                    ]
                 },
                 {
-                    "name": "State",
-                    "description": "US states",
-                    "parent dimension": "Geography",
-                    "hierarchies": ["State"]
+                    "name": "Geography",
+                    "hierarchies": [
+                        {
+                            "name": "State",
+                            "levels": [
+                                "State"
+                            ]
+                        },
+                        {
+                            "name": "County",
+                            "levels": [
+                                "State County",
+                                "County"
+                            ]
+                        }
+                    ]
                 },
                 {
-                    "name": "County",
-                    "description": "US counties",
-                    "parent dimension": "Geography",
-                    "hierarchies": ["State County", "County"]
-                },
-                {
-                    "name": "Party",
-                    "description": "Political party of the candidate",
-                    "parent dimension": "Party",
-                    "hierarchies": ["Party"]
+                    "name": "Candidate",
+                    "hierarchies": [
+                        {
+                            "name": "Candidate",
+                            "levels": [
+                                "Candidate"
+                            ]
+                        }
+                    ]
                 },
                 {
                     "name": "Year",
-                    "parent dimension": "Year",
-                    "hierarchies": ["Year"]
+                    "hierarchies": [
+                        {
+                            "name": "Year",
+                            "levels": [
+                                "Year"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "Party",
+                    "description": "Political party to which each candidate belongs to.",
+                    "hierarchies": [
+                        {
+                            "name": "Party",
+                            "levels": [
+                                "Party"
+                            ]
+                        }
+                    ]
                 }
             ]
         },
@@ -357,34 +488,54 @@
                     "description": "Contains the total votes in a certain state for a certain year."
                 }
             ],
-            "variables": [
+            "dimensions": [
                 {
                     "name": "Candidate",
-                    "parent dimension": "Candidate",
-                    "hierarchies": ["Candidate"]
+                    "description": "Name of House candidates.",
+                    "hierarchies": [
+                        {
+                            "name": "Candidate",
+                            "levels": [
+                                "Candidate"
+                            ]
+                        }
+                    ]
                 },
                 {
-                    "name": "State",
-                    "description": "US states",
-                    "parent dimension": "Geography",
-                    "hierarchies": ["State", "Congressional District"]
-                },
-                {
-                    "name": "Congressional District",
-                    "description": "US counties",
-                    "parent dimension": "Geography",
-                    "hierarchies": ["State", "Congressional District"]
-                },
-                {
-                    "name": "Party",
-                    "description": "Political party of the candidate",
-                    "parent dimension": "Party",
-                    "hierarchies": ["Party"]
+                    "name": "Geography",
+                    "description": "geographical dimension of the data, either state or congressional district level.",
+                    "hierarchies": [
+                        {
+                            "name": "Congressional District",
+                            "levels": [
+                                "State",
+                                "Congressional District"
+                            ]
+                        }
+                    ]
                 },
                 {
                     "name": "Year",
-                    "parent dimension": "Year",
-                    "hierarchies": ["Year"]
+                    "hierarchies": [
+                        {
+                            "name": "Year",
+                            "levels": [
+                                "Year"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "Party",
+                    "description": "Political party to which each candidate belongs to.",
+                    "hierarchies": [
+                        {
+                            "name": "Party",
+                            "levels": [
+                                "Party"
+                            ]
+                        }
+                    ]
                 }
             ]
         }
