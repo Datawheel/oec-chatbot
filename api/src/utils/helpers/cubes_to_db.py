@@ -1,17 +1,7 @@
-import os
 import pandas as pd
 
-from sqlalchemy import create_engine
+from src.config import POSTGRES_ENGINE
 from sentence_transformers import SentenceTransformer
-
-
-POSTGRES_USERNAME = os.getenv('POSTGRES_USER')
-POSTGRES_PASSWORD = os.getenv('POSTGRES_PASSWORD')
-POSTGRES_URL = os.getenv('POSTGRES_URL')
-POSTGRES_DATABASE = os.getenv('POSTGRES_DB')
-
-engine = create_engine('postgresql+psycopg2://{}:{}@{}:5432/{}'.format(POSTGRES_USERNAME,POSTGRES_PASSWORD,POSTGRES_URL,POSTGRES_DATABASE))
-conn = engine.connect()
 
 def embedding(dataframe, column):
     """
@@ -26,7 +16,7 @@ def embedding(dataframe, column):
 
 
 def create_table():
-    engine.execute("CREATE TABLE IF NOT EXISTS datausa_tables.cubes (table_name text, table_description text, embedding vector(384))") 
+    POSTGRES_ENGINE.execute("CREATE TABLE IF NOT EXISTS datausa_tables.cubes (table_name text, table_description text, embedding vector(384))") 
     return
 
 
@@ -35,7 +25,7 @@ def load_data_to_db(df):
     print(df.head())
 
     df_embeddings = embedding(df, 'table_description')
-    df_embeddings.to_sql('cubes', conn, if_exists='append', index=False, schema='datausa_tables')
+    df_embeddings.to_sql('cubes', con=POSTGRES_ENGINE, if_exists='append', index=False, schema='datausa_tables')
 
     return
 
