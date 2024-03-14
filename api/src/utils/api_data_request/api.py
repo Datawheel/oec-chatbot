@@ -1,26 +1,10 @@
-import openai
-import os
-import pandas as pd
 import requests
-import json
+import pandas as pd
 
-from os import getenv
-from dotenv import load_dotenv
+from src.config import MONDRIAN_API, TESSERACT_API
 from src.utils.table_selection.table_details import *
 from src.utils.preprocessors.text import *
 from src.utils.api_data_request.similarity_search import *
-
-load_dotenv()
-
-# environment initialization
-os.environ["TOKENIZERS_PARALLELISM"] = "false"
-
-# drilldown initialization
-OPENAI_KEY = getenv("OPENAI_KEY")
-openai.api_key = OPENAI_KEY
-
-TESSERACT_API = getenv("TESSERACT_API")
-MONDRIAN_API = getenv('MONDRIAN_API')
 
 class ApiBuilder:
 
