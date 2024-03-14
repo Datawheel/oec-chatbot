@@ -9,6 +9,7 @@ from langchain_core.runnables import RunnableLambda, chain
 
 # fastapi instance declaration
 app = FastAPI()
+
 # api functions
 @app.get("/")
 async def root():
