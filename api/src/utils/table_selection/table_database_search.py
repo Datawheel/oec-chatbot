@@ -1,6 +1,6 @@
 import pandas as pd
 
-from src.config import POSTGRES_ENGINE
+from config import POSTGRES_ENGINE
 from typing import List
 
 def get_similar_tables(vector, threshold=0, content_limit=1) -> List[str]:

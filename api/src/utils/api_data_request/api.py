@@ -1,10 +1,10 @@
 import requests
 import pandas as pd
 
-from src.config import MONDRIAN_API, TESSERACT_API
-from src.utils.table_selection.table_details import *
-from src.utils.preprocessors.text import *
-from src.utils.api_data_request.similarity_search import *
+from config import MONDRIAN_API, TESSERACT_API
+from utils.table_selection.table_details import *
+from utils.preprocessors.text import *
+from utils.api_data_request.similarity_search import *
 
 class ApiBuilder:
 

@@ -2,7 +2,7 @@ import pandas as pd
 
 from sentence_transformers import SentenceTransformer
 
-from src.config import POSTGRES_ENGINE
+from config import POSTGRES_ENGINE
 
 def get_similar_content(text, cube_name, drilldown_names, threshold=0, content_limit=1, embedding_model='multi-qa-MiniLM-L6-cos-v1', verbose=False):
     """

@@ -5,7 +5,7 @@ import time
 from datetime import datetime
 from sqlalchemy import text
 
-from src.config import POSTGRES_ENGINE
+from config import POSTGRES_ENGINE
 
 def generate_custom_id():
     timestamp = str(int(time.time()))

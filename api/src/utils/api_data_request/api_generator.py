@@ -3,11 +3,11 @@ import openai
 import requests
 import time
 
-from src.config import OLLAMA_API
-from src.utils.table_selection.table_details import *
-from src.utils.preprocessors.text import *
-from src.utils.api_data_request.similarity_search import *
-from src.utils.api_data_request.api import *
+from config import OLLAMA_API
+from utils.table_selection.table_details import *
+from utils.preprocessors.text import *
+from utils.api_data_request.similarity_search import *
+from utils.api_data_request.api import *
 
 def get_api_components_messages(table, model_author, natural_language_query = ""):
 
