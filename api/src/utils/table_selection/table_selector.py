@@ -1,20 +1,14 @@
 import json
 import openai
 import time
+
 from typing import List
 from sentence_transformers import SentenceTransformer
-from os import getenv
-from dotenv import load_dotenv
 
 from src.utils.table_selection.table_details import *
 from src.utils.table_selection.table_database_search import get_similar_tables
 from src.utils.few_shot_examples import get_few_shot_example_messages
 from src.utils.preprocessors.text import extract_text_from_markdown_triple_backticks
-
-load_dotenv()
-
-OPENAI_KEY = getenv("OPENAI_KEY")
-openai.api_key = OPENAI_KEY
 
 def _get_table_selection_message_with_descriptions(table_manager, table_names: List[str] = None):
     message = (
