@@ -40,4 +40,5 @@ TESSERACT_API = getenv("TESSERACT_API")
 MONDRIAN_API = getenv("MONDRIAN_API")
 
 # Files Directories
+FEW_SHOT_PATH = getenv("FEW_SHOT_PATH")
 TABLES_PATH = getenv("TABLES_PATH")
