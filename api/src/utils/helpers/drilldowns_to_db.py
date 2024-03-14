@@ -2,7 +2,7 @@ import pandas as pd
 import requests
 import urllib.parse
 
-from src.config import POSTGRES_ENGINE
+from config import POSTGRES_ENGINE
 from sentence_transformers import SentenceTransformer
 
 def embedding(dataframe, column):

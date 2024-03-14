@@ -1,4 +1,4 @@
-from src.config import OPENAI_KEY
+from config import OPENAI_KEY
 from langchain.agents import create_pandas_dataframe_agent
 from langchain.chat_models import ChatOpenAI
 

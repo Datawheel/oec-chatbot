@@ -1,6 +1,6 @@
 import pandas as pd
 
-from src.config import POSTGRES_ENGINE
+from config import POSTGRES_ENGINE
 from sentence_transformers import SentenceTransformer
 
 def embedding(dataframe, column):
