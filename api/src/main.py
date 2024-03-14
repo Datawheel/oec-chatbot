@@ -13,10 +13,6 @@ import json
 from langchain_core.runnables import RunnableLambda, chain
 # fastapi instance declaration
 app = FastAPI()
-
-# get tables path
-load_dotenv()
-TABLES_PATH = getenv('TABLES_PATH')
 # api functions
 @app.get("/")
 async def root():
@@ -66,3 +62,11 @@ def fn2():
 async def num():
     return StreamingResponse(fn2(), media_type="application/json")
 
+
+        "query":
+            {
+                "question": query, 
+                "answer": text_response, 
+                "url": api_url
+            }
+      }
