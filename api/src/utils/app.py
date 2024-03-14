@@ -1,5 +1,7 @@
 import time
 
+from os import getenv
+
 from src.utils.table_selection.table_selector import *
 from src.utils.table_selection.table_details import *
 from src.utils.api_data_request.api_generator import *
