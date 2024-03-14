@@ -22,14 +22,19 @@ else:
 
 # OpenAI Connection
 OPENAI_KEY = getenv("OPENAI_KEY")
+# os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
-openai.api_key = OPENAI_KEY
-
-if not OPENAI_KEY:
+if OPENAI_KEY:
+    openai.api_key = OPENAI_KEY
+else:
     print('OPENAI_KEY not found, please check your environment')
     exit(1)
+
+# OLLAMA Connection
+OLLAMA_API = getenv("OLLAMA_API")
 
 # Tesseract Connection
 TESSERACT_API = getenv("TESSERACT_API")
 
-print('here in config: {}'.format(POSTGRES_ENGINE.connect()))
+# Mondrian Connection
+MONDRIAN_API = getenv('MONDRIAN_API')
