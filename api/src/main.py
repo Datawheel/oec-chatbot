@@ -62,11 +62,3 @@ def fn2():
 async def num():
     return StreamingResponse(fn2(), media_type="application/json")
 
-
-        "query":
-            {
-                "question": query, 
-                "answer": text_response, 
-                "url": api_url
-            }
-      }
