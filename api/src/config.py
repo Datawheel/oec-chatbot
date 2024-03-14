@@ -38,3 +38,6 @@ TESSERACT_API = getenv("TESSERACT_API")
 
 # Mondrian Connection
 MONDRIAN_API = getenv('MONDRIAN_API')
+
+# Files Directories
+TABLES_PATH = getenv('TABLES_PATH')

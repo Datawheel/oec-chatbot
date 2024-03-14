@@ -1,22 +1,21 @@
-from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.responses import StreamingResponse
-from os import getenv
-from src.utils.app import get_api
+
+from config import TABLES_PATH
+from utils.app import get_api
 from src.wrapper.lanbot import Langbot
 import time
 import json
 from langchain_core.runnables import RunnableLambda, chain
 # fastapi instance declaration
 app = FastAPI()
-
-# get tables path
-load_dotenv()
-TABLES_PATH = getenv('TABLES_PATH')
 # api functions
 @app.get("/")
 async def root():
-    return {"message": "Hello World"}
+    return {
+        "name": "datausa-chat-api",
+        "status": "ok"
+      }
 
 @app.get("/wrap/{query}")
 async def wrap(query):
@@ -60,3 +59,11 @@ def fn2():
 async def num():
     return StreamingResponse(fn2(), media_type="application/json")
 
+
+        "query":
+            {
+                "question": query, 
+                "answer": text_response, 
+                "url": api_url
+            }
+      }
