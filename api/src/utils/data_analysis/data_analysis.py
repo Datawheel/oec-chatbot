@@ -22,6 +22,7 @@ def agent_answer(df, natural_language_query):
     )
 
     llm = ChatOpenAI(model_name='gpt-4-1106-preview', temperature=0, openai_api_key=OPENAI_KEY)
+    llm = ChatOpenAI(model_name='gpt-4-1106-preview', temperature=0, openai_api_key=OPENAI_KEY)
     agent =  create_pandas_dataframe_agent(llm, df, verbose=True)
     response = agent.run(prompt)
     
