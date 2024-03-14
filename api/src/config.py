@@ -22,7 +22,6 @@ else:
 
 # OpenAI Connection
 OPENAI_KEY = getenv("OPENAI_KEY")
-# os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
 if OPENAI_KEY:
     openai.api_key = OPENAI_KEY
