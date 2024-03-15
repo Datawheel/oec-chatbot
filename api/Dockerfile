@@ -34,9 +34,10 @@ RUN apt-get install -y --no-install-recommends \
 
 # copy app files
 COPY --from=build /usr/app/venv ./venv
-COPY . .
+COPY /src .
+COPY /data ./data
 
 ENV PATH="/usr/app/venv/bin:$PATH"
 
 # Run the app
-CMD [ "uvicorn", "src.main:app", "--proxy-headers", "--host", "0.0.0.0", "--port", "80", "--timeout-keep-alive", "120" ]
+CMD [ "uvicorn", "main:app", "--proxy-headers", "--host", "0.0.0.0", "--port", "80", "--timeout-keep-alive", "120" ]
