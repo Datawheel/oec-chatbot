@@ -1,19 +1,9 @@
-import os
 import pandas as pd
 import requests
 import urllib.parse
 
-from sqlalchemy import create_engine
+from config import POSTGRES_ENGINE
 from sentence_transformers import SentenceTransformer
-
-
-POSTGRES_USERNAME = os.getenv('POSTGRES_USER')
-POSTGRES_PASSWORD = os.getenv('POSTGRES_PASSWORD')
-POSTGRES_URL = os.getenv('POSTGRES_URL')
-POSTGRES_DATABASE = os.getenv('POSTGRES_DB')
-
-engine = create_engine('postgresql+psycopg2://{}:{}@{}:5432/{}'.format(POSTGRES_USERNAME,POSTGRES_PASSWORD,POSTGRES_URL,POSTGRES_DATABASE))
-conn = engine.connect()
 
 def embedding(dataframe, column):
     """
@@ -28,7 +18,7 @@ def embedding(dataframe, column):
 
 
 def create_table():
-    engine.execute("CREATE TABLE IF NOT EXISTS datausa_drilldowns.drilldowns (product_id text, product_name text, cube_name text, drilldown text, embedding vector(384))") 
+    POSTGRES_ENGINE.execute("CREATE TABLE IF NOT EXISTS datausa_drilldowns.drilldowns (product_id text, product_name text, cube_name text, drilldown text, embedding vector(384))") 
     return
 
 
@@ -67,7 +57,7 @@ def load_data_to_db(api_url, measure_name):
     print(df.head())
 
     df_embeddings = embedding(df, 'product_name')
-    df_embeddings.to_sql('drilldowns', conn, if_exists='append', index=False, schema='datausa_drilldowns')
+    df_embeddings.to_sql('drilldowns', con=POSTGRES_ENGINE, if_exists='append', index=False, schema='datausa_drilldowns')
 
     return
 

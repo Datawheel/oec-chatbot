@@ -4,7 +4,7 @@ import time
 import openai
 
 from typing import List, Dict
-from src.utils.logs import log_apicall
+from utils.logs import log_apicall
 
 def get_assistant_message_from_openai(
         messages: List[Dict[str, str]],

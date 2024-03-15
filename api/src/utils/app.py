@@ -1,10 +1,12 @@
 import time
 
-from src.utils.table_selection.table_selector import *
-from src.utils.table_selection.table_details import *
-from src.utils.api_data_request.api_generator import *
-from src.utils.data_analysis.data_analysis import *
-from src.utils.logs import *
+from os import getenv
+
+from utils.table_selection.table_selector import *
+from utils.table_selection.table_details import *
+from utils.api_data_request.api_generator import *
+from utils.data_analysis.data_analysis import *
+from utils.logs import *
 
 def get_api(query, TABLES_PATH):
     start_time = time.time()

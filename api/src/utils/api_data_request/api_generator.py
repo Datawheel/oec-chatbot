@@ -1,29 +1,13 @@
+import json
 import openai
-import os
-import pandas as pd
 import requests
 import time
-import json
 
-from os import getenv
-from dotenv import load_dotenv
-from src.utils.table_selection.table_details import *
-from src.utils.preprocessors.text import *
-from src.utils.api_data_request.similarity_search import *
-from src.utils.api_data_request.api import *
-
-load_dotenv()
-
-# environment initialization
-os.environ["TOKENIZERS_PARALLELISM"] = "false"
-
-# variable initialization
-OPENAI_KEY = getenv("OPENAI_KEY")
-openai.api_key = OPENAI_KEY
-
-TESSERACT_API = getenv("TESSERACT_API")
-MONDRIAN_API = getenv('MONDRIAN_API')
-
+from config import OLLAMA_API
+from utils.table_selection.table_details import *
+from utils.preprocessors.text import *
+from utils.api_data_request.similarity_search import *
+from utils.api_data_request.api import *
 
 def get_api_components_messages(table, model_author, natural_language_query = ""):
 
@@ -157,7 +141,7 @@ def get_api_params_from_lm(natural_language_query, table = None, model="gpt-4", 
         cuts = json.loads(params).get("filters")
 
     elif model_author == "llama":
-        url = "https://caleuche-ollama.datawheel.us/api/generate"
+        url = "{}generate".format(OLLAMA_API)
         print(content)
         payload = {
             "model": model,

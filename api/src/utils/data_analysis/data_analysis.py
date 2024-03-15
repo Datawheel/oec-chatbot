@@ -1,19 +1,6 @@
-import os
-
-from os import getenv
-from dotenv import load_dotenv
+from config import OPENAI_KEY
 from langchain.agents import create_pandas_dataframe_agent
 from langchain.chat_models import ChatOpenAI
-from langchain import OpenAI
-
-load_dotenv()
-
-# environment initialization
-os.environ["TOKENIZERS_PARALLELISM"] = "false"
-
-# variable initialization
-OPENAI_API_KEY = getenv("OPENAI_KEY")
-openai_api_key = OPENAI_API_KEY
 
 def agent_answer(df, natural_language_query):
 
@@ -33,7 +20,7 @@ def agent_answer(df, natural_language_query):
         """
     )
 
-    llm = ChatOpenAI(model_name='gpt-4-1106-preview', temperature=0, openai_api_key=openai_api_key)
+    llm = ChatOpenAI(model_name='gpt-4-1106-preview', temperature=0, openai_api_key=OPENAI_KEY)
     agent =  create_pandas_dataframe_agent(llm, df, verbose=True)
     response = agent.run(prompt)
     

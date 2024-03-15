@@ -3,14 +3,9 @@ import string
 import time
 
 from datetime import datetime
-from os import getenv
 from sqlalchemy import text
-from sqlalchemy import create_engine
 
-POSTGRES_USERNAME = getenv('POSTGRES_USER')
-POSTGRES_PASSWORD = getenv('POSTGRES_PASSWORD')
-POSTGRES_URL = getenv('POSTGRES_URL')
-POSTGRES_DATABASE = getenv('POSTGRES_DB')
+from config import POSTGRES_ENGINE
 
 def generate_custom_id():
     timestamp = str(int(time.time()))
@@ -40,9 +35,7 @@ def log_apicall(query, api_url, response, drilldowns, measures, cuts, cube, dura
         VALUES (:query_id, :question, :api_url, :response, :created_on, :drilldowns, :measures, :cuts, :cube, :duration)
     """)
 
-    engine = create_engine('postgresql+psycopg2://{}:{}@{}:5432/{}'.format(POSTGRES_USERNAME,POSTGRES_PASSWORD,POSTGRES_URL,POSTGRES_DATABASE))
-
-    with engine.connect() as conn:
+    with POSTGRES_ENGINE.connect() as conn:
         conn.execute(insert_query, params)
         conn.commit()
 
