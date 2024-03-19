@@ -1,7 +1,19 @@
-from config import OPENAI_KEY
+import os
+
+from os import getenv
+from dotenv import load_dotenv
 from langchain_experimental.agents import create_pandas_dataframe_agent
 from langchain_community.chat_models import ChatOpenAI
+from langchain import OpenAI
 
+load_dotenv()
+
+# environment initialization
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
+
+# variable initialization
+OPENAI_API_KEY = getenv("OPENAI_KEY")
+openai_api_key = OPENAI_API_KEY
 
 def agent_answer(df, natural_language_query):
 
