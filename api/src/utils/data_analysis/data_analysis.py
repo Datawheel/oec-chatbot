@@ -2,8 +2,8 @@ import os
 
 from os import getenv
 from dotenv import load_dotenv
-from langchain.agents import create_pandas_dataframe_agent
-from langchain.chat_models import ChatOpenAI
+from langchain_experimental.agents import create_pandas_dataframe_agent
+from langchain_community.chat_models import ChatOpenAI
 from langchain import OpenAI
 
 load_dotenv()
