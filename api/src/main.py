@@ -1,15 +1,18 @@
 from fastapi import FastAPI
-from fastapi.responses import StreamingResponse
-from config import TABLES_PATH
-from utils.app import get_api
+from fastapi.responses import StreamingResponsefrom os import getenv
+from src.utils.app import get_api
 from wrapper.lanbot import Langbot
 import time
 import json
 from langchain_core.runnables import RunnableLambda, chain
+from src.wrapper.lanbot import Langbot
 
 # fastapi instance declaration
 app = FastAPI()
 
+# get tables path
+load_dotenv()
+TABLES_PATH = getenv('TABLES_PATH')
 # api functions
 @app.get("/")
 async def root():
