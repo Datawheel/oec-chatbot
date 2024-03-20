@@ -3,59 +3,27 @@ from langchain_community.chat_message_histories import ChatMessageHistory
 from langchain_core.prompts import PromptTemplate
 from langchain_core.runnables import RunnableSequence, RunnablePassthrough, RunnableLambda, RunnableParallel
 from langchain_core.output_parsers import JsonOutputParser
-from langchain_core.callbacks.base import BaseCallbackHandler
+from src.wrapper.logsHandlerCallback import logsHandler
 from langchain.globals import set_debug, set_verbose
-
-set_debug(True)
-set_verbose(True)
-
-
-
-### handler
-
-class logsHandler(BaseCallbackHandler):
-
-    def __init__(self, outFile = [], **kwargs):
-        super()
-        self.outFile = outFile
-  
-    def on_chain_start(self, chain):
-        print( f'Entering new chain: {chain.keys()} {chain.type}')
-        self.outFile.append(chain)
-    
-    def on_chain_end(self, chain):
-        print(f'Finish chain:  {chain.keys()}')
-        self.outFile.append(chain)
-    
-    def on_chain_error(self, chain):
-        print(f'Error chain:  {chain.keys()}')
-        self.outFile.append(chain)
-
-    def on_LLM_start(self, chain):
-        print(f'Starting llm:  {chain.keys()} ')
-        self.outFile.append(chain)
-    
-    def on_LLM_end(self, chain):
-        print(f'Finish llm:  {chain.keys()} ')
-        self.outFile.append(chain)
-      
-    def on_LLM_error(self, chain):
-        print(f'Error llm:  {chain.keys()} ')
-        self.outFile.append(chain)   
-
-
+from os import getenv
+import json
+#set_debug(True)
+#set_verbose(True)
+TABLES_PATH = getenv('TABLES_PATH')
+OLLAMA_URL = 'https://caleuche-ollama.datawheel.us'
+CONFIG_FILE_NAME = 'wrapper_datausa.json'
 ## Models
 model = Ollama(
-    base_url= 'https://caleuche-ollama.datawheel.us',
+    base_url= OLLAMA_URL,
     model= "llama2:7b-chat-q8_0",
     temperature= 0,
   ).with_config(
     seed= 123,
-    run_name= 'basic_llama'
+    run_name= 'basic_llama', 
   )
 
 model_adv = Ollama(
-    base_url= 'https://caleuche-ollama.datawheel.us',
+    base_url= OLLAMA_URL,
     model= 'mixtral:8x7b-instruct-v0.1-q4_K_M',#'gemma:7b-instruct-q4_K_M',//
     system= '',
     temperature= 0,
@@ -75,7 +43,7 @@ Answer in the following JSON format:
 {{"analysis": "[your analysis]",
 "answer": "[your answer]"}}
 
-Here is some examples: 
+Here are some examples: 
 
 question: How many dollars in electronics were transported from Texas to California during 2020 by truck?
 
@@ -110,61 +78,17 @@ question: Who is the president?
 question: {question} 
 """
 
-electionVars = ['political party', 'US state', ' candidate name']
-productVars = ['product name', 'US state', 'transportation medium']
-priceVars = ['prodcut name','date']
+with open(f'./src/{CONFIG_FILE_NAME}') as f:
+    category_prompts = json.load(f)
 
 
-category_prompts = [
-    {
-        'name':'Senate election',
-        'metrics': ['number of votes'],
-        'optional_vars': ['year'],
-        'prompt_template':f'{baseCategoryPrompt} {electionVars} {baseOutputPrompt}',
-        'prompt_alternative':f'{baseCategoryPrompt} {electionVars} {alternativeOutputPrompt}',
-        'examples':[
-            'What candidate to senate from the republican party received the most amount of votes in California during the 2020 elections?']
-    },
-    {
-        'name':'House election',
-        'metrics': ['number of votes'],
-        'optional_vars': ['year'],
-        'prompt_template':f'{baseCategoryPrompt} {electionVars} {baseOutputPrompt}',
-        'prompt_alternative':f'{baseCategoryPrompt} {electionVars} {alternativeOutputPrompt}',
-        'examples':[
-            'What democrat candidate to the US house of representatives received the least amount of  votes in Washington during the 2010 elections?',
-            'What party received the least amount of votes during the 2010 US house of representatives elections in the state of Washington?']
-    },
-    {
-        'name':'President election',
-        'metrics': ['number of votes'],
-        'optional_vars': ['year'],
-        'prompt_template':f'{baseCategoryPrompt} {electionVars} {baseOutputPrompt}',
-        'prompt_alternative':f'{baseCategoryPrompt} {electionVars} {alternativeOutputPrompt}',
-        'examples': [
-            'What candidates from the republican and democratic parties received the most amount of votes across the country during the 2016 presidential elections?']
-    },
-    {
-        'name':'Consumer Price Index',
-        'metrics':['cuantity', 'price metric'],
-        'optional_vars': ['year'],
-        'prompt_template': f'{baseCategoryPrompt} {priceVars} {baseOutputPrompt}',
-        'prompt_alternative': f'{baseCategoryPrompt} {priceVars} {alternativeOutputPrompt}',
-        'examples':[
-            'How much was the CPI of eggs in January of 2013?',
-            'How much was the YoY variation of the CPI of eggs in January of 2014?']
-    },
-    {
-        'name':'Freight movement',
-        'metrics': ['amount', 'money'],
-        'optional_vars': ['year'],
-        'prompt_template': f'{baseCategoryPrompt} {productVars} {baseOutputPrompt}', 
-        'prompt_alternative': f'{baseCategoryPrompt} {productVars} {alternativeOutputPrompt}',
-        'examples': [
-            'How many dollars in electronics were transported from Texas to California during 2020 by truck?',
-            'How many tons of plastic were moved from Texas to California by truck during 2021?']
-    },
-    {
+# Add templtas
+for c in category_prompts:
+    c['prompt_template'] = '{} {} {}'.format(baseCategoryPrompt, c['vars'], baseOutputPrompt),
+    c['prompt_alternative'] = '{} {} {}'.format(baseCategoryPrompt, c['vars'], alternativeOutputPrompt)
+
+
+base_cases =  [{
         'name': 'Greetings',
         'prompt_template': 'Greet back',
         'prompt_alternative':'Greet back',
@@ -183,6 +107,9 @@ category_prompts = [
         'examples': ['hi, how are you?'],
     },
 ]
+
+category_prompts = category_prompts + base_cases
+
 
 
 classify_prompt = PromptTemplate.from_template(
@@ -280,7 +207,7 @@ def action(init):
     print('In action fn: {}'.format([(k, info[k]) for k in info.keys()]))
 
     #updater = init.input.updater
-    #handleTable = init.input.handleTable
+    handleQuery = init['input']['handleQuery']
 
     if isinstance(info['action'], dict) and 'answer' in info['action'].keys():
         if info['action']['answer'].lower() == 'complete':
@@ -290,7 +217,16 @@ def action(init):
 
 
             #### Call get_query #TODO
-            
+            api_url, data, text_response = handleQuery(searchText, TABLES_PATH)
+            resp = {
+                "query":
+                        {
+                            "question": searchText, 
+                            "answer": text_response, 
+                            "url": api_url
+                        }
+            }
+
             return {
                     'content': "Good question! let's check the data...", 
                     'question': resp
@@ -306,26 +242,29 @@ def action(init):
 from operator import itemgetter
 ### Main chain
 altern_chain = RunnableSequence(
-            RunnableParallel({
-                'line': (
-                            classifyOne.with_fallbacks(fallbacks = [classifyTwo]) 
-                            | {
-                                'question': itemgetter("question"),
-                                'action': RunnableLambda(route),
-                            }
-                        ),
-                'input': RunnablePassthrough()
-            })
-            | RunnableLambda(action),
-)
+                RunnableParallel({
+                    'line': (
+                                classifyOne.with_fallbacks(fallbacks = [classifyTwo]) 
+                                | {
+                                    'question': itemgetter("question"),
+                                    'action': RunnableLambda(route),
+                                }
+                            ),
+                    'input': RunnablePassthrough()
+                })
+                | RunnableLambda(action),
+            )
 
 ### Memory
 newChatMessageHistory = ChatMessageHistory()
 newChatMessageHistory.add_ai_message('Hi, ready to help you')
 
-print(newChatMessageHistory.messages[0].lc_id())
 
-def Langbot(newMessage, setMessages, handleTable, logger=[]):
+def Langbot(newMessage, setMessages, handleQuery, logger=[]):
+    """
+    Activate chain to reflex upon user chat history to ask more information or to pass to get_query chain or other function.
+
+    """
 
     newChatMessageHistory.add_user_message(newMessage)
 
@@ -333,10 +272,10 @@ def Langbot(newMessage, setMessages, handleTable, logger=[]):
         'history': ';'.join([f"{' [AI]' if m.lc_id()[2]=='AIMessage' else ' [User]'}:{m.content}"
                             for m in newChatMessageHistory.messages]) + '[.]',
         'updater': setMessages,
-        'handleTable': handleTable
+        'handleQuery': handleQuery
     },
-    config={'callbacks':[logsHandler(logger)]})
-    print(logger)
+    config={'callbacks':[logsHandler(logger, print_logs = True, print_starts=False)]})
+    print('\n\n>>>>>>>>>>>>>   ', logger)
     return ans
 
 
