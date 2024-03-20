@@ -1,13 +1,20 @@
-import pandas as pd
 import requests
+import pandas as pd
 import urllib.parse
-
-from config import POSTGRES_ENGINE
 from sentence_transformers import SentenceTransformer
+import json
+from config import POSTGRES_ENGINE
+
+# ENV Variables
+
+table_name = 'drilldowns'
+schema_name = 'datausa_drilldowns'
+embedding_size = 384
+
 
 def embedding(dataframe, column):
     """
-    Creates embeddings for text in the passed column
+    Creates embeddings for text in the column passed as argument
     """
     model = SentenceTransformer('multi-qa-MiniLM-L6-cos-v1')
 
@@ -17,8 +24,8 @@ def embedding(dataframe, column):
     return dataframe
 
 
-def create_table():
-    POSTGRES_ENGINE.execute("CREATE TABLE IF NOT EXISTS datausa_drilldowns.drilldowns (product_id text, product_name text, cube_name text, drilldown text, embedding vector(384))") 
+def create_table(table_name, schema_name, embedding_size = 384):
+    POSTGRES_ENGINE.execute(f"CREATE TABLE IF NOT EXISTS {schema_name}.{table_name} (drilldown_id text, drilldown_name text, cube_name text, drilldown text, embedding vector({embedding_size}))")
     return
 
 
@@ -26,7 +33,8 @@ def get_data_from_api(api_url):
     try:
         r = requests.get(api_url)
         df = pd.DataFrame.from_dict(r.json()['data'])
-    except: raise ValueError('Invalid API url:', api_url)
+    except:
+        raise ValueError('Invalid API url:', api_url)
 
     return df
 
@@ -44,10 +52,10 @@ def get_api_params(api_url):
     return cube_name, drilldown
 
 
-def load_data_to_db(api_url, measure_name):
+def load_data_to_db(api_url, measure_name, table_name, schema_name):
     cube_name, drilldown = get_api_params(api_url)
     df = get_data_from_api(api_url=api_url)
-    
+
     df.rename(columns={f"{drilldown}": "drilldown_name", f"{drilldown} ID": "drilldown_id"}, inplace=True)
 
     df['cube_name'] = f"{cube_name}"
@@ -62,18 +70,23 @@ def load_data_to_db(api_url, measure_name):
 
     print(df.head())
 
-    #df_embeddings = embedding(df, 'product_name')
-    #df_embeddings.to_sql('drilldowns', con=POSTGRES_ENGINE, if_exists='append', index=False, schema='datausa_drilldowns')
+    df_embeddings = embedding(df, 'drilldown_name')
+    df_embeddings.to_sql(table_name, con=POSTGRES_ENGINE, if_exists='append', index=False, schema=schema_name)
 
     return
 
 
-print("Enter API url: ")
-api_url = input()
-print("Enter measure name: ")
-measure_name = input()
-#df = pd.read_csv('/Users/alexandrabjanes/Datawheel/CODE/datausa-chat/tables.csv')
-#print(df.head())
+with open('output.json', 'r') as file:
+    cubes_json = json.load(file)
 
-#create_table()
-load_data_to_db(api_url, measure_name = measure_name)
+create_table(table_name, schema_name)
+
+for table in cubes_json['tables']:
+    cube_name = table['name']
+    measure = table['measures'][0]['name']
+    for dimension in table['dimensions']:
+        for hierarchy in dimension['hierarchies']:
+            for level in hierarchy['levels']:
+                api_url = f"https://api-dev.datausa.io/tesseract/data.jsonrecords?cube={cube_name}&drilldowns={level}&measures={measure}"
+                load_data_to_db(api_url, measure, table_name, schema_name)
+

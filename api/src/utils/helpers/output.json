@@ -1,0 +1,1366 @@
+{
+    "tables": [
+        {
+            "name": "Data_USA_House_Compact_election",
+            "api": "Tesseract",
+            "description": "Table `Data_USA_House_Compact_election` has data on Winner Votes, Other Votes, Total Votes.",
+            "measures": [
+                {
+                    "name": "Winner Votes",
+                    "description": "Contains the winner votes for Data USA House Compact election"
+                },
+                {
+                    "name": "Other Votes",
+                    "description": "Contains the other votes for Data USA House Compact election"
+                },
+                {
+                    "name": "Total Votes",
+                    "description": "Contains the total votes for Data USA House Compact election"
+                }
+            ],
+            "dimensions": [
+                {
+                    "name": "Geography",
+                    "description": "geography dimension of the data.",
+                    "hierarchies": [
+                        {
+                            "name": "Geography",
+                            "levels": [
+                                "State",
+                                "Congressional District"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "Year",
+                    "description": "year dimension of the data.",
+                    "hierarchies": [
+                        {
+                            "name": "Year",
+                            "levels": [
+                                "Year"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "Candidate",
+                    "description": "candidate dimension of the data.",
+                    "hierarchies": [
+                        {
+                            "name": "Candidate",
+                            "levels": [
+                                "Candidate"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "Special",
+                    "description": "special dimension of the data.",
+                    "hierarchies": [
+                        {
+                            "name": "Special",
+                            "levels": [
+                                "Special"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "Party",
+                    "description": "party dimension of the data.",
+                    "hierarchies": [
+                        {
+                            "name": "Party",
+                            "levels": [
+                                "Party"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "Runoff",
+                    "description": "runoff dimension of the data.",
+                    "hierarchies": [
+                        {
+                            "name": "Runoff",
+                            "levels": [
+                                "Runoff"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "Data_USA_House_election",
+            "api": "Tesseract",
+            "description": "Table `Data_USA_House_election` has data on Candidate Votes, Total Votes.",
+            "measures": [
+                {
+                    "name": "Candidate Votes",
+                    "description": "Contains the candidate votes for Data USA House election"
+                },
+                {
+                    "name": "Total Votes",
+                    "description": "Contains the total votes for Data USA House election"
+                }
+            ],
+            "dimensions": [
+                {
+                    "name": "Geography",
+                    "description": "geography dimension of the data.",
+                    "hierarchies": [
+                        {
+                            "name": "Geography",
+                            "levels": [
+                                "State",
+                                "Congressional District"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "Candidate",
+                    "description": "candidate dimension of the data.",
+                    "hierarchies": [
+                        {
+                            "name": "Candidate",
+                            "levels": [
+                                "Candidate"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "Candidate Other",
+                    "description": "candidate other dimension of the data.",
+                    "hierarchies": [
+                        {
+                            "name": "Candidate Other",
+                            "levels": [
+                                "Candidate Other"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "Party",
+                    "description": "party dimension of the data.",
+                    "hierarchies": [
+                        {
+                            "name": "Party",
+                            "levels": [
+                                "Party"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "Special",
+                    "description": "special dimension of the data.",
+                    "hierarchies": [
+                        {
+                            "name": "Special",
+                            "levels": [
+                                "Special"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "Runoff",
+                    "description": "runoff dimension of the data.",
+                    "hierarchies": [
+                        {
+                            "name": "Runoff",
+                            "levels": [
+                                "Runoff"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "Unofficial",
+                    "description": "unofficial dimension of the data.",
+                    "hierarchies": [
+                        {
+                            "name": "Unofficial",
+                            "levels": [
+                                "Unofficial"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "Year",
+                    "description": "year dimension of the data.",
+                    "hierarchies": [
+                        {
+                            "name": "Year",
+                            "levels": [
+                                "Year"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "Consumer Price Index - CPI",
+            "api": "Tesseract",
+            "description": "Table `Consumer Price Index - CPI` has data on Consumer Price Index, Standard Error, Percent Change.",
+            "measures": [
+                {
+                    "name": "Consumer Price Index",
+                    "description": "Contains the consumer price index for Consumer Price Index - CPI"
+                },
+                {
+                    "name": "Standard Error",
+                    "description": "Contains the standard error for Consumer Price Index - CPI"
+                },
+                {
+                    "name": "Percent Change",
+                    "description": "Contains the percent change for Consumer Price Index - CPI"
+                }
+            ],
+            "dimensions": [
+                {
+                    "name": "Time",
+                    "description": "time dimension of the data.",
+                    "hierarchies": [
+                        {
+                            "name": "Time",
+                            "levels": [
+                                "Year",
+                                "Month and Year"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "Product or Service",
+                    "description": "product or service dimension of the data.",
+                    "hierarchies": [
+                        {
+                            "name": "Product Level 1",
+                            "levels": [
+                                "Level 1.1"
+                            ]
+                        },
+                        {
+                            "name": "Product Level 2",
+                            "levels": [
+                                "Level 2.1",
+                                "Level 2.2"
+                            ]
+                        },
+                        {
+                            "name": "Product Level 3",
+                            "levels": [
+                                "Level 3.1",
+                                "Level 3.2",
+                                "Level 3.3"
+                            ]
+                        },
+                        {
+                            "name": "Product Level 4",
+                            "levels": [
+                                "Level 4.1",
+                                "Level 4.2",
+                                "Level 4.3",
+                                "Level 4.4"
+                            ]
+                        },
+                        {
+                            "name": "Product Level 5",
+                            "levels": [
+                                "Level 5.1",
+                                "Level 5.2",
+                                "Level 5.3",
+                                "Level 5.4",
+                                "Level 5.5"
+                            ]
+                        },
+                        {
+                            "name": "Product Level 6",
+                            "levels": [
+                                "Level 6.1",
+                                "Level 6.2",
+                                "Level 6.3",
+                                "Level 6.4",
+                                "Level 6.5",
+                                "Level 6.6"
+                            ]
+                        },
+                        {
+                            "name": "Product Level 7",
+                            "levels": [
+                                "Level 7.1",
+                                "Level 7.2",
+                                "Level 7.3",
+                                "Level 7.4",
+                                "Level 7.5",
+                                "Level 7.6",
+                                "Level 7.7"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "bls_growth_industry",
+            "api": "Tesseract",
+            "description": "Table `bls_growth_industry` has data on Industry Jobs, Industry Jobs Change, Industry Jobs CARC, Industry Output, Industry Output CARC.",
+            "measures": [
+                {
+                    "name": "Industry Jobs",
+                    "description": "Contains the industry jobs for bls growth industry"
+                },
+                {
+                    "name": "Industry Jobs Change",
+                    "description": "Contains the industry jobs change for bls growth industry"
+                },
+                {
+                    "name": "Industry Jobs CARC",
+                    "description": "Contains the industry jobs carc for bls growth industry"
+                },
+                {
+                    "name": "Industry Output",
+                    "description": "Contains the industry output for bls growth industry"
+                },
+                {
+                    "name": "Industry Output CARC",
+                    "description": "Contains the industry output carc for bls growth industry"
+                }
+            ],
+            "dimensions": [
+                {
+                    "name": "Year",
+                    "description": "year dimension of the data.",
+                    "hierarchies": [
+                        {
+                            "name": "Year",
+                            "levels": [
+                                "Year"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "BLS Industry Flat",
+                    "description": "bls industry flat dimension of the data.",
+                    "hierarchies": []
+                }
+            ]
+        },
+        {
+            "name": "onet_by_cip",
+            "api": "Tesseract",
+            "description": "Table `onet_by_cip` has data on IM Value, LV Value, Total Score.",
+            "measures": [
+                {
+                    "name": "IM Value",
+                    "description": "Contains the im value for onet by cip"
+                },
+                {
+                    "name": "LV Value",
+                    "description": "Contains the lv value for onet by cip"
+                },
+                {
+                    "name": "Total Score",
+                    "description": "Contains the total score for onet by cip"
+                }
+            ],
+            "dimensions": [
+                {
+                    "name": "CIP",
+                    "description": "cip dimension of the data.",
+                    "hierarchies": []
+                },
+                {
+                    "name": "Skill Element",
+                    "description": "skill element dimension of the data.",
+                    "hierarchies": []
+                },
+                {
+                    "name": "Year",
+                    "description": "year dimension of the data.",
+                    "hierarchies": [
+                        {
+                            "name": "Year",
+                            "levels": [
+                                "Year"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "usa_spending",
+            "api": "Tesseract",
+            "description": "Table `usa_spending` has data on Obligation Amount, Total Loan Value.",
+            "measures": [
+                {
+                    "name": "Obligation Amount",
+                    "description": "Contains the obligation amount for usa spending"
+                },
+                {
+                    "name": "Total Loan Value",
+                    "description": "Contains the total loan value for usa spending"
+                }
+            ],
+            "dimensions": [
+                {
+                    "name": "Geography",
+                    "description": "geography dimension of the data.",
+                    "hierarchies": [
+                        {
+                            "name": "Nation",
+                            "levels": [
+                                "Nation"
+                            ]
+                        },
+                        {
+                            "name": "County",
+                            "levels": [
+                                "State",
+                                "County"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "Action Date",
+                    "description": "action date dimension of the data.",
+                    "hierarchies": [
+                        {
+                            "name": "Action Date",
+                            "levels": [
+                                "Year",
+                                "Quarter",
+                                "Month",
+                                "Day"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "Fiscal Year",
+                    "description": "fiscal year dimension of the data.",
+                    "hierarchies": [
+                        {
+                            "name": "Fiscal Year",
+                            "levels": [
+                                "Fiscal Year"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "Transaction Type",
+                    "description": "transaction type dimension of the data.",
+                    "hierarchies": [
+                        {
+                            "name": "Transaction Type",
+                            "levels": [
+                                "Transaction Type Parent",
+                                "Transaction Type"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "Agency",
+                    "description": "agency dimension of the data.",
+                    "hierarchies": [
+                        {
+                            "name": "Agency",
+                            "levels": [
+                                "Department",
+                                "Agency"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "Product Service Code",
+                    "description": "product service code dimension of the data.",
+                    "hierarchies": [
+                        {
+                            "name": "Product Service Code",
+                            "levels": [
+                                "PSC Group",
+                                "PSC Sub Group"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "NAPCS",
+                    "description": "napcs dimension of the data.",
+                    "hierarchies": [
+                        {
+                            "name": "NAPCS",
+                            "levels": [
+                                "NAPCS Section",
+                                "NAPCS Group",
+                                "NAPCS Class"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "health_opioid_overdose_deathrate",
+            "api": "Tesseract",
+            "description": "Table `health_opioid_overdose_deathrate` has data on Opioid overdose death rate.",
+            "measures": [
+                {
+                    "name": "Opioid overdose death rate",
+                    "description": "Contains the opioid overdose death rate for health opioid overdose deathrate"
+                }
+            ],
+            "dimensions": [
+                {
+                    "name": "Year",
+                    "description": "year dimension of the data.",
+                    "hierarchies": [
+                        {
+                            "name": "Year",
+                            "levels": [
+                                "Year"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "Geography",
+                    "description": "geography dimension of the data.",
+                    "hierarchies": [
+                        {
+                            "name": "Nation",
+                            "levels": [
+                                "Nation"
+                            ]
+                        },
+                        {
+                            "name": "State",
+                            "levels": [
+                                "State"
+                            ]
+                        },
+                        {
+                            "name": "County",
+                            "levels": [
+                                "State County",
+                                "County"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "BLS Employment - Industry Only",
+            "api": "Tesseract",
+            "description": "Table `BLS Employment - Industry Only` has data on NSA Employees, NSA Average Employees, SA Employees, SA Average Employees.",
+            "measures": [
+                {
+                    "name": "NSA Employees",
+                    "description": "Contains the nsa employees for BLS Employment - Industry Only"
+                },
+                {
+                    "name": "NSA Average Employees",
+                    "description": "Contains the nsa average employees for BLS Employment - Industry Only"
+                },
+                {
+                    "name": "SA Employees",
+                    "description": "Contains the sa employees for BLS Employment - Industry Only"
+                },
+                {
+                    "name": "SA Average Employees",
+                    "description": "Contains the sa average employees for BLS Employment - Industry Only"
+                }
+            ],
+            "dimensions": [
+                {
+                    "name": "Time",
+                    "description": "time dimension of the data.",
+                    "hierarchies": [
+                        {
+                            "name": "Time",
+                            "levels": [
+                                "Month of Year"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "Employment State",
+                    "description": "employment state dimension of the data.",
+                    "hierarchies": [
+                        {
+                            "name": "Employment State",
+                            "levels": [
+                                "Employment State"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "Industry",
+                    "description": "industry dimension of the data.",
+                    "hierarchies": [
+                        {
+                            "name": "Industry",
+                            "levels": [
+                                "Industry"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "Data_USA_Electoral_College_president",
+            "api": "Tesseract",
+            "description": "Table `Data_USA_Electoral_College_president` has data on Electoral College Votes.",
+            "measures": [
+                {
+                    "name": "Electoral College Votes",
+                    "description": "Contains the electoral college votes for Data USA Electoral College president"
+                }
+            ],
+            "dimensions": [
+                {
+                    "name": "State",
+                    "description": "state dimension of the data.",
+                    "hierarchies": []
+                },
+                {
+                    "name": "Year",
+                    "description": "year dimension of the data.",
+                    "hierarchies": [
+                        {
+                            "name": "Year",
+                            "levels": [
+                                "Year"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "Party",
+                    "description": "party dimension of the data.",
+                    "hierarchies": [
+                        {
+                            "name": "Party",
+                            "levels": [
+                                "Party"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "bea_use",
+            "api": "Tesseract",
+            "description": "Table `bea_use` has data on Value Millions.",
+            "measures": [
+                {
+                    "name": "Value Millions",
+                    "description": "Contains the value millions for bea use"
+                }
+            ],
+            "dimensions": [
+                {
+                    "name": "Year",
+                    "description": "year dimension of the data.",
+                    "hierarchies": [
+                        {
+                            "name": "Year",
+                            "levels": [
+                                "Year"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "Industry IO Code",
+                    "description": "industry io code dimension of the data.",
+                    "hierarchies": [
+                        {
+                            "name": "Industry IO Code",
+                            "levels": [
+                                "Industry L0",
+                                "Industry L1"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "Commodity IO Code",
+                    "description": "commodity io code dimension of the data.",
+                    "hierarchies": [
+                        {
+                            "name": "Commodity IO Code",
+                            "levels": [
+                                "Commodity L0",
+                                "Commodity L1"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "Data_USA_President_election",
+            "api": "Tesseract",
+            "description": "Table `Data_USA_President_election` has data on Candidate Votes, Total Votes.",
+            "measures": [
+                {
+                    "name": "Candidate Votes",
+                    "description": "Contains the candidate votes for Data USA President election"
+                },
+                {
+                    "name": "Total Votes",
+                    "description": "Contains the total votes for Data USA President election"
+                }
+            ],
+            "dimensions": [
+                {
+                    "name": "Geography",
+                    "description": "geography dimension of the data.",
+                    "hierarchies": [
+                        {
+                            "name": "Nation",
+                            "levels": [
+                                "Nation"
+                            ]
+                        },
+                        {
+                            "name": "State",
+                            "levels": [
+                                "State"
+                            ]
+                        },
+                        {
+                            "name": "County",
+                            "levels": [
+                                "State County",
+                                "County"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "Candidate",
+                    "description": "candidate dimension of the data.",
+                    "hierarchies": [
+                        {
+                            "name": "Candidate",
+                            "levels": [
+                                "Candidate"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "Party",
+                    "description": "party dimension of the data.",
+                    "hierarchies": [
+                        {
+                            "name": "Party",
+                            "levels": [
+                                "Party"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "Year",
+                    "description": "year dimension of the data.",
+                    "hierarchies": [
+                        {
+                            "name": "Year",
+                            "levels": [
+                                "Year"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "dot_faf",
+            "api": "Tesseract",
+            "description": "Table `dot_faf` has data on Millions Of Dollars, Thousands Of Tons.",
+            "measures": [
+                {
+                    "name": "Millions Of Dollars",
+                    "description": "Contains the millions of dollars for dot faf"
+                },
+                {
+                    "name": "Thousands Of Tons",
+                    "description": "Contains the thousands of tons for dot faf"
+                }
+            ],
+            "dimensions": [
+                {
+                    "name": "Year",
+                    "description": "year dimension of the data.",
+                    "hierarchies": [
+                        {
+                            "name": "Year",
+                            "levels": [
+                                "Year"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "Origin",
+                    "description": "origin dimension of the data.",
+                    "hierarchies": [
+                        {
+                            "name": "Origin",
+                            "levels": [
+                                "Origin State",
+                                "Origin Region"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "Destination",
+                    "description": "destination dimension of the data.",
+                    "hierarchies": [
+                        {
+                            "name": "Destination",
+                            "levels": [
+                                "Destination State",
+                                "Destination Region"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "SCTG",
+                    "description": "sctg dimension of the data.",
+                    "hierarchies": [
+                        {
+                            "name": "SCTG",
+                            "levels": [
+                                "SCTG2"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "Transportation Mode",
+                    "description": "transportation mode dimension of the data.",
+                    "hierarchies": [
+                        {
+                            "name": "Transportation Mode",
+                            "levels": [
+                                "Transportation Mode"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "BLS Unemployment Insurance Claims - Most Recent",
+            "api": "Tesseract",
+            "description": "Table `BLS Unemployment Insurance Claims - Most Recent` has data on Initial Claims, Continued Claims, Covered Employment, Insured Unemployment Rate.",
+            "measures": [
+                {
+                    "name": "Initial Claims",
+                    "description": "Contains the initial claims for BLS Unemployment Insurance Claims - Most Recent"
+                },
+                {
+                    "name": "Continued Claims",
+                    "description": "Contains the continued claims for BLS Unemployment Insurance Claims - Most Recent"
+                },
+                {
+                    "name": "Covered Employment",
+                    "description": "Contains the covered employment for BLS Unemployment Insurance Claims - Most Recent"
+                },
+                {
+                    "name": "Insured Unemployment Rate",
+                    "description": "Contains the insured unemployment rate for BLS Unemployment Insurance Claims - Most Recent"
+                }
+            ],
+            "dimensions": [
+                {
+                    "name": "State",
+                    "description": "state dimension of the data.",
+                    "hierarchies": []
+                },
+                {
+                    "name": "Week Ended",
+                    "description": "week ended dimension of the data.",
+                    "hierarchies": [
+                        {
+                            "name": "Week Ended",
+                            "levels": [
+                                "Week Ended"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "Week Previous",
+                    "description": "week previous dimension of the data.",
+                    "hierarchies": [
+                        {
+                            "name": "Week Previous",
+                            "levels": [
+                                "Week Previous"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "ed_defaults",
+            "api": "Tesseract",
+            "description": "Table `ed_defaults` has data on Borrowers In Default, Borrowers Entered Repayment, Default Rate.",
+            "measures": [
+                {
+                    "name": "Borrowers In Default",
+                    "description": "Contains the borrowers in default for ed defaults"
+                },
+                {
+                    "name": "Borrowers Entered Repayment",
+                    "description": "Contains the borrowers entered repayment for ed defaults"
+                },
+                {
+                    "name": "Default Rate",
+                    "description": "Contains the default rate for ed defaults"
+                }
+            ],
+            "dimensions": [
+                {
+                    "name": "Year",
+                    "description": "year dimension of the data.",
+                    "hierarchies": [
+                        {
+                            "name": "Year",
+                            "levels": [
+                                "Year"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "Geography",
+                    "description": "geography dimension of the data.",
+                    "hierarchies": [
+                        {
+                            "name": "Geography",
+                            "levels": [
+                                "State",
+                                "County"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "OPEID",
+                    "description": "opeid dimension of the data.",
+                    "hierarchies": [
+                        {
+                            "name": "OPEID",
+                            "levels": [
+                                "OPEID"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "bls_ces",
+            "api": "Tesseract",
+            "description": "Table `bls_ces` has data on Industry Average Hourly Earnings, Industry Average Weekly Hours, Industry Employees Thousands.",
+            "measures": [
+                {
+                    "name": "Industry Average Hourly Earnings",
+                    "description": "Contains the industry average hourly earnings for bls ces"
+                },
+                {
+                    "name": "Industry Average Weekly Hours",
+                    "description": "Contains the industry average weekly hours for bls ces"
+                },
+                {
+                    "name": "Industry Employees Thousands",
+                    "description": "Contains the industry employees thousands for bls ces"
+                }
+            ],
+            "dimensions": [
+                {
+                    "name": "Year",
+                    "description": "year dimension of the data.",
+                    "hierarchies": [
+                        {
+                            "name": "Year",
+                            "levels": [
+                                "Year"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "BLS Industry Flat",
+                    "description": "bls industry flat dimension of the data.",
+                    "hierarchies": []
+                }
+            ]
+        },
+        {
+            "name": "health_estimates_of_chronically_homeless_individuals",
+            "api": "Tesseract",
+            "description": "Table `health_estimates_of_chronically_homeless_individuals` has data on Estimates of Chronically Homeless Individuals.",
+            "measures": [
+                {
+                    "name": "Estimates of Chronically Homeless Individuals",
+                    "description": "Contains the estimates of chronically homeless individuals for health estimates of chronically homeless individuals"
+                }
+            ],
+            "dimensions": [
+                {
+                    "name": "Year",
+                    "description": "year dimension of the data.",
+                    "hierarchies": [
+                        {
+                            "name": "Year",
+                            "levels": [
+                                "Year"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "Geography",
+                    "description": "geography dimension of the data.",
+                    "hierarchies": [
+                        {
+                            "name": "State",
+                            "levels": [
+                                "State"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "Data_USA_Senate_election",
+            "api": "Tesseract",
+            "description": "Table `Data_USA_Senate_election` has data on Candidate Votes, Total Votes.",
+            "measures": [
+                {
+                    "name": "Candidate Votes",
+                    "description": "Contains the candidate votes for Data USA Senate election"
+                },
+                {
+                    "name": "Total Votes",
+                    "description": "Contains the total votes for Data USA Senate election"
+                }
+            ],
+            "dimensions": [
+                {
+                    "name": "State",
+                    "description": "state dimension of the data.",
+                    "hierarchies": []
+                },
+                {
+                    "name": "Candidate",
+                    "description": "candidate dimension of the data.",
+                    "hierarchies": [
+                        {
+                            "name": "Candidate",
+                            "levels": [
+                                "Candidate"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "Candidate Other",
+                    "description": "candidate other dimension of the data.",
+                    "hierarchies": [
+                        {
+                            "name": "Candidate Other",
+                            "levels": [
+                                "Candidate Other"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "Party",
+                    "description": "party dimension of the data.",
+                    "hierarchies": [
+                        {
+                            "name": "Party",
+                            "levels": [
+                                "Party"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "Special",
+                    "description": "special dimension of the data.",
+                    "hierarchies": [
+                        {
+                            "name": "Special",
+                            "levels": [
+                                "Special"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "Unofficial",
+                    "description": "unofficial dimension of the data.",
+                    "hierarchies": [
+                        {
+                            "name": "Unofficial",
+                            "levels": [
+                                "Unofficial"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "Year",
+                    "description": "year dimension of the data.",
+                    "hierarchies": [
+                        {
+                            "name": "Year",
+                            "levels": [
+                                "Year"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "BLS Employment - Supersector Only",
+            "api": "Tesseract",
+            "description": "Table `BLS Employment - Supersector Only` has data on NSA Employees, NSA Average Employees, SA Employees, SA Average Employees.",
+            "measures": [
+                {
+                    "name": "NSA Employees",
+                    "description": "Contains the nsa employees for BLS Employment - Supersector Only"
+                },
+                {
+                    "name": "NSA Average Employees",
+                    "description": "Contains the nsa average employees for BLS Employment - Supersector Only"
+                },
+                {
+                    "name": "SA Employees",
+                    "description": "Contains the sa employees for BLS Employment - Supersector Only"
+                },
+                {
+                    "name": "SA Average Employees",
+                    "description": "Contains the sa average employees for BLS Employment - Supersector Only"
+                }
+            ],
+            "dimensions": [
+                {
+                    "name": "Time",
+                    "description": "time dimension of the data.",
+                    "hierarchies": [
+                        {
+                            "name": "Time",
+                            "levels": [
+                                "Month of Year"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "Employment State",
+                    "description": "employment state dimension of the data.",
+                    "hierarchies": [
+                        {
+                            "name": "Employment State",
+                            "levels": [
+                                "Employment State"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "Supersector",
+                    "description": "supersector dimension of the data.",
+                    "hierarchies": [
+                        {
+                            "name": "Supersector",
+                            "levels": [
+                                "Supersector"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "BLS Unemployment Insurance Claims",
+            "api": "Tesseract",
+            "description": "Table `BLS Unemployment Insurance Claims` has data on Initial Claims, Continued Claims, Covered Employment, Insured Unemployment Rate.",
+            "measures": [
+                {
+                    "name": "Initial Claims",
+                    "description": "Contains the initial claims for BLS Unemployment Insurance Claims"
+                },
+                {
+                    "name": "Continued Claims",
+                    "description": "Contains the continued claims for BLS Unemployment Insurance Claims"
+                },
+                {
+                    "name": "Covered Employment",
+                    "description": "Contains the covered employment for BLS Unemployment Insurance Claims"
+                },
+                {
+                    "name": "Insured Unemployment Rate",
+                    "description": "Contains the insured unemployment rate for BLS Unemployment Insurance Claims"
+                }
+            ],
+            "dimensions": [
+                {
+                    "name": "State",
+                    "description": "state dimension of the data.",
+                    "hierarchies": []
+                },
+                {
+                    "name": "Week Ended",
+                    "description": "week ended dimension of the data.",
+                    "hierarchies": [
+                        {
+                            "name": "Week Ended",
+                            "levels": [
+                                "Week Ended"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "Week Previous",
+                    "description": "week previous dimension of the data.",
+                    "hierarchies": [
+                        {
+                            "name": "Week Previous",
+                            "levels": [
+                                "Week Previous"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "onet_by_pums",
+            "api": "Tesseract",
+            "description": "Table `onet_by_pums` has data on IM Value, LV Value, Total Score.",
+            "measures": [
+                {
+                    "name": "IM Value",
+                    "description": "Contains the im value for onet by pums"
+                },
+                {
+                    "name": "LV Value",
+                    "description": "Contains the lv value for onet by pums"
+                },
+                {
+                    "name": "Total Score",
+                    "description": "Contains the total score for onet by pums"
+                }
+            ],
+            "dimensions": [
+                {
+                    "name": "PUMS Occupation",
+                    "description": "pums occupation dimension of the data.",
+                    "hierarchies": []
+                },
+                {
+                    "name": "Skill Element",
+                    "description": "skill element dimension of the data.",
+                    "hierarchies": []
+                },
+                {
+                    "name": "Year",
+                    "description": "year dimension of the data.",
+                    "hierarchies": [
+                        {
+                            "name": "Year",
+                            "levels": [
+                                "Year"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "bls_growth_occupation",
+            "api": "Tesseract",
+            "description": "Table `bls_growth_occupation` has data on Occupation Employment, Occupation Employment Percent, Occupation Employment Change, Occupation Employment Change Percent, Occupation Employment Openings.",
+            "measures": [
+                {
+                    "name": "Occupation Employment",
+                    "description": "Contains the occupation employment for bls growth occupation"
+                },
+                {
+                    "name": "Occupation Employment Percent",
+                    "description": "Contains the occupation employment percent for bls growth occupation"
+                },
+                {
+                    "name": "Occupation Employment Change",
+                    "description": "Contains the occupation employment change for bls growth occupation"
+                },
+                {
+                    "name": "Occupation Employment Change Percent",
+                    "description": "Contains the occupation employment change percent for bls growth occupation"
+                },
+                {
+                    "name": "Occupation Employment Openings",
+                    "description": "Contains the occupation employment openings for bls growth occupation"
+                }
+            ],
+            "dimensions": [
+                {
+                    "name": "Year",
+                    "description": "year dimension of the data.",
+                    "hierarchies": [
+                        {
+                            "name": "Year",
+                            "levels": [
+                                "Year"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "BLS Occupation Flat",
+                    "description": "bls occupation flat dimension of the data.",
+                    "hierarchies": []
+                }
+            ]
+        }
+    ]
+}
