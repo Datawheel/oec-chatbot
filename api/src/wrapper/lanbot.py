@@ -86,12 +86,11 @@ with open(f'./src/{CONFIG_FILE_NAME}') as f:
 
 # Add templtas
 for c in category_prompts:
-    c['prompt_template'] = '{} {} {}'.format(baseCategoryPrompt, ', '.join(c['vars']), baseOutputPrompt)
-    c['prompt_alternative'] = '{} {} {}'.format(baseCategoryPrompt, ', '.join(c['vars']), alternativeOutputPrompt)
+    c['prompt_template'] = '{} {} {}'.format(baseCategoryPrompt, c['vars'], baseOutputPrompt),
+    c['prompt_alternative'] = '{} {} {}'.format(baseCategoryPrompt, c['vars'], alternativeOutputPrompt)
 
 
-base_cases =  [
-    {
+base_cases =  [{
         'name': 'Greetings',
         'prompt_template': 'Greet back',
         'prompt_alternative':'Greet back',
@@ -113,7 +112,7 @@ base_cases =  [
 
 category_prompts = category_prompts + base_cases
 
-#print(json.dumps(category_prompts, indent = 4))
+
 
 classify_prompt = PromptTemplate.from_template(
 """
