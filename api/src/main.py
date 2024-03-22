@@ -6,6 +6,7 @@ from src.utils.app import get_api
 from src.wrapper.lanbot import Langbot
 import time
 import json
+from langchain_core.runnables import RunnableLambda, chain
 # fastapi instance declaration
 app = FastAPI()
 
@@ -19,19 +20,22 @@ async def root():
 
 @app.get("/wrap/{query}")
 async def wrap(query):
+    return StreamingResponse(Langbot(query, get_api, [], TABLES_PATH), media_type="application/json")
 
-    return StreamingResponse(Langbot(query, get_api), media_type="application/json")
+@chain
+def fn(input):
+    yield json.dumps({'msg':1})
+    time.sleep(4)
+    yield json.dumps({'msg':2})
 
-
-async def numnum():
-    for i in range(10):
-        time.sleep(2)
-        yield json.dumps({f'{i}':'abs'})
+def fn2():
+    time.sleep(2)
+    for val in fn.stream({'input':''}):
+        yield val
 
 @app.get("/num/")
 async def num():
-    return StreamingResponse(numnum(), media_type="application/json")
-
+    return StreamingResponse(fn2(), media_type="application/json")
 
 @app.get("/query/{query}")
 async def read_item(query: str):

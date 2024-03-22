@@ -5,6 +5,7 @@ from os import getenv
 
 FEW_SHOT_PATH = getenv('FEW_SHOT_PATH')
 
+
 few_shot_examples = {}
 with open(FEW_SHOT_PATH, "r") as f:
     few_shot_examples = json.load(f)

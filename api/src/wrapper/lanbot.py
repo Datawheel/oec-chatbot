@@ -86,8 +86,8 @@ with open(f'./src/{CONFIG_FILE_NAME}') as f:
 
 # Add templtas
 for c in category_prompts:
-    c['prompt_template'] = '{} {} {}'.format(baseCategoryPrompt, c['vars'], baseOutputPrompt),
-    c['prompt_alternative'] = '{} {} {}'.format(baseCategoryPrompt, c['vars'], alternativeOutputPrompt)
+    c['prompt_template'] = '{} {} {}'.format(baseCategoryPrompt, ', '.join(c['vars']), baseOutputPrompt)
+    c['prompt_alternative'] = '{} {} {}'.format(baseCategoryPrompt, ', '.join(c['vars']), alternativeOutputPrompt)
 
 
 base_cases =  [
@@ -113,7 +113,7 @@ base_cases =  [
 
 category_prompts = category_prompts + base_cases
 
-
+#print(json.dumps(category_prompts, indent = 4))
 
 classify_prompt = PromptTemplate.from_template(
 """
@@ -174,10 +174,10 @@ def route(info):
     * @param {*} info 
     * @returns string or JSON with answer property for action function
     """
-    print(f'In route: {info.keys()}')
+    print('In route: {}>> {}'.format(info.keys(), [info[k ]for k in info]))
     for c in category_prompts[:-2]:
         if c['name'].lower() in info['category'].lower():
-            print('Class: {}'.format(c['name']))
+            print('Class: {} {}'.format(c['name'], c['prompt_template']))
 
             newChain = PromptTemplate.from_template(c['prompt_template'])
             alterChain = PromptTemplate.from_template(c['prompt_alternative'])
@@ -210,7 +210,7 @@ def action(init):
     print('In action fn: {}'.format([(k, info[k]) for k in info.keys()]))
 
     handleQuery = init['input']['handleQuery']
-    kwargs = init['input']['kwargs']
+    args = init['input']['pass_args']
 
     if isinstance(info['action'], dict) and 'answer' in info['action'].keys():
         if info['action']['answer'].lower() == 'complete':
@@ -221,7 +221,7 @@ def action(init):
             print(searchText)
 
             #### Call get_query
-            resp = handleQuery(searchText, **kwargs)
+            resp = handleQuery(searchText, *args)
 
             yield json.dumps({ 'content': resp})
 
@@ -252,20 +252,21 @@ altern_chain = RunnableSequence(
 newChatMessageHistory = ChatMessageHistory()
 newChatMessageHistory.add_ai_message('Hi, ready to help you')
 
-def Langbot(newMessage, handleQuery, logger=[], **kwargs):
+def Langbot(newMessage, handleQuery, logger=[], *args):
     """
     Activate chain to reflex upon user chat history to ask more information or to pass to get_query chain or other function.
     """
     newChatMessageHistory.add_user_message(newMessage)
 
-    ans = altern_chain.invoke({
+    for ans in altern_chain.stream({
         'history': ';'.join([f"{' [AI]' if m.lc_id()[2]=='AIMessage' else ' [User]'}:{m.content}"
                             for m in newChatMessageHistory.messages]) + '[.]',
         'handleQuery': handleQuery,
-        'kwargs': kwargs
+        'pass_args': args
     },
-    config={'callbacks':[logsHandler(outFile= logger, print_logs = True, print_starts=False)]})
+    config={'callbacks':[logsHandler(logger, print_logs = True, print_starts=False)]}):
+        yield ans
     print('\n\n>>>>>>>>>>>>>  ', logger)
-    return ans
+    
 
 
