@@ -43,6 +43,6 @@ for cube in cubes_data["tables"]:
 
 df = pd.DataFrame(cubes)
 
-create_table()
+create_table(table_name, schema_name)
 
-load_data_to_db(df)
+load_data_to_db(df, table_name, schema_name)
