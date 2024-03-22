@@ -7,11 +7,13 @@ from src.wrapper.logsHandlerCallback import logsHandler
 from langchain.globals import set_debug, set_verbose
 from os import getenv
 import json
+from operator import itemgetter
 #set_debug(True)
 #set_verbose(True)
 TABLES_PATH = getenv('TABLES_PATH')
 OLLAMA_URL = 'https://caleuche-ollama.datawheel.us'
 CONFIG_FILE_NAME = 'wrapper_datausa.json'
+
 ## Models
 model = Ollama(
     base_url= OLLAMA_URL,
@@ -88,7 +90,8 @@ for c in category_prompts:
     c['prompt_alternative'] = '{} {} {}'.format(baseCategoryPrompt, c['vars'], alternativeOutputPrompt)
 
 
-base_cases =  [{
+base_cases =  [
+    {
         'name': 'Greetings',
         'prompt_template': 'Greet back',
         'prompt_alternative':'Greet back',
@@ -206,40 +209,30 @@ def action(init):
     info = init['line']
     print('In action fn: {}'.format([(k, info[k]) for k in info.keys()]))
 
-    #updater = init.input.updater
     handleQuery = init['input']['handleQuery']
+    kwargs = init['input']['kwargs']
 
     if isinstance(info['action'], dict) and 'answer' in info['action'].keys():
         if info['action']['answer'].lower() == 'complete':
-            resp = '...'
+
+            yield json.dumps({'content': "Good question! let's check the data..."})
+            #resp = '...'
             searchText = info['question'].split(':')[-1]
             print(searchText)
 
+            #### Call get_query
+            resp = handleQuery(searchText, **kwargs)
 
-            #### Call get_query #TODO
-            api_url, data, text_response = handleQuery(searchText, TABLES_PATH)
-            resp = {
-                "query":
-                        {
-                            "question": searchText, 
-                            "answer": text_response, 
-                            "url": api_url
-                        }
-            }
-
-            return {
-                    'content': "Good question! let's check the data...", 
-                    'question': resp
-                    }
+            yield json.dumps({ 'content': resp})
 
         else:
             # ask for additional info
-            return {'content': 'please, specify in your question: {info.action.answer}'}
+            yield json.dumps({'content': 'please, specify in your question: {}'.format(info['action']['answer'])})
     else:
         # pass 
-        return {'content': info['action']}
+        yield json.dumps({'content': info['action']})
 
-from operator import itemgetter
+
 ### Main chain
 altern_chain = RunnableSequence(
                 RunnableParallel({
@@ -259,23 +252,20 @@ altern_chain = RunnableSequence(
 newChatMessageHistory = ChatMessageHistory()
 newChatMessageHistory.add_ai_message('Hi, ready to help you')
 
-
-def Langbot(newMessage, setMessages, handleQuery, logger=[]):
+def Langbot(newMessage, handleQuery, logger=[], **kwargs):
     """
     Activate chain to reflex upon user chat history to ask more information or to pass to get_query chain or other function.
-
     """
-
     newChatMessageHistory.add_user_message(newMessage)
 
     ans = altern_chain.invoke({
         'history': ';'.join([f"{' [AI]' if m.lc_id()[2]=='AIMessage' else ' [User]'}:{m.content}"
                             for m in newChatMessageHistory.messages]) + '[.]',
-        'updater': setMessages,
-        'handleQuery': handleQuery
+        'handleQuery': handleQuery,
+        'kwargs': kwargs
     },
-    config={'callbacks':[logsHandler(logger, print_logs = True, print_starts=False)]})
-    print('\n\n>>>>>>>>>>>>>   ', logger)
+    config={'callbacks':[logsHandler(outFile= logger, print_logs = True, print_starts=False)]})
+    print('\n\n>>>>>>>>>>>>>  ', logger)
     return ans
 
 

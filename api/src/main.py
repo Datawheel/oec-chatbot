@@ -1,9 +1,11 @@
 from dotenv import load_dotenv
 from fastapi import FastAPI
+from fastapi.responses import StreamingResponse
 from os import getenv
 from src.utils.app import get_api
 from src.wrapper.lanbot import Langbot
-
+import time
+import json
 # fastapi instance declaration
 app = FastAPI()
 
@@ -18,7 +20,17 @@ async def root():
 @app.get("/wrap/{query}")
 async def wrap(query):
 
-    return Langbot(query, lambda x: print(x), get_api)
+    return StreamingResponse(Langbot(query, get_api), media_type="application/json")
+
+
+async def numnum():
+    for i in range(10):
+        time.sleep(2)
+        yield json.dumps({f'{i}':'abs'})
+
+@app.get("/num/")
+async def num():
+    return StreamingResponse(numnum(), media_type="application/json")
 
 
 @app.get("/query/{query}")
