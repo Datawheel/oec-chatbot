@@ -9,6 +9,7 @@ from langchain.globals import set_debug, set_verbose
 from os import getenv
 import json
 from operator import itemgetter
+from operator import itemgetter
 #set_debug(True)
 #set_verbose(True)
 TABLES_PATH = getenv('TABLES_PATH')
