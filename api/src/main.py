@@ -10,6 +10,7 @@ from langchain_core.runnables import RunnableLambda, chain
 from src.wrapper.lanbot import Langbot
 import time
 import json
+from langchain_core.runnables import RunnableLambda, chain
 # fastapi instance declaration
 app = FastAPI()
 

@@ -94,6 +94,8 @@ question: {question}
 for c in category_prompts:
     c['prompt_template'] = '{} {} {}'.format(baseCategoryPrompt, ', '.join(c['vars']), baseOutputPrompt)
     c['prompt_alternative'] = '{} {} {}'.format(baseCategoryPrompt, ', '.join(c['vars']), alternativeOutputPrompt)
+    c['prompt_template'] = '{} {} {}'.format(baseCategoryPrompt, ', '.join(c['vars']), baseOutputPrompt)
+    c['prompt_alternative'] = '{} {} {}'.format(baseCategoryPrompt, ', '.join(c['vars']), alternativeOutputPrompt)
 
 
 base_cases =  [
