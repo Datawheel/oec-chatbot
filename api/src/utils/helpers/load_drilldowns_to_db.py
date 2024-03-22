@@ -3,7 +3,7 @@ import pandas as pd
 import urllib.parse
 from sentence_transformers import SentenceTransformer
 import json
-from config import POSTGRES_ENGINE
+from config import POSTGRES_ENGINE, TESSERACT_API
 
 # ENV Variables
 
@@ -63,11 +63,13 @@ def load_data_to_db(api_url, measure_name, table_name, schema_name):
     df.drop(f"{measure_name}", axis=1, inplace=True)
 
     if 'drilldown_id' not in df.columns:
-        df['drilldown_id'] = df['drilldown']
+        df['drilldown_id'] = df['drilldown_name']
 
     df.replace('', pd.NA, inplace=True)
     df.dropna(subset=['drilldown_name', 'drilldown_id'], how='all', inplace=True)
 
+    df = df[['drilldown_id', 'drilldown_name', 'cube_name', 'drilldown']]
+    df['drilldown_name'] = df['drilldown_name'].astype(str)
     print(df.head())
 
     df_embeddings = embedding(df, 'drilldown_name')
@@ -87,6 +89,5 @@ for table in cubes_json['tables']:
     for dimension in table['dimensions']:
         for hierarchy in dimension['hierarchies']:
             for level in hierarchy['levels']:
-                api_url = f"https://api-dev.datausa.io/tesseract/data.jsonrecords?cube={cube_name}&drilldowns={level}&measures={measure}"
+                api_url = f"{TESSERACT_API}data.jsonrecords?cube={cube_name}&drilldowns={level}&measures={measure}"
                 load_data_to_db(api_url, measure, table_name, schema_name)
-
