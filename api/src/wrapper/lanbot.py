@@ -90,7 +90,8 @@ for c in category_prompts:
     c['prompt_alternative'] = '{} {} {}'.format(baseCategoryPrompt, c['vars'], alternativeOutputPrompt)
 
 
-base_cases =  [{
+base_cases =  [
+    {
         'name': 'Greetings',
         'prompt_template': 'Greet back',
         'prompt_alternative':'Greet back',
