@@ -1,6 +1,7 @@
 from langchain_core.callbacks.base import BaseCallbackHandler
 from typing import Any, Dict, List, Union
 
+
 class logsHandler(BaseCallbackHandler):
 
     def __init__(self, outFile = [], print_logs = False, print_starts = True, print_ends = True, print_errors = True, **kwargs):
@@ -11,7 +12,11 @@ class logsHandler(BaseCallbackHandler):
         self.start = print_starts
         self.ends = print_ends
         self.errors = print_errors
-
+    
+    def log_to_file(self, event):
+        self.outFile.append(event)
+        with open('./log.txt','a') as log:
+            log.write(str(event))
 
     def parent_tracking(self, node):
         trace = []
@@ -39,7 +44,7 @@ class logsHandler(BaseCallbackHandler):
         #_serie = serialized['name']
         if self.print_logs and self.start:
             print( f'Entering new chain[{_track}]: {_id} ')
-            self.outFile.append(formatted_response)
+            self.log_to_file(formatted_response)
 
     
     def on_chain_end(self, outputs, run_id, **kwargs):
@@ -53,7 +58,7 @@ class logsHandler(BaseCallbackHandler):
         _track = self.parent_tracking(run_id)
         if self.print_logs and self.ends: 
             print(f'Finish chain[{_track}]:  {outputs}')
-            self.outFile.append(formatted_response)
+            self.log_to_file(formatted_response)
 
     
     def on_chain_error(self, error, run_id,**kwargs):
@@ -65,7 +70,7 @@ class logsHandler(BaseCallbackHandler):
         _track = self.parent_tracking(run_id)
         if self.print_logs and self.errors: 
             print(f'Error chain [{_track}]:  {error} ')
-            self.outFile.append(formatted_response)
+            self.log_to_file(formatted_response)
 
 
     # llms
@@ -80,7 +85,7 @@ class logsHandler(BaseCallbackHandler):
         _kwargs = kwargs['name']
         if self.print_logs and self.start: 
             print(f'Starting llm:  {_serie} {_kwargs} ')
-            self.outFile.append(formatted_response)
+            self.log_to_file(formatted_response)
 
     
     def on_llm_end(self, response, **kwargs):
@@ -95,7 +100,7 @@ class logsHandler(BaseCallbackHandler):
         out = basis_response.text
         if self.print_logs and self.ends: 
             print(f'Finish llm[t:{metric}]: {out}')
-            self.outFile.append(formatted_response)
+            self.log_to_file(formatted_response)
 
       
     def on_llm_error(self, error, **kwargs):
@@ -105,4 +110,4 @@ class logsHandler(BaseCallbackHandler):
         }
         if self.print_logs and self.errors: 
             print(f'Error llm:  {error}')
-            self.outFile.append(formatted_response) 
+            self.log_to_file(formatted_response) 

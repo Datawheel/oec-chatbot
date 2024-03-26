@@ -248,14 +248,14 @@ altern_chain = RunnableSequence(
                 | RunnableLambda(action),
             )
 
-### Memory
-newChatMessageHistory = ChatMessageHistory()
-newChatMessageHistory.add_ai_message('Hi, ready to help you')
+
 
 def Langbot(newMessage, handleQuery, logger=[], *args):
     """
-    Activate chain to reflex upon user chat history to ask more information or to pass to get_query chain or other function.
+    Activate chain to reflect upon user chat history to ask more information or to pass to get_query chain or other function.
     """
+    newChatMessageHistory = ChatMessageHistory()
+    newChatMessageHistory.add_ai_message('Hi, ready to help you')
     newChatMessageHistory.add_user_message(newMessage)
 
     for ans in altern_chain.stream({
@@ -266,7 +266,8 @@ def Langbot(newMessage, handleQuery, logger=[], *args):
     },
     config={'callbacks':[logsHandler(logger, print_logs = True, print_starts=False)]}):
         yield ans
-    print('\n\n>>>>>>>>>>>>>  ', logger)
+    
+    #print('\n\n>>>>>>>>>>>>>  ', logger)
     
 
 

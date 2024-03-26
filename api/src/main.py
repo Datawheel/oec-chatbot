@@ -22,21 +22,6 @@ async def root():
 async def wrap(query):
     return StreamingResponse(Langbot(query, get_api, [], TABLES_PATH), media_type="application/json")
 
-@chain
-def fn(input):
-    yield json.dumps({'msg':1})
-    time.sleep(4)
-    yield json.dumps({'msg':2})
-
-def fn2():
-    time.sleep(2)
-    for val in fn.stream({'input':''}):
-        yield val
-
-@app.get("/num/")
-async def num():
-    return StreamingResponse(fn2(), media_type="application/json")
-
 @app.get("/query/{query}")
 async def read_item(query: str):
     api_url, data, text_response = get_api(query, TABLES_PATH)
@@ -49,3 +34,29 @@ async def read_item(query: str):
                     "url": api_url
                 }
             }
+
+
+#test 
+@chain
+def just(input):
+    for w in input['input'].split(' '):
+        yield w 
+    #return {'data': 'abcd', 'data2':'wxyz'}
+
+@chain
+def fn(input):
+    print(input)
+    yield json.dumps({'msg':input})
+    time.sleep(4)
+    yield json.dumps({'msg':input})
+
+def fn2():
+    chain = just | fn
+    time.sleep(2)
+    for val in just.stream({'input':'the jumping flying fox'}):
+        yield val
+
+@app.get("/num/")
+async def num():
+    return StreamingResponse(fn2(), media_type="application/json")
+
