@@ -1,7 +1,7 @@
 from langchain_community.llms import Ollama
 from langchain_community.chat_message_histories import ChatMessageHistory
 from langchain_core.prompts import PromptTemplate
-from langchain_core.runnables import RunnableSequence, RunnablePassthrough, RunnableLambda, RunnableParallel
+from langchain_core.runnables import RunnableSequence, RunnablePassthrough, RunnableLambda, RunnableParallel, chain
 from langchain_core.output_parsers import JsonOutputParser
 from src.wrapper.logsHandlerCallback import logsHandler
 from langchain.globals import set_debug, set_verbose
@@ -141,7 +141,7 @@ classify_prompt = PromptTemplate.from_template(
 
 
 ### Chains
-
+@chain
 def class_parser(info):
     """
     Adhoc function to parse JSON object from chain and return object with question and category 
@@ -155,17 +155,27 @@ def class_parser(info):
         'category': info['category']
     }
 
+@chain
+def stream_acc(info):
+    """
+    Prevent LLMs to stream (stutter) within a langchain chain. Use after the LLM.
+    """
+    print('In stream agg: {}'.format(info))
+    return info
+
 classifyOne = classify_prompt.pipe(model.bind(
             system= 'You are an linguistic expert in summarization and classification tasks.',
             format='json')
+        ).pipe(stream_acc
         ).pipe(JsonOutputParser()
-        ).pipe(RunnableLambda(class_parser))
+        ).pipe(class_parser)
 
 classifyTwo = classify_prompt.pipe(model_adv.bind(
             system= 'You are an linguistic expert in summarization and classification tasks. You can only output valid JSON.',
             format='json')
+        ).pipe(stream_acc
         ).pipe(JsonOutputParser()
-        ).pipe(RunnableLambda(class_parser)) 
+        ).pipe(class_parser) 
 
 
 def route(info):

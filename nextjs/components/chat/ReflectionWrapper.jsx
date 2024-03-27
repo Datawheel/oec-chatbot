@@ -1,36 +1,16 @@
-import axios from 'axios';
 const NEXT_PUBLIC_CHAT_API = process.env.NEXT_PUBLIC_CHAT_API;
+
+
 /**
- * 
+ * Handle streaming response from FASTAPI Datausa-chat API wrapper
+ * @param {*} input question input
+ * @param {*} handleTable function to handle table response from API
+ * @param {*} updater  function to handle setMessegas
+ * @param {*} setLoading function to handle loading 
  */
-async function* getIterableStream(body) {
-    const reader = body.getReader()
-    const decoder = new TextDecoder()
-  
-    while (true) {
-      const { value, done } = await reader.read()
-      if (done) {
-        break
-      }
-      const decodedChunk = decoder.decode(value, { stream: true })
-      yield decodedChunk
-    }
-}
-
-export const generateStream = async (data) => {
-    const _URL = `http://127.0.0.1:8000/wrap/${data}`
-    try {
-        const response = await fetch( _URL, { method: 'GET',})
-    } catch(error) {
-        console.error(error);
-    }
-    return getIterableStream(response.body) 
-}
-
-
 export default async function ReflectionWrap(input, handleTable, updater, setLoading) {
-    const _URL = `http://127.0.0.1:8000/wrap/${input}`
-
+    
+    const _URL = `${NEXT_PUBLIC_CHAT_API}wrap/${input}`
 
     try {
         const response = await fetch(_URL, {
@@ -71,5 +51,4 @@ export default async function ReflectionWrap(input, handleTable, updater, setLoa
 
 }
 
-//const sse = new EventSource('[SSE', {withCredentials: true})
 

@@ -12,11 +12,13 @@ class logsHandler(BaseCallbackHandler):
         self.start = print_starts
         self.ends = print_ends
         self.errors = print_errors
+        with open('./log.txt','w') as log:
+            log.write('[START]\n')
     
     def log_to_file(self, event):
         self.outFile.append(event)
         with open('./log.txt','a') as log:
-            log.write(str(event))
+            log.write(str(event) + '\n')
 
     def parent_tracking(self, node):
         trace = []
