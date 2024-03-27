@@ -3,7 +3,7 @@ import DataResults from "@/components/chat/DataResults";
 
 const opa = ['hi']
 
-const nullFunc = (arr)  => {
+const  nullFunc = async (arr)  => {
     return arr[0]
 }
  
