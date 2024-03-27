@@ -72,8 +72,5 @@ print("Enter API url: ")
 api_url = input()
 print("Enter measure name: ")
 measure_name = input()
-#df = pd.read_csv('/Users/alexandrabjanes/Datawheel/CODE/datausa-chat/tables.csv')
-#print(df.head())
 
-#create_table()
 load_data_to_db(api_url, measure_name = measure_name)
