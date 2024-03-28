@@ -132,7 +132,7 @@ In order to add one cube, the steps are:
       - The script then appends a column containing embeddings generated from the drilldown names using the same embedding model mentioned before.
       - This process needs to be repeated for each drilldown level within the cube or those required for making cuts. Time variables don't need to be loaded into the database.
 
-### [Migration for future projects] In progress...
+### [For future projects] In progress...
 
 To add all the cubes of a project automatically, they can be mapped from the tesseract schema json to the custom format needed in the app. To do this follow these steps:
 
