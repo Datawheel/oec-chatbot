@@ -32,5 +32,6 @@ def get_api(query, TABLES_PATH):
         log_apicall(query, api_url, response, variables, measures, cuts, table, duration)
         return api_url, data, response
     
-TABLES_PATH = getenv('TABLES_PATH')
-get_api('How much did the CPI of fresh fruits change between 2019 and 2021', TABLES_PATH)
+if __name__ == "__main__":
+    TABLES_PATH = getenv('TABLES_PATH')
+    get_api('How much did the CPI of fresh fruits change between 2019 and 2021', TABLES_PATH)

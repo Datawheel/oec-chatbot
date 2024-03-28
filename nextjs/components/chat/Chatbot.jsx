@@ -7,7 +7,7 @@ import {
   TextInput, Text, ActionIcon, Stack, Loader, Box,
 } from "@mantine/core";
 import {IconSearch} from "@tabler/icons-react";
-import ReflectionWrap, { generateStream} from './ReflectionWrapper';
+import ReflectionWrap from './ReflectionWrapper';
 
 
 function Loading({visible, text}) {

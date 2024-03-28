@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.responses import StreamingResponse
 from config import TABLES_PATH
 from utils.app import get_api
-from src.wrapper.lanbot import Langbot
+from wrapper.lanbot import Langbot
 import time
 import json
 from langchain_core.runnables import RunnableLambda, chain
@@ -51,7 +51,7 @@ def fn(input):
 def fn2():
     chain = just | fn
     time.sleep(2)
-    for val in just.stream({'input':'the jumping flying fox'}):
+    for val in chain.stream({'input':'the jumping flying fox'}):
         yield val
 
 @app.get("/num/")

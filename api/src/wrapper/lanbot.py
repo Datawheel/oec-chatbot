@@ -3,7 +3,7 @@ from langchain_community.chat_message_histories import ChatMessageHistory
 from langchain_core.prompts import PromptTemplate
 from langchain_core.runnables import RunnableSequence, RunnablePassthrough, RunnableLambda, RunnableParallel, chain
 from langchain_core.output_parsers import JsonOutputParser
-from src.wrapper.logsHandlerCallback import logsHandler
+from wrapper.logsHandlerCallback import logsHandler
 from langchain.globals import set_debug, set_verbose
 from os import getenv
 import json
@@ -13,6 +13,9 @@ from operator import itemgetter
 TABLES_PATH = getenv('TABLES_PATH')
 OLLAMA_URL = 'https://caleuche-ollama.datawheel.us'
 CONFIG_FILE_NAME = 'wrapper_datausa.json'
+
+with open(f'./{CONFIG_FILE_NAME}') as f:
+    category_prompts = json.load(f)
 
 ## Models
 model = Ollama(
@@ -79,9 +82,6 @@ question: Who is the president?
 
 question: {question} 
 """
-
-with open(f'./src/{CONFIG_FILE_NAME}') as f:
-    category_prompts = json.load(f)
 
 
 # Add templtas
@@ -274,10 +274,10 @@ def Langbot(newMessage, handleQuery, logger=[], *args):
                             for m in newChatMessageHistory.messages]) + '[.]',
         'handleQuery': handleQuery,
         'pass_args': args
-    },
-    config={'callbacks':[logsHandler(logger, print_logs = True, print_starts=False)]}):
+        },
+        config={'callbacks':[logsHandler(logger, print_logs = True, print_starts=False)]}):
         yield ans
-    print('\n\n>>>>>>>>>>>>>  ', logger)
+    #print('\n\n>>>>>>>>>>>>>  ', logger)
     
 
 
