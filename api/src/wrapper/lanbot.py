@@ -185,10 +185,9 @@ def route(info):
     * @returns string or JSON with answer property for action function
     """
     print('In route: {}>> {}'.format(info.keys(), [info[k ]for k in info]))
-    print('In route: {}>> {}'.format(info.keys(), [info[k ]for k in info]))
+
     for c in category_prompts[:-2]:
         if c['name'].lower() in info['category'].lower():
-            print('Class: {} {}'.format(c['name'], c['prompt_template']))
             print('Class: {} {}'.format(c['name'], c['prompt_template']))
 
             newChain = PromptTemplate.from_template(c['prompt_template'])
@@ -223,7 +222,6 @@ def action(init):
 
     handleQuery = init['input']['handleQuery']
     args = init['input']['pass_args']
-    args = init['input']['pass_args']
 
     if isinstance(info['action'], dict) and 'answer' in info['action'].keys():
         if info['action']['answer'].lower() == 'complete':
@@ -234,7 +232,6 @@ def action(init):
             print(searchText)
 
             #### Call get_query
-            resp = handleQuery(searchText, *args)
             resp = handleQuery(searchText, *args)
 
             yield json.dumps({ 'content': resp})
@@ -265,7 +262,6 @@ altern_chain = RunnableSequence(
 
 
 def Langbot(newMessage, handleQuery, logger=[], *args):
-def Langbot(newMessage, handleQuery, logger=[], *args):
     """
     Activate chain to reflect upon user chat history to ask more information or to pass to get_query chain or other function.
     """
@@ -274,11 +270,9 @@ def Langbot(newMessage, handleQuery, logger=[], *args):
     newChatMessageHistory.add_user_message(newMessage)
 
     for ans in altern_chain.stream({
-    for ans in altern_chain.stream({
         'history': ';'.join([f"{' [AI]' if m.lc_id()[2]=='AIMessage' else ' [User]'}:{m.content}"
                             for m in newChatMessageHistory.messages]) + '[.]',
         'handleQuery': handleQuery,
-        'pass_args': args
         'pass_args': args
     },
     config={'callbacks':[logsHandler(logger, print_logs = True, print_starts=False)]}):

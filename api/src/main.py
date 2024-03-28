@@ -1,14 +1,12 @@
 from fastapi import FastAPI
 from fastapi.responses import StreamingResponse
-
-from fastapi.responses import StreamingResponse
 from config import TABLES_PATH
 from utils.app import get_api
 from src.wrapper.lanbot import Langbot
 import time
 import json
 from langchain_core.runnables import RunnableLambda, chain
-from langchain_core.runnables import RunnableLambda, chain
+
 # fastapi instance declaration
 app = FastAPI()
 # api functions
@@ -35,7 +33,6 @@ async def read_item(query: str):
                     "url": api_url
                 }
             }
-
 
 #test 
 @chain

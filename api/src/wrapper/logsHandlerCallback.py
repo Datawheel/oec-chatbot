@@ -34,8 +34,6 @@ class logsHandler(BaseCallbackHandler):
     def on_chain_start(self, serialized, inputs, run_id, **kwargs):
         #print( 'Entering new chain {}'.format(kwargs.keys()))
         name = str(kwargs['name']) if 'name' in kwargs.keys() else ''
-        #print( 'Entering new chain {}'.format(kwargs.keys()))
-        name = str(kwargs['name']) if 'name' in kwargs.keys() else ''
 
         formatted_response = {
             'type': 'Chain start',
@@ -45,7 +43,6 @@ class logsHandler(BaseCallbackHandler):
         self.tracer[run_id] = {'parent_run_id': kwargs['parent_run_id'],'name': name}
         _track = self.parent_tracking(run_id)
         _id = name +':'+ ','.join(kwargs['tags'])
-        #_serie = serialized['name']
         #_serie = serialized['name']
         if self.print_logs and self.start:
             print( f'Entering new chain[{_track}]: {_id} ')
@@ -67,15 +64,11 @@ class logsHandler(BaseCallbackHandler):
 
     
     def on_chain_error(self, error, run_id,**kwargs):
-    def on_chain_error(self, error, run_id,**kwargs):
         formatted_response = {
             'type': 'Chain error',
             'error': error,
             'tags': kwargs['tags']
-            'error': error,
-            'tags': kwargs['tags']
         }
-        _track = self.parent_tracking(run_id)
         _track = self.parent_tracking(run_id)
         if self.print_logs and self.errors: 
             print(f'Error chain [{_track}]:  {error} ')
