@@ -7,6 +7,7 @@ import {
   TextInput, Text, ActionIcon, Stack, Loader, Box,
 } from "@mantine/core";
 import {IconSearch} from "@tabler/icons-react";
+import ReflectionWrap from './ReflectionWrapper';
 
 
 function Loading({visible, text}) {
@@ -34,18 +35,9 @@ const Chatbot = () => {
     const userMessage = { text: input, user: true };
     setMessages((prevMessages) => [...prevMessages, userMessage]);
     setLoading(true);
-    const aiMessage = { text: '...', user: false };
-    setMessages((prevMessages) => [...prevMessages, aiMessage]);
 
-    const response = await Langbot(input, setMessages, handleData);
+    ReflectionWrap(input, handleData, setMessages, setLoading);
 
-    console.log(response);
-    
-    const newAiMessage = [{ text: response.content, user: false }];
-    if (response.hasOwnProperty('question')) {
-      newAiMessage.push({ text: response.question, user: false });
-    }
-    setMessages((prevMessages) => [...prevMessages.slice(0, -1), ...newAiMessage]);
     setInput('');
   };
 
@@ -73,7 +65,8 @@ const Chatbot = () => {
             key={index}
             className={`${styles.message} ${message.user ? styles.userMessage : styles.aiMessage}`}
           >
-            {(message.text==='...')? <Loading visible={loading}/> : message.text }
+            { message.text }
+            {loading? <Loading visible={true}/>:<></>}
           </div>
         ))}
       </div>
