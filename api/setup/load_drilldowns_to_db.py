@@ -1,16 +1,17 @@
-import requests
-import pandas as pd
-import urllib.parse
-from sentence_transformers import SentenceTransformer
 import json
-from config import POSTGRES_ENGINE, TESSERACT_API
+import pandas as pd
+import requests
+import urllib.parse
+
+from sentence_transformers import SentenceTransformer
+from config import POSTGRES_ENGINE, SCHEMA_DRILLDOWNS, DRILLDOWNS_TABLE_NAME
 
 # ENV Variables
 
-table_name = 'drilldowns'
-schema_name = 'datausa_drilldowns'
+TESSERACT_API = 'https://api.datasaudi.datawheel.us/tesseract/'
+table_name = DRILLDOWNS_TABLE_NAME
+schema_name = SCHEMA_DRILLDOWNS
 embedding_size = 384
-
 
 def embedding(dataframe, column):
     """
@@ -25,6 +26,7 @@ def embedding(dataframe, column):
 
 
 def create_table(table_name, schema_name, embedding_size = 384):
+    POSTGRES_ENGINE.execute(f"CREATE SCHEMA IF NOT EXISTS {schema_name}")
     POSTGRES_ENGINE.execute(f"CREATE TABLE IF NOT EXISTS {schema_name}.{table_name} (drilldown_id text, drilldown_name text, cube_name text, drilldown text, embedding vector({embedding_size}))")
     return
 
@@ -78,7 +80,7 @@ def load_data_to_db(api_url, measure_name, table_name, schema_name):
     return
 
 
-with open('output.json', 'r') as file:
+with open('tables.json', 'r') as file:
     cubes_json = json.load(file)
 
 create_table(table_name, schema_name)

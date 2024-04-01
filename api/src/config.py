@@ -20,6 +20,11 @@ else:
     print("POSTGRES_HOST not found, please check your environment")
     exit(1)
 
+SCHEMA_TABLES = getenv("SCHEMA_TABLES")
+SCHEMA_DRILLDOWNS = getenv("SCHEMA_DRILLDOWNS")
+CUBES_TABLE_NAME = getenv("CUBES_TABLE_NAME")
+DRILLDOWNS_TABLE_NAME = getenv("DRILLDOWNS_TABLE_NAME")
+
 # OpenAI Connection
 OPENAI_KEY = getenv("OPENAI_KEY")
 
