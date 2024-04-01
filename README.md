@@ -28,7 +28,6 @@ This repository contains scripts for a chatbot that leverages artificial intelli
      5. **`table_selection/`**
         - All scripts needed to lookup and manage the relevant cube that contains the data needed to answer the user's query.
 
-
 ## General Workflow
 
 ### 1. Table Selection
@@ -74,6 +73,7 @@ This repository contains scripts for a chatbot that leverages artificial intelli
 
    6. The data is retrieved from the API using the `fetch_data()` method and stored in a pandas dataframe.
 
+
 ### 3. Data Analysis/Processing
 
 - [In progress...] Data Analysis is done with LangChain, using the pandas dataframe agent. 
@@ -107,6 +107,27 @@ In order to add one cube, the steps are:
          - Add each hierarchy separately, filling the following fields for each:
             ```json
                {
+                  "name": "Millions Of Dollars",
+                  "description": "value in millions of dollars of a certain shipment."   
+               }
+            ```
+      - dimensions
+         - Add each hierarchy separately, filling the following fields for each:
+            ```json
+               {
+                  "name": "Time",
+                  "description": "Periodicity of the data (monthly or annual).",
+                  "hierarchies": [
+                        {
+                            "name": "Month and Year",
+                            "description": "'Month and Year' has the format YYYYMM (example March of 2015 is 201503)",
+                            "levels": [
+                                "Year",
+                                "Month and Year"
+                            ]
+                        }
+                    ]
+
                   "name": "Time",
                   "description": "Periodicity of the data (monthly or annual).",
                   "hierarchies": [

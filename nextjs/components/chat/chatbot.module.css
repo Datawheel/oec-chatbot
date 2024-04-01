@@ -10,7 +10,7 @@
     box-shadow: 0 4px 8px rgba(255, 255, 255, 0.2);
   }
   .chatbotMessages {
-    height: 500px;
+    height: 60vh;
     overflow-y: scroll;
     padding: 8px;
   }

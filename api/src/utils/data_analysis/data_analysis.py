@@ -1,6 +1,7 @@
 from config import OPENAI_KEY
-from langchain.agents import create_pandas_dataframe_agent
-from langchain.chat_models import ChatOpenAI
+from langchain_experimental.agents import create_pandas_dataframe_agent
+from langchain_community.chat_models import ChatOpenAI
+
 
 def agent_answer(df, natural_language_query):
 
@@ -21,6 +22,7 @@ def agent_answer(df, natural_language_query):
     )
 
     llm = ChatOpenAI(model_name='gpt-4-1106-preview', temperature=0, openai_api_key=OPENAI_KEY)
+
     agent =  create_pandas_dataframe_agent(llm, df, verbose=True)
     response = agent.run(prompt)
     
