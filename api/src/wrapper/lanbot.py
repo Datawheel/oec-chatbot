@@ -4,12 +4,11 @@ from langchain_core.prompts import PromptTemplate
 from langchain_core.runnables import RunnableSequence, RunnablePassthrough, RunnableLambda, RunnableParallel, chain
 from langchain_core.output_parsers import JsonOutputParser
 from wrapper.logsHandlerCallback import logsHandler
-from src.wrapper.logsHandlerCallback import logsHandler
 from langchain.globals import set_debug, set_verbose
 from os import getenv
 import json
 from operator import itemgetter
-from operator import itemgetter
+
 #set_debug(True)
 #set_verbose(True)
 TABLES_PATH = getenv('TABLES_PATH')
@@ -22,17 +21,14 @@ with open(f'./{CONFIG_FILE_NAME}') as f:
 ## Models
 model = Ollama(
     base_url= OLLAMA_URL,
-    base_url= OLLAMA_URL,
     model= "llama2:7b-chat-q8_0",
     temperature= 0,
   ).with_config(
     seed= 123,
     run_name= 'basic_llama', 
-    run_name= 'basic_llama', 
   )
 
 model_adv = Ollama(
-    base_url= OLLAMA_URL,
     base_url= OLLAMA_URL,
     model= 'mixtral:8x7b-instruct-v0.1-q4_K_M',#'gemma:7b-instruct-q4_K_M',//
     system= '',
@@ -53,7 +49,6 @@ Answer in the following JSON format:
 {{"analysis": "[your analysis]",
 "answer": "[your answer]"}}
 
-Here are some examples: 
 Here are some examples: 
 
 question: How many dollars in electronics were transported from Texas to California during 2020 by truck?
@@ -94,9 +89,7 @@ question: {question}
 for c in category_prompts:
     c['prompt_template'] = '{} {} {}'.format(baseCategoryPrompt, ', '.join(c['vars']), baseOutputPrompt)
     c['prompt_alternative'] = '{} {} {}'.format(baseCategoryPrompt, ', '.join(c['vars']), alternativeOutputPrompt)
-    c['prompt_template'] = '{} {} {}'.format(baseCategoryPrompt, ', '.join(c['vars']), baseOutputPrompt)
-    c['prompt_alternative'] = '{} {} {}'.format(baseCategoryPrompt, ', '.join(c['vars']), alternativeOutputPrompt)
-
+    
 
 base_cases =  [
     {
@@ -118,9 +111,6 @@ base_cases =  [
         'examples': ['hi, how are you?'],
     },
 ]
-
-category_prompts = category_prompts + base_cases
-
 
 category_prompts = category_prompts + base_cases
 

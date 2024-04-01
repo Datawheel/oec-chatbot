@@ -40,3 +40,4 @@ MONDRIAN_API = getenv('MONDRIAN_API')
 
 # Files Directories
 TABLES_PATH = getenv('TABLES_PATH')
+FEW_SHOT_PATH = getenv('FEW_SHOT_PATH')
