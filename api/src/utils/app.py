@@ -35,3 +35,4 @@ def get_api(query, TABLES_PATH):
 if __name__ == "__main__":
     TABLES_PATH = getenv('TABLES_PATH')
     get_api('How much did the CPI of fresh fruits change between 2019 and 2021', TABLES_PATH)
+

@@ -2,7 +2,6 @@ import json
 import openai
 import time
 
-
 from typing import List
 from sentence_transformers import SentenceTransformer
 

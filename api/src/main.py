@@ -9,6 +9,7 @@ from config import TABLES_PATH
 
 # fastapi instance declaration
 app = FastAPI()
+
 # api functions
 @app.get("/")
 async def root():
@@ -20,6 +21,7 @@ async def root():
 @app.get("/wrap/{query}")
 async def wrap(query):
     return StreamingResponse(Langbot(query, get_api, [], TABLES_PATH), media_type="application/json")
+
 
 @app.get("/query/{query}")
 async def read_item(query: str):
@@ -57,4 +59,5 @@ def fn2():
 @app.get("/num/")
 def num():
     return StreamingResponse(fn2(), media_type="application/json")
+
 

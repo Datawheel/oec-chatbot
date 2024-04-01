@@ -6,6 +6,7 @@ def parse_xml_to_json(xml_file):
     """
     Parses XML schema to custom json format.
     """
+
     tree = ET.parse(xml_file)
     root = tree.getroot()
 
