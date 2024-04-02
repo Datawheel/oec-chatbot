@@ -1,7 +1,7 @@
-from config import OPENAI_KEY
 from langchain_experimental.agents import create_pandas_dataframe_agent
 from langchain_community.chat_models import ChatOpenAI
 
+from src.config import OPENAI_KEY
 
 def agent_answer(df, natural_language_query):
 

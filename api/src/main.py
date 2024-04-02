@@ -1,11 +1,12 @@
-from fastapi import FastAPI
-from fastapi.responses import StreamingResponse
-from utils.app import get_api
-from wrapper.lanbot import Langbot
-from langchain_core.runnables import RunnableLambda, chain
 import time
 import json
-from config import TABLES_PATH
+
+from fastapi import FastAPI
+from fastapi.responses import StreamingResponse
+from langchain_core.runnables import RunnableLambda, chain
+from src.app import get_api
+from src.config import TABLES_PATH
+from wrapper.lanbot import Langbot
 
 # fastapi instance declaration
 app = FastAPI()
