@@ -2,7 +2,7 @@ import json
 
 from typing import List
 
-from config import FEW_SHOT_PATH
+from src.config import FEW_SHOT_PATH
 
 few_shot_examples = {}
 with open(FEW_SHOT_PATH, "r") as f:

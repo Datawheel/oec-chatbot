@@ -4,7 +4,9 @@ import requests
 import urllib.parse
 
 from sentence_transformers import SentenceTransformer
-from config import POSTGRES_ENGINE, SCHEMA_DRILLDOWNS, DRILLDOWNS_TABLE_NAME
+
+from src.config import POSTGRES_ENGINE, SCHEMA_DRILLDOWNS, DRILLDOWNS_TABLE_NAME
+from src.utils.similarity_search import embedding
 
 # ENV Variables
 
@@ -12,17 +14,6 @@ TESSERACT_API = 'https://api.datasaudi.datawheel.us/tesseract/'
 table_name = DRILLDOWNS_TABLE_NAME
 schema_name = SCHEMA_DRILLDOWNS
 embedding_size = 384
-
-def embedding(dataframe, column):
-    """
-    Creates embeddings for text in the column passed as argument
-    """
-    model = SentenceTransformer('multi-qa-MiniLM-L6-cos-v1')
-
-    model_embeddings = model.encode(dataframe[column].to_list())
-    dataframe['embedding'] = model_embeddings.tolist()
-
-    return dataframe
 
 
 def create_table(table_name, schema_name, embedding_size = 384):
