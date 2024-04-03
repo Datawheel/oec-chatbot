@@ -5,13 +5,8 @@ import time
 from typing import List
 from sentence_transformers import SentenceTransformer
 
-<<<<<<< Updated upstream:api/src/utils/table_selection/table_selector.py
-from utils.table_selection.table_details import *
-from utils.table_selection.table_database_search import get_similar_tables
-=======
 from table_selection.table import *
 from utils.similarity_search import get_similar_tables
->>>>>>> Stashed changes:api/src/table_selection/table_selector.py
 from utils.few_shot_examples import get_few_shot_example_messages
 from utils.preprocessors.text import extract_text_from_markdown_triple_backticks
 

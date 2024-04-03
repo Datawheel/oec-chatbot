@@ -3,23 +3,15 @@ import pandas as pd
 import sqlalchemy as db
 import sys
 
-from config import POSTGRES_ENGINE, SCHEMA_TABLES, CUBES_TABLE_NAME
 from sentence_transformers import SentenceTransformer
+
+from src.config import POSTGRES_ENGINE, SCHEMA_TABLES, CUBES_TABLE_NAME
+from src.utils.similarity_search import embedding
 
 table_name = CUBES_TABLE_NAME
 schema_name = SCHEMA_TABLES
 embedding_size = 384
 
-def embedding(dataframe, column):
-    """
-    Creates embeddings for text in the column passed as argument
-    """
-    model = SentenceTransformer('multi-qa-MiniLM-L6-cos-v1')
-
-    model_embeddings = model.encode(dataframe[column].to_list())
-    dataframe['embedding'] = model_embeddings.tolist()
-
-    return dataframe
 
 def create_table(table_name, schema_name, embedding_size = 384):
     POSTGRES_ENGINE.execute(f"CREATE SCHEMA IF NOT EXISTS {schema_name}")

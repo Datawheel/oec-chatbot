@@ -67,11 +67,28 @@ class Table:
 
         columns_str = f"Table Name: {self.name}\n" + "Dimensions:\n" + dimensions_str + "\nMeasures:\n" + measures_str
         return columns_str
+    
+    def columns_description_detailed(self):
+        dimensions_str_list = [
+            f"{dimension['name']} ({dimension.get('description', 'No description')}, {dimension['hierarchies'][0]['description']}) [Levels: {dimension['hierarchies'][0]['levels']}];\n" 
+            for dimension in self.dimensions
+        ]
+        
+        measures_str_list = [
+            f"{measure['name']} ({measure.get('description', 'No description')});\n"
+            for measure in self.measures
+        ]
+        
+        dimensions_str = ''.join(dimensions_str_list)
+        measures_str = ''.join(measures_str_list)
+
+        columns_str = f"Table Name: {self.name}\n" + "Dimensions:\n" + dimensions_str + "\nMeasures:\n" + measures_str
+        return columns_str
 
     def __str__(self):
-        measures_str = ", ".join(self.get_measures_description())
-        dimensions_str = ", ".join(self.get_dimensions_description())
-        return f"Table Name: {self.name}\nDescription: {self.description}\nMeasures:\n {measures_str}\nDimensions:\n {dimensions_str}\n"
+        measures_str = "".join(self.get_measures_description())
+        dimensions_str = "".join(self.get_dimensions_description())
+        return f"Table Name: {self.name}\nDescription: {self.description}\nMeasures:\n{measures_str}\nDimensions:\n{dimensions_str}\n"
     
 
 class TableManager:

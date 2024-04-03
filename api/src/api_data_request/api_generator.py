@@ -4,17 +4,10 @@ import requests
 import time
 
 from config import OLLAMA_API
-<<<<<<< Updated upstream:api/src/utils/api_data_request/api_generator.py
-from utils.table_selection.table_details import *
-from utils.preprocessors.text import *
-from utils.api_data_request.similarity_search import *
-from utils.api_data_request.api import *
-=======
 from table_selection.table import *
 from utils.preprocessors.text import *
 from utils.similarity_search import *
 from api_data_request.api import *
->>>>>>> Stashed changes:api/src/api_data_request/api_generator.py
 
 def get_api_components_messages(table, model_author, natural_language_query = ""):
 

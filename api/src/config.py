@@ -1,7 +1,7 @@
 import openai
 
-from os import getenv
 from dotenv import load_dotenv
+from os import getenv
 from sqlalchemy import create_engine
 
 # Load .env file if exists
@@ -47,4 +47,3 @@ MONDRIAN_API = getenv('MONDRIAN_API')
 # Files Directories
 TABLES_PATH = getenv('TABLES_PATH')
 FEW_SHOT_PATH = getenv('FEW_SHOT_PATH')
-

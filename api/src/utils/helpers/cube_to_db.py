@@ -1,24 +1,7 @@
 import pandas as pd
 
 from config import POSTGRES_ENGINE
-from sentence_transformers import SentenceTransformer
-
-<<<<<<< Updated upstream
-def embedding(dataframe, column):
-    """
-    Creates embeddings for text in the passed column
-    """
-    model = SentenceTransformer('multi-qa-MiniLM-L6-cos-v1')
-
-    model_embeddings = model.encode(dataframe[column].to_list())
-    dataframe['embedding'] = model_embeddings.tolist()
-
-    return dataframe
-=======
-from config import POSTGRES_ENGINE
 from utils.similarity_search import embedding
->>>>>>> Stashed changes
-
 
 def create_table():
     POSTGRES_ENGINE.execute("CREATE TABLE IF NOT EXISTS datausa_tables.cubes (table_name text, table_description text, embedding vector(384))") 
