@@ -2,10 +2,17 @@ import time
 
 from os import getenv
 
+<<<<<<< Updated upstream:api/src/utils/app.py
 from utils.table_selection.table_selector import *
 from utils.table_selection.table_details import *
 from utils.api_data_request.api_generator import *
 from utils.data_analysis.data_analysis import *
+=======
+from table_selection.table_selector import *
+from table_selection.table import *
+from api_data_request.api_generator import *
+from data_analysis.data_analysis import *
+>>>>>>> Stashed changes:api/src/app.py
 from utils.logs import *
 
 def get_api(query, TABLES_PATH):

@@ -1,6 +1,12 @@
 from fastapi import FastAPI
 from fastapi.responses import StreamingResponse
+<<<<<<< Updated upstream
 from utils.app import get_api
+=======
+from langchain_core.runnables import RunnableLambda, chain
+from app import get_api
+from config import TABLES_PATH
+>>>>>>> Stashed changes
 from wrapper.lanbot import Langbot
 from langchain_core.runnables import RunnableLambda, chain
 import time

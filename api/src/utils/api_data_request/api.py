@@ -2,9 +2,15 @@ import requests
 import pandas as pd
 
 from config import MONDRIAN_API, TESSERACT_API
+<<<<<<< Updated upstream:api/src/utils/api_data_request/api.py
 from utils.table_selection.table_details import *
 from utils.preprocessors.text import *
 from utils.api_data_request.similarity_search import *
+=======
+from table_selection.table import *
+from utils.preprocessors.text import *
+from utils.similarity_search import *
+>>>>>>> Stashed changes:api/src/api_data_request/api.py
 
 class ApiBuilder:
 
@@ -86,6 +92,9 @@ class ApiBuilder:
 
             except Exception as e:
                 return {}, pd.DataFrame(), f"An error occurred: {str(e)}"
+            
+    def build_json(self):
+        return
 
     def __str__(self):
         return self.build_url()

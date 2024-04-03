@@ -2,6 +2,10 @@ from config import OPENAI_KEY
 from langchain_experimental.agents import create_pandas_dataframe_agent
 from langchain_community.chat_models import ChatOpenAI
 
+<<<<<<< Updated upstream:api/src/utils/data_analysis/data_analysis.py
+=======
+from config import OPENAI_KEY
+>>>>>>> Stashed changes:api/src/data_analysis/data_analysis.py
 
 def agent_answer(df, natural_language_query):
 

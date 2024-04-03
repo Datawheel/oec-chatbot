@@ -5,6 +5,7 @@ import urllib.parse
 from config import POSTGRES_ENGINE
 from sentence_transformers import SentenceTransformer
 
+<<<<<<< Updated upstream
 def embedding(dataframe, column):
     """
     Creates embeddings for text in the passed column
@@ -15,6 +16,10 @@ def embedding(dataframe, column):
     dataframe['embedding'] = model_embeddings.tolist()
 
     return dataframe
+=======
+from config import POSTGRES_ENGINE
+from utils.similarity_search import embedding
+>>>>>>> Stashed changes
 
 
 def create_table():

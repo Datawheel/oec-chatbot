@@ -171,7 +171,7 @@ To add all the cubes of a project automatically, they can be mapped from the tes
 
 On local development, you can run the following code:
 ```
-uvicorn src.main:app --reload
+uvicorn main:app --reload
 ```
 ## How to build the docker image
 ```
