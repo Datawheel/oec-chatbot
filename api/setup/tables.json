@@ -18,8 +18,14 @@
                         {
                             "name": "Type",
                             "levels": [
-                                "Group",
-                                "Type"
+                                {
+                                    "name": "Group",
+                                    "members": [""]
+                                },
+                                {
+                                    "name": "Type",
+                                    "members": [""]
+                                }
                             ]
                         }
                     ]
@@ -36,7 +42,15 @@
                         }
                     ]
                 }
-            ]
+            ],
+            "examples": [
+                "pregunta 1",
+                "pregunta 2"
+            ],
+            "default": {
+                "Country": "3",
+                "Nationality": "3"
+            }
         },
         {
             "name": "mof_government_revenues_expenditures",

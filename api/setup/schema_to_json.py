@@ -1,6 +1,8 @@
 import json
 import xml.etree.ElementTree as ET
 
+from src.config import TESSERACT_API
+
 def parse_xml_to_json(xml_file):
     """
     Parses XML schema to custom json format.
@@ -66,7 +68,9 @@ def parse_xml_to_json(xml_file):
                         }
                     ]
                 } for dimension in dimensions
-            ]
+            ],
+            "examples": [],
+            "default": {},
         })
 
     return {"tables": tables}
@@ -78,6 +82,14 @@ def main(input_file, output_file):
 
     with open(output_file, 'w') as f:
         json.dump(json_output, f, indent=4)
+
+
+def get_drilldown_members(cube, drilldown_name, measure):
+    """
+    Generar el endpoint de tesseract, hacer el request, generar una lista de los miembros del drilldown (nombre, no el id), y finalmente retornar esa lista.
+    Y despues, esa lista se tiene que agregar al key "members" de cada level en cada jerarquia y en cada dimension.
+    """
+    return
 
 
 if __name__ == "__main__":
