@@ -189,7 +189,7 @@ def route(info):
 
     for c in category_prompts[:-2]:
         if c['name'].lower() in info['category'].lower():
-            print('Class: {} {}'.format(c['name'], c['prompt_template']))
+            print('Class: {}'.format(c['name']))
 
             newChain = PromptTemplate.from_template(c['prompt_template'])
             alterChain = PromptTemplate.from_template(c['prompt_alternative'])

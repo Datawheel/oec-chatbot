@@ -55,6 +55,7 @@ class logsHandler(BaseCallbackHandler):
 
         formatted_response = {
             'type': 'Chain end',
+            'name': self.tracer[run_id]['name'],
             'output': outputs
         }
         _track = self.parent_tracking(run_id)
@@ -66,6 +67,7 @@ class logsHandler(BaseCallbackHandler):
     def on_chain_error(self, error, run_id,**kwargs):
         formatted_response = {
             'type': 'Chain error',
+            'name': self.tracer[run_id]['name'],
             'error': error,
             'tags': kwargs['tags']
         }
@@ -90,10 +92,11 @@ class logsHandler(BaseCallbackHandler):
             self.log_to_file(formatted_response)
 
     
-    def on_llm_end(self, response, **kwargs):
+    def on_llm_end(self, response, run_id, **kwargs):
         basis_response = response.generations[0][0]
         formatted_response = {
             'type': 'LLM end',
+            'name': self.tracer[run_id]['name'],
             'output':basis_response.text,
             'duration':basis_response.generation_info['total_duration']/1e+9,
             'tkn_cnt':basis_response.generation_info['eval_count'],
