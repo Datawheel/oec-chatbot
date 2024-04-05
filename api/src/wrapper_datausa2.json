@@ -1,0 +1,44 @@
+[
+    {
+    "name":"Senate election",
+    "metrics": ["number of votes"],
+    "vars": ["political party", "US state", " candidate name"],
+    "optional_vars": ["year"],
+    "examples":[
+        "What candidate to senate from the republican party received the most amount of votes in California during the 2020 elections?"]
+},
+{
+    "name":"House election",
+    "metrics": ["number of votes"],
+    "vars": ["political party", "US state", " candidate name"],
+    "optional_vars": ["year"],
+    "examples":[
+        "What democrat candidate to the US house of representatives received the least amount of  votes in Washington during the 2010 elections?",
+        "What party received the least amount of votes during the 2010 US house of representatives elections in the state of Washington?"]
+},
+{
+    "name":"President election",
+    "metrics": ["number of votes"],
+    "vars":["political party", "US state", " candidate name"],
+    "optional_vars": ["month"],
+    "examples": [
+        "What candidates from the republican and democratic parties received the most amount of votes across the country during the 2016 presidential elections?"]
+},
+{
+    "name":"Consumer Price Index",
+    "metrics":["cuantity", "price metric"],
+    "vars":["product name","date"],
+    "optional_vars": ["year"],
+    "examples":[
+        "How much was the CPI of eggs in January of 2013?",
+        "How much was the YoY variation of the CPI of eggs in January of 2014?"]
+},
+{
+    "name":"Freight movement",
+    "metrics": ["amount", "money"],
+    "vars": ["product name", "US state", "transportation medium"],
+    "optional_vars": ["year"],
+    "examples": [
+        "How many dollars in electronics were transported from Texas to California during 2020 by truck?",
+        "How many tons of plastic were moved from Texas to California by truck during 2021?"]
+}]
