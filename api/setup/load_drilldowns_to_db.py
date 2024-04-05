@@ -3,8 +3,6 @@ import pandas as pd
 import requests
 import urllib.parse
 
-from sentence_transformers import SentenceTransformer
-
 from src.config import POSTGRES_ENGINE, SCHEMA_DRILLDOWNS, DRILLDOWNS_TABLE_NAME
 from src.utils.similarity_search import embedding
 

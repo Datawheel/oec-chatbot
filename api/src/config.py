@@ -41,9 +41,9 @@ OLLAMA_API = getenv("OLLAMA_API")
 TESSERACT_API = getenv("TESSERACT_API")
 
 # Mondrian Connection
-
-MONDRIAN_API = getenv('MONDRIAN_API')
+MONDRIAN_API = getenv("MONDRIAN_API")
 
 # Files Directories
-TABLES_PATH = getenv('TABLES_PATH')
-FEW_SHOT_PATH = getenv('FEW_SHOT_PATH')
+TABLES_PATH = getenv("TABLES_PATH")
+FEW_SHOT_PATH = getenv("FEW_SHOT_PATH")
+DATA_PATH = getenv("DATA_PATH")
