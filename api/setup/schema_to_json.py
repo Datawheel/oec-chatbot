@@ -1,11 +1,13 @@
 import json
+import requests
+
 import xml.etree.ElementTree as ET
 
-from src.config import TESSERACT_API
+from config import DATA_PATH, TESSERACT_API
 
 def parse_xml_to_json(xml_file):
     """
-    Parses XML schema to custom json format.
+    Parses an schema.xml file into a custom tables.json file format.
     """
 
     tree = ET.parse(xml_file)
@@ -76,25 +78,53 @@ def parse_xml_to_json(xml_file):
     return {"tables": tables}
 
 
-def main(input_file, output_file):
-    xml_file = input_file
-    json_output = parse_xml_to_json(xml_file)
-
-    with open(output_file, 'w') as f:
-        json.dump(json_output, f, indent=4)
-
-
-def get_drilldown_members(cube, drilldown_name, measure):
+def add_extra_entries(schema_json):
     """
-    Generar el endpoint de tesseract, hacer el request, generar una lista de los miembros del drilldown (nombre, no el id), y finalmente retornar esa lista.
-    Y despues, esa lista se tiene que agregar al key "members" de cada level en cada jerarquia y en cada dimension.
+    Add extra entries to the downloaded json file required by the api.
     """
-    return
+    def get_member_key(member):
+        """
+        Get's the members key for obtaining the members list.
+        If the tesseract member have the entry LABEL, then use it, if not, use ID
+        """
+        return "Label" if "Label" in member else "ID"
+
+    for cube in schema_json["cubes"]:
+        cube["api"] = "Tesseract"
+        cube["default"] = {}
+        cube["description"] = ""
+        cube["examples"] = []
+        for dimension in cube["dimensions"]:
+            dimension["description"] = ""
+            for hierarchy in dimension["hierarchies"]:
+                for level in hierarchy["levels"]:
+                    members = requests.get(TESSERACT_API + 'members.jsonrecords?cube={}&level={}'.format(cube["name"], level["name"])).json()["data"]
+                    members_list = [member[get_member_key(member)] for member in members]
+                    level["members"] = members_list
+        for measure in cube["measures"]:
+            measure["description"] = ""
+
+    return schema_json
+
+
+def parse_html_cubes_to_json(endpoint, json_file):
+    """
+    Download the latest cubes endpoint from tesseract and saves the request as a json.
+    """
+    r = requests.get(endpoint)
+    schema = add_extra_entries(r.json())
+
+    with open(DATA_PATH + json_file, 'w') as f:
+        json.dump(schema, f, indent=4)
+
+
+def main(json_file):
+    endpoint = TESSERACT_API + "cubes"
+    parse_html_cubes_to_json(endpoint, json_file)
 
 
 if __name__ == "__main__":
     
-    input_file = "schema.xml"
-    output_file = "tables.json"
+    json_file = "schema.json"
     
-    main(input_file, output_file)
+    main(json_file)
