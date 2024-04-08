@@ -86,6 +86,7 @@ ingress:
       proxy_set_header          X-Forwarded-Proto   $scheme;
       proxy_set_header          Upgrade $http_upgrade;
       proxy_set_header          Connection "upgrade";
+      chunked_transfer_encoding on;
   hosts:
     - host: chat-api-dev.datausa.io
       paths:
