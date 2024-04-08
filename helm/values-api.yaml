@@ -71,12 +71,9 @@ ingress:
     nginx.org/proxy-connect-timeout: "240s"
     nginx.org/proxy-read-timeout: "240s"
     nginx.org/proxy-send-timeout: "240s"
-    nginx.org/proxy-buffers: "8 16k"
-    nginx.org/proxy-buffer-size: "16k"
-    nginx.org/proxy-busy-buffers-size: "64k"
-    nginx.org/server-snippets: |
-      # Disable buffering
-      chunked_transfer_encoding on;
+    # nginx.org/proxy-buffers: "8 16k"
+    # nginx.org/proxy-buffer-size: "16k"
+    # nginx.org/proxy-busy-buffers-size: "64k"
     nginx.org/location-snippets: |
       add_header Access-Control-Allow-Origin *;
       
@@ -94,6 +91,7 @@ ingress:
       proxy_http_version 1.1;
       proxy_buffering off;
       proxy_request_buffering off;
+      chunked_transfer_encoding on;
   hosts:
     - host: chat-api-dev.datausa.io
       paths:
