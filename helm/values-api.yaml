@@ -76,7 +76,6 @@ ingress:
     nginx.org/proxy-busy-buffers-size: "64k"
     nginx.org/server-snippets: |
       # Disable buffering
-      proxy_buffering off;
       chunked_transfer_encoding on;
     nginx.org/location-snippets: |
       add_header Access-Control-Allow-Origin *;
@@ -90,6 +89,11 @@ ingress:
       proxy_set_header          X-Forwarded-Proto   $scheme;
       proxy_set_header          Upgrade $http_upgrade;
       proxy_set_header          Connection "upgrade";
+
+      client_max_body_size 0;
+      proxy_http_version 1.1;
+      proxy_buffering off;
+      proxy_request_buffering off;
   hosts:
     - host: chat-api-dev.datausa.io
       paths:
