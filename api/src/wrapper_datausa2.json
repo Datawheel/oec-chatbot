@@ -9,7 +9,7 @@
 },
 {
     "name":"House election",
-    "metrics": ["number of votes"],
+    "metrics": ["number of votes","dogs"],
     "vars": ["political party", "US state", " candidate name"],
     "optional_vars": ["year"],
     "examples":[

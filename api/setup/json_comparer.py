@@ -16,7 +16,7 @@ def get_children(node, parent_id):
     return None
 
 
-def repath_json(goal, alternaive, visited):
+def repath_json(goal, alternative, visited):
     """
     Rebuild the route to any goal leaf in a JSON
     * goal: node_id of goal node
@@ -32,7 +32,7 @@ def repath_json(goal, alternaive, visited):
         parent, position = visited[parent]
 
     #rebuild the path in the alternetive json
-    query = alternaive
+    query = alternative
     while path:
         current = path.pop()
         query = query[current]    
@@ -53,24 +53,26 @@ def json_iterator(json, json_compare):
         ids += 1
         visited[ids] = (parent_id, position)
         children = get_children(node, ids)
+        alt_node = repath_json(ids, json_compare, visited)
+
         if children:
+            #check shape
+            if len(node) != len(alt_node):
+                print(node, alt_node)
             queue += children
         else:
             # is leaf
-
             # follow path to value of alternative json
-            value = repath_json(ids, json_compare, visited)
-        
-            if node != value:
-                print('Old value: {}, New value: {}'.format(node, value))
+            #alt_node = repath_json(ids, json_compare, visited)
+            if node != alt_node:
+                print('Old value: {}, New value: {}'.format(node, alt_node))
         
 
 if __name__ == '__main__':
-
     with open(f'../src/wrapper_datausa.json') as f:
         to_parse = json.load(f)
 
-    with open(f'../src/wrapper_datausa2.json') as f:
+    with open(f'../src/wrapper_datausa2.json') as f: 
         to_compare = json.load(f)
 
     json_iterator(to_parse, to_compare)
