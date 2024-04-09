@@ -33,28 +33,56 @@ model_adv = Ollama(
     run_name= 'advance_mixtral',
 )
 
+#Aux func
+@chain
+def stream_acc(info):
+    """
+    Prevent LLMs to stream (stutter) within a langchain chain. Use after the LLM.
+    """
+    print('In stream agg: {}'.format(info))
+    return info
+
 # LLM Summary chat history 
     # Summary question     
-    # route to question/no question/new question/complement question
+    # route to:
+        # no question
+        # new question
+        # complement question
 
 summary_sys_prompt = """
-You are an expert analyzing chat from questions.
+You are an expert analyzing chat histories.
 """
 
-summary_prompt = """
+summary_prompt = PromptTemplate.from_template(
+"""
 Summarize the following chat history
 
 Output format:
 
 {{
-
+"question": "",
+"type": "" 
 }}
 
-"""
+here is a chat history: {history}
+""")
+
+summary_chain = summary_prompt\
+    .pipe(model.bind(system=summary_sys_prompt, format='json'))\
+        .pipe(stream_acc)\
+            .pipe(JsonOutputParser())
+
+summary_chain_alt = summary_prompt.pipe(model)
+
 @chain
 def route_question(info):
-    pass
-
+    
+    if info['type'] == 'no_question':
+        return PromptTemplate("Answer politely: {}").pipe(model)
+    if info['type'] =='new_question':
+        pass
+    if info['type'] == 'complement':
+        pass
 
 # Use table_table selection
 from ..table_selection.table_selector import get_relevant_tables_from_database
