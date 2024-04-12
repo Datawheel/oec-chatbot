@@ -3,12 +3,11 @@ import pandas as pd
 import requests
 import urllib.parse
 
-from src.config import POSTGRES_ENGINE, SCHEMA_DRILLDOWNS, DRILLDOWNS_TABLE_NAME
-from src.utils.similarity_search import embedding
+from config import POSTGRES_ENGINE, SCHEMA_DRILLDOWNS, DRILLDOWNS_TABLE_NAME, TESSERACT_API, TABLES_PATH
+from utils.similarity_search import embedding
 
 # ENV Variables
 
-TESSERACT_API = 'https://api.datasaudi.datawheel.us/tesseract/'
 table_name = DRILLDOWNS_TABLE_NAME
 schema_name = SCHEMA_DRILLDOWNS
 embedding_size = 384
@@ -43,14 +42,14 @@ def get_api_params(api_url):
     return cube_name, drilldown
 
 
-def load_data_to_db(api_url, measure_name, table_name, schema_name):
+def load_data_to_db(api_url, measure_name, table_name, schema_name, drilldown_name):
     cube_name, drilldown = get_api_params(api_url)
     df = get_data_from_api(api_url=api_url)
 
-    df.rename(columns={f"{drilldown}": "drilldown_name", f"{drilldown} ID": "drilldown_id"}, inplace=True)
+    df.rename(columns={f"{drilldown_name}": "drilldown_name", f"{drilldown} ID": "drilldown_id"}, inplace=True)
 
     df['cube_name'] = f"{cube_name}"
-    df['drilldown'] = f"{drilldown}"
+    df['drilldown'] = f"{drilldown_name}"
     df.drop(f"{measure_name}", axis=1, inplace=True)
 
     if 'drilldown_id' not in df.columns:
@@ -69,16 +68,23 @@ def load_data_to_db(api_url, measure_name, table_name, schema_name):
     return
 
 
-with open('tables.json', 'r') as file:
+with open(TABLES_PATH, 'r') as file:
     cubes_json = json.load(file)
 
 create_table(table_name, schema_name)
 
-for table in cubes_json['tables']:
+for table in cubes_json['cubes']:
     cube_name = table['name']
     measure = table['measures'][0]['name']
     for dimension in table['dimensions']:
         for hierarchy in dimension['hierarchies']:
             for level in hierarchy['levels']:
-                api_url = f"{TESSERACT_API}data.jsonrecords?cube={cube_name}&drilldowns={level}&measures={measure}"
-                load_data_to_db(api_url, measure, table_name, schema_name)
+                if level.get('unique_name') is not None:
+                    drilldown_name = level['name']
+                    api_url = f"{TESSERACT_API}data.jsonrecords?cube={cube_name}&drilldowns={level['unique_name']}&measures={measure}"
+                    print(api_url)
+                    load_data_to_db(api_url, measure, table_name, schema_name, drilldown_name)
+                else: 
+                    drilldown_name = level['name']
+                    api_url = f"{TESSERACT_API}data.jsonrecords?cube={cube_name}&drilldowns={level['name']}&measures={measure}"
+                    load_data_to_db(api_url, measure, table_name, schema_name, drilldown_name)
