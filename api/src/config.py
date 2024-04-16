@@ -47,3 +47,8 @@ MONDRIAN_API = getenv("MONDRIAN_API")
 TABLES_PATH = getenv("TABLES_PATH")
 FEW_SHOT_PATH = getenv("FEW_SHOT_PATH")
 DATA_PATH = getenv("DATA_PATH")
+
+# OEC token and API
+
+OEC_TOKEN = getenv("OEC_TOKEN")
+OEC_API = getenv("OEC_API")
