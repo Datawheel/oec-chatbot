@@ -48,7 +48,20 @@ class ApiBuilder:
     def set_locale(self, locale):
         self.locale = locale
 
-    def build_url(self):
+    def from_json(self, json_data):
+        self.base_url = json_data.get("base_url", self.base_url)
+        self.cube = json_data.get("cube", self.cube)
+        self.cuts = json_data.get("cuts", self.cuts)
+        self.drilldowns = set(json_data.get("drilldowns", self.drilldowns))
+        self.measures = set(json_data.get("measures", self.measures))
+        self.limit = json_data.get("limit", self.limit)
+        self.sort = json_data.get("sort", self.sort)
+        self.locale = json_data.get("locale", self.locale)
+
+    def update_json(self, json_data):
+        self.from_json(json_data)
+
+    def build_api(self):
         query_params = []
 
         if self.cube:
@@ -86,9 +99,6 @@ class ApiBuilder:
 
             except Exception as e:
                 return {}, pd.DataFrame(), f"An error occurred: {str(e)}"
-            
-    def build_json(self):
-        return
 
     def __str__(self):
         return self.build_url()
