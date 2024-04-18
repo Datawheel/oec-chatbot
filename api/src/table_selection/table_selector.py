@@ -33,8 +33,6 @@ def _get_table_selection_message_with_descriptions(table_manager, table_names: L
         """
     )
 
-    print("Table selector prompt:", message)
-
     return message
 
 
