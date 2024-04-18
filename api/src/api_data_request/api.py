@@ -1,5 +1,6 @@
 import requests
 import pandas as pd
+from datetime import datetime
 
 from config import MONDRIAN_API, TESSERACT_API
 from table_selection.table import *
@@ -104,16 +105,82 @@ class ApiBuilder:
         return self.build_url()
 
 
-def cuts_processing(cuts, table, table_manager, api):
+def _cuts_processing(cuts, table, table_manager, api):
     
     for i in range(len(cuts)):
         var = cuts[i].split('=')[0].strip()
         cut = cuts[i].split('=')[1].strip()
 
         var_levels = get_drilldown_levels(table_manager, table.name, var)
+
+        print('var:', var, 'var_levels', var_levels)
         
         if var == "Year" or var == "Month" or var == "Quarter" or var == "Month and Year" or var == "Time":
                 api.add_cut(var, cut)
+        else:
+            drilldown_id, drilldown_name, s = get_similar_content(cut, table.name, var_levels)
+
+            if drilldown_name != var:
+                api.drilldowns.discard(var)
+                api.add_drilldown(drilldown_name)
+
+            api.add_cut(drilldown_name, drilldown_id)
+
+
+def cuts_processing(cuts, table, table_manager, api):
+    year_cuts = []
+    other_cuts = []
+
+    # Separate year cuts from other cuts
+    for cut in cuts:
+        if "Year" in cut:
+            year_cuts.append(cut)
+        else:
+            other_cuts.append(cut)
+
+    # Process year cuts separately
+    year_range = None
+    for cut in year_cuts:
+        if ">=" in cut:
+            start_year = int(cut.split('>=')[1].strip())
+            if year_range:
+                year_range = (max(year_range[0], start_year), year_range[1])
+            else:
+                year_range = (start_year, datetime.now().year)
+        elif "<=" in cut:
+            end_year = int(cut.split('<=')[1].strip())
+            if year_range:
+                year_range = (year_range[0], min(year_range[1], end_year))
+            else:
+                year_range = (1970, end_year)
+        elif "-" in cut:
+            start_year, end_year = map(int, cut.split('=')[1].strip().split('-'))
+            if year_range:
+                year_range = (max(year_range[0], start_year), min(year_range[1], end_year))
+            else:
+                year_range = (start_year, end_year)
+        else:
+            year = int(cut.split('=')[1].strip())
+            if year_range:
+                year_range = (max(year_range[0], year), min(year_range[1], year))
+            else:
+                year_range = (year, year)
+
+    if year_range:
+        for year in range(year_range[0], year_range[1] + 1):
+            api.add_cut("Year", str(year))
+
+    # Process other cuts
+    for cut in other_cuts:
+        var = cut.split('=')[0].strip()
+        cut = cut.split('=')[1].strip()
+
+        var_levels = get_drilldown_levels(table_manager, table.name, var)
+
+        print('var:', var, 'var_levels', var_levels)
+
+        if var == "Year" or var == "Month" or var == "Quarter" or var == "Month and Year" or var == "Time":
+            api.add_cut(var, cut)
         else:
             drilldown_id, drilldown_name, s = get_similar_content(cut, table.name, var_levels)
 
