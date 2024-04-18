@@ -52,4 +52,4 @@ def get_api(query, TABLES_PATH, step=None, **kwargs):
 
 if __name__ == "__main__":
     TABLES_PATH = getenv('TABLES_PATH')
-    get_api('How much coffee was exported in 2020?', TABLES_PATH)
+    get_api('How much coffee was exported in 1999?', TABLES_PATH)
