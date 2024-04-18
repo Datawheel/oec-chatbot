@@ -88,7 +88,7 @@ class ApiBuilder:
             Makes an API request to the constructed URL and returns the JSON data and a DataFrame.
             """
             try:
-                r = requests.get(self.build_url())
+                r = requests.get(self.build_api())
                 r.raise_for_status()
 
                 if 'data' in r.json():
@@ -102,7 +102,7 @@ class ApiBuilder:
                 return {}, pd.DataFrame(), f"An error occurred: {str(e)}"
 
     def __str__(self):
-        return self.build_url()
+        return self.build_api()
 
 
 def _cuts_processing(cuts, table, table_manager, api):
@@ -202,6 +202,8 @@ def init_api(table, table_manager, drilldowns, measures, cuts, limit = ""):
         if drilldown in valid_drilldowns:
             pass
         else: drilldowns.remove(drilldown)
+
+    print('drilldowns:', drilldowns)
 
     if base == "Mondrian": base = MONDRIAN_API
     else: base = TESSERACT_API + "data.jsonrecords?"
