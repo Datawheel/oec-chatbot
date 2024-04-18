@@ -103,14 +103,14 @@ class Table:
                 for hierarchy in dimension['hierarchies']:
                     if hierarchy['name'] == default_hierarchy_name:
                         if include_levels:
-                            levels = [level['name'] for level in hierarchy['levels']]
+                            levels = [level['unique_name'] if level.get('unique_name') else level['name'] for level in hierarchy['levels']]
                             dimensions_str_list.append(f"{dimension['name']} ({dimension.get('description', 'No description')}) [Levels: {', '.join(levels)}];\n")
                         else: 
                             dimensions_str_list.append(f"{dimension['name']} ({dimension.get('description', 'No description')});\n")
                         break
             else:
                 if include_levels: 
-                    levels = [level['name'] for level in dimension['hierarchies'][0]['levels']]
+                    levels = [level['unique_name'] if level.get('unique_name') else level['name'] for level in dimension['hierarchies'][0]['levels']]
                     dimensions_str_list.append(f"{dimension['name']} ({dimension.get('description', 'No description')}) [Levels: {', '.join(levels)}];\n")
                 else: 
                     dimensions_str_list.append(f"{dimension['name']} ({dimension.get('description', 'No description')});\n")
