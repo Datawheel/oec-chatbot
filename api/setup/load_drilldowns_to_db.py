@@ -3,82 +3,62 @@ import pandas as pd
 import requests
 import urllib.parse
 
-from src.config import POSTGRES_ENGINE, SCHEMA_DRILLDOWNS, DRILLDOWNS_TABLE_NAME
-from src.utils.similarity_search import embedding
+from config import POSTGRES_ENGINE, SCHEMA_DRILLDOWNS, DRILLDOWNS_TABLE_NAME, TESSERACT_API, TABLES_PATH
+from utils.similarity_search import embedding
 
-# ENV Variables
-
-TESSERACT_API = 'https://api.datasaudi.datawheel.us/tesseract/'
-table_name = DRILLDOWNS_TABLE_NAME
-schema_name = SCHEMA_DRILLDOWNS
-embedding_size = 384
-
-
-def create_table(table_name, schema_name, embedding_size = 384):
+def create_table(table_name=DRILLDOWNS_TABLE_NAME, schema_name=SCHEMA_DRILLDOWNS, embedding_size=384):
     POSTGRES_ENGINE.execute(f"CREATE SCHEMA IF NOT EXISTS {schema_name}")
     POSTGRES_ENGINE.execute(f"CREATE TABLE IF NOT EXISTS {schema_name}.{table_name} (drilldown_id text, drilldown_name text, cube_name text, drilldown text, embedding vector({embedding_size}))")
-    return
-
 
 def get_data_from_api(api_url):
     try:
         r = requests.get(api_url)
         df = pd.DataFrame.from_dict(r.json()['data'])
-    except:
-        raise ValueError('Invalid API url:', api_url)
-
+    except Exception as e:
+        raise ValueError(f"Error fetching data from API: {e}")
     return df
 
+def prepare_dataframe(df, measure_name, cube_name, drilldown_name, drilldown_unique_name=None):
+    if f"{drilldown_name} ID" not in df.columns:
+        df[f"{drilldown_name} ID"] = df[drilldown_name]
 
-def get_api_params(api_url):
-    parsed_url = urllib.parse.urlparse(api_url)
-    query_params = urllib.parse.parse_qs(parsed_url.query)
-
-    cube = query_params.get('cube', [''])[0]
-    drilldown = query_params.get('drilldowns', [''])[0]
-
-    cube_name = cube.replace('+', ' ')
-    drilldown = drilldown.replace('+', ' ')
-
-    return cube_name, drilldown
-
-
-def load_data_to_db(api_url, measure_name, table_name, schema_name):
-    cube_name, drilldown = get_api_params(api_url)
-    df = get_data_from_api(api_url=api_url)
-
-    df.rename(columns={f"{drilldown}": "drilldown_name", f"{drilldown} ID": "drilldown_id"}, inplace=True)
-
-    df['cube_name'] = f"{cube_name}"
-    df['drilldown'] = f"{drilldown}"
-    df.drop(f"{measure_name}", axis=1, inplace=True)
-
-    if 'drilldown_id' not in df.columns:
-        df['drilldown_id'] = df['drilldown_name']
-
-    df.replace('', pd.NA, inplace=True)
+    df.rename(columns={f"{drilldown_name}": "drilldown_name", f"{drilldown_name} ID": "drilldown_id"}, inplace=True)
+    df['cube_name'] = cube_name
+    df['drilldown'] = drilldown_unique_name if drilldown_unique_name else drilldown_name
+    df.drop(measure_name, axis=1, inplace=True)
+    
+    df['drilldown_id'] = df['drilldown_id'].fillna(df['drilldown_name'])
     df.dropna(subset=['drilldown_name', 'drilldown_id'], how='all', inplace=True)
-
     df = df[['drilldown_id', 'drilldown_name', 'cube_name', 'drilldown']]
     df['drilldown_name'] = df['drilldown_name'].astype(str)
     print(df.head())
+    return df
 
+def load_data_to_db(api_url, measure_name, cube_name, drilldown_name, drilldown_unique_name=None, schema_name=SCHEMA_DRILLDOWNS, db_table_name=DRILLDOWNS_TABLE_NAME):
+    df = get_data_from_api(api_url)
+    df = prepare_dataframe(df, measure_name, cube_name, drilldown_name, drilldown_unique_name)
     df_embeddings = embedding(df, 'drilldown_name')
-    df_embeddings.to_sql(table_name, con=POSTGRES_ENGINE, if_exists='append', index=False, schema=schema_name)
+    df_embeddings.to_sql(db_table_name, con=POSTGRES_ENGINE, if_exists='append', index=False, schema=schema_name)
 
-    return
+def main(include_cubes=[]):
+    with open(TABLES_PATH, 'r') as file:
+        cubes_json = json.load(file)
 
+    create_table()
 
-with open('tables.json', 'r') as file:
-    cubes_json = json.load(file)
+    for table in cubes_json['cubes']:
+        cube_name = table['name']
+        if include_cubes and cube_name not in include_cubes:
+            continue
+        measure = table['measures'][0]['name']
+        for dimension in table['dimensions']:
+            for hierarchy in dimension['hierarchies']:
+                for level in hierarchy['levels']:
+                    drilldown_name = level['name']
+                    drilldown_unique_name = level.get('unique_name')
+                    api_url = f"{TESSERACT_API}data.jsonrecords?cube={cube_name}&drilldowns={level['unique_name'] if drilldown_unique_name is not None else drilldown_name}&measures={measure}"
+                    load_data_to_db(api_url, measure, cube_name, drilldown_name, drilldown_unique_name)
 
-create_table(table_name, schema_name)
-
-for table in cubes_json['tables']:
-    cube_name = table['name']
-    measure = table['measures'][0]['name']
-    for dimension in table['dimensions']:
-        for hierarchy in dimension['hierarchies']:
-            for level in hierarchy['levels']:
-                api_url = f"{TESSERACT_API}data.jsonrecords?cube={cube_name}&drilldowns={level}&measures={measure}"
-                load_data_to_db(api_url, measure, table_name, schema_name)
+if __name__ == "__main__":
+    include_cubes = ['gini_inequality_income'] # if set to False it will upload the drilldowns of all cubes in the schema.json
+    main(include_cubes)

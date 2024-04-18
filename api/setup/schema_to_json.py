@@ -1,9 +1,11 @@
 import json
 import requests
+import time
 
 import xml.etree.ElementTree as ET
 
-from config import DATA_PATH, TESSERACT_API
+from config import DATA_PATH, TESSERACT_API, OEC_TOKEN
+
 
 def parse_xml_to_json(xml_file):
     """
@@ -78,6 +80,21 @@ def parse_xml_to_json(xml_file):
     return {"tables": tables}
 
 
+def get_members(cube_name, level_name):
+    retries = 0
+    while retries < 5:
+        try: 
+            response = requests.get(TESSERACT_API + 'members.jsonrecords?cube={}&level={}'.format(cube_name, level_name) + '&token=' + OEC_TOKEN)
+            if response.status_code == 200:
+                return response.json()['data']  # Return the data if successful
+        except Exception as e:
+            print(f"Error occurred: {e}")
+        retries += 1
+        time.sleep(1)
+    print("Max retries exceeded. Unable to get members data from the API.")
+    return None  # Return None if failed after retries
+
+
 def add_extra_entries(schema_json):
     """
     Add extra entries to the downloaded json file required by the api.
@@ -90,6 +107,7 @@ def add_extra_entries(schema_json):
         return "Label" if "Label" in member else "ID"
 
     for cube in schema_json["cubes"]:
+        print('cube:', cube['name'])
         cube["api"] = "Tesseract"
         cube["default"] = {}
         cube["description"] = ""
@@ -98,7 +116,7 @@ def add_extra_entries(schema_json):
             dimension["description"] = ""
             for hierarchy in dimension["hierarchies"]:
                 for level in hierarchy["levels"]:
-                    members = requests.get(TESSERACT_API + 'members.jsonrecords?cube={}&level={}'.format(cube["name"], level["name"])).json()["data"]
+                    members = get_members(cube['name'], level['name'])
                     members_list = [member[get_member_key(member)] for member in members]
                     level["members"] = members_list
         for measure in cube["measures"]:

@@ -1,5 +1,6 @@
 import requests
 import pandas as pd
+from datetime import datetime
 
 from config import MONDRIAN_API, TESSERACT_API
 from table_selection.table import *
@@ -48,7 +49,20 @@ class ApiBuilder:
     def set_locale(self, locale):
         self.locale = locale
 
-    def build_url(self):
+    def from_json(self, json_data):
+        self.base_url = json_data.get("base_url", self.base_url)
+        self.cube = json_data.get("cube", self.cube)
+        self.cuts = json_data.get("cuts", self.cuts)
+        self.drilldowns = set(json_data.get("drilldowns", self.drilldowns))
+        self.measures = set(json_data.get("measures", self.measures))
+        self.limit = json_data.get("limit", self.limit)
+        self.sort = json_data.get("sort", self.sort)
+        self.locale = json_data.get("locale", self.locale)
+
+    def update_json(self, json_data):
+        self.from_json(json_data)
+
+    def build_api(self):
         query_params = []
 
         if self.cube:
@@ -74,7 +88,7 @@ class ApiBuilder:
             Makes an API request to the constructed URL and returns the JSON data and a DataFrame.
             """
             try:
-                r = requests.get(self.build_url())
+                r = requests.get(self.build_api())
                 r.raise_for_status()
 
                 if 'data' in r.json():
@@ -86,21 +100,20 @@ class ApiBuilder:
 
             except Exception as e:
                 return {}, pd.DataFrame(), f"An error occurred: {str(e)}"
-            
-    def build_json(self):
-        return
 
     def __str__(self):
-        return self.build_url()
+        return self.build_api()
 
 
-def cuts_processing(cuts, table, table_manager, api):
+def _cuts_processing(cuts, table, table_manager, api):
     
     for i in range(len(cuts)):
         var = cuts[i].split('=')[0].strip()
         cut = cuts[i].split('=')[1].strip()
 
         var_levels = get_drilldown_levels(table_manager, table.name, var)
+
+        print('var:', var, 'var_levels', var_levels)
         
         if var == "Year" or var == "Month" or var == "Quarter" or var == "Month and Year" or var == "Time":
                 api.add_cut(var, cut)
@@ -114,11 +127,83 @@ def cuts_processing(cuts, table, table_manager, api):
             api.add_cut(drilldown_name, drilldown_id)
 
 
-def api_build(table, table_manager, drilldowns, measures, cuts, limit = ""):
+def cuts_processing(cuts, table, table_manager, api):
+    year_cuts = []
+    other_cuts = []
+
+    # Separate year cuts from other cuts
+    for cut in cuts:
+        if "Year" in cut:
+            year_cuts.append(cut)
+        else:
+            other_cuts.append(cut)
+
+    # Process year cuts separately
+    year_range = None
+    for cut in year_cuts:
+        if ">=" in cut:
+            start_year = int(cut.split('>=')[1].strip())
+            if year_range:
+                year_range = (max(year_range[0], start_year), year_range[1])
+            else:
+                year_range = (start_year, datetime.now().year)
+        elif "<=" in cut:
+            end_year = int(cut.split('<=')[1].strip())
+            if year_range:
+                year_range = (year_range[0], min(year_range[1], end_year))
+            else:
+                year_range = (1970, end_year)
+        elif "-" in cut:
+            start_year, end_year = map(int, cut.split('=')[1].strip().split('-'))
+            if year_range:
+                year_range = (max(year_range[0], start_year), min(year_range[1], end_year))
+            else:
+                year_range = (start_year, end_year)
+        else:
+            year = int(cut.split('=')[1].strip())
+            if year_range:
+                year_range = (max(year_range[0], year), min(year_range[1], year))
+            else:
+                year_range = (year, year)
+
+    if year_range:
+        for year in range(year_range[0], year_range[1] + 1):
+            api.add_cut("Year", str(year))
+
+    # Process other cuts
+    for cut in other_cuts:
+        var = cut.split('=')[0].strip()
+        cut = cut.split('=')[1].strip()
+
+        var_levels = get_drilldown_levels(table_manager, table.name, var)
+
+        print('var:', var, 'var_levels', var_levels)
+
+        if var == "Year" or var == "Month" or var == "Quarter" or var == "Month and Year" or var == "Time":
+            api.add_cut(var, cut)
+        else:
+            drilldown_id, drilldown_name, s = get_similar_content(cut, table.name, var_levels)
+
+            if drilldown_name != var:
+                api.drilldowns.discard(var)
+                api.add_drilldown(drilldown_name)
+
+            api.add_cut(drilldown_name, drilldown_id)
+
+
+def init_api(table, table_manager, drilldowns, measures, cuts, limit = ""):
     """
     Receives the drilldowns, measures and filters obtained from the LLM and adds them as attributes to the api instance.
     """
     base = table.api
+    valid_drilldowns = table.get_dimension_levels()
+
+    for drilldown in drilldowns:
+        if drilldown in valid_drilldowns:
+            pass
+        else: drilldowns.remove(drilldown)
+
+    print('drilldowns:', drilldowns)
 
     if base == "Mondrian": base = MONDRIAN_API
     else: base = TESSERACT_API + "data.jsonrecords?"
