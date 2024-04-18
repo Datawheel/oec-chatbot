@@ -15,24 +15,26 @@ def _get_table_selection_message_with_descriptions(table_manager, table_names: L
         f"""
         You are an expert data analyst. 
         You are given a question from a user, and a list of tables you are able to query. 
-        Select the most relevant table that could contain the data to answer the user's question:\n
+        Select the most relevant table that could contain the data to answer the user's question:
 
         ---------------------\n
         {table_manager.get_table_schemas(table_names)}
         ---------------------\n
 
-        In your answer, provide the following information:\n
-        - <one to two sentence comment explaining why the chosen table is relevant goes here, double checking it exists in the list provided before>\n
-        - The markdown JSON with your answer in a field named \"table\" which contains the name of the selected table, formatted like this:\n
+        In your answer, provide the following information:
+        - <one to two sentence comment explaining why the chosen table is relevant goes here, double checking it exists in the list provided before>
+        - The markdown JSON with your answer in a field named \"table\" which contains the name of the selected table, formatted like this:
         ```\n
         <json of the tables>\n
         ```\n
 
-        Write your answer in markdown format.\n
-
+        Write your answer in markdown format.
         Provide only the list of related tables and nothing else after.
         """
     )
+
+    print("Table selector prompt:", message)
+
     return message
 
 
