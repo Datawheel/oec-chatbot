@@ -17,7 +17,7 @@ def get_api(query, TABLES_PATH, step=None, **kwargs):
         table = kwargs['table']
         manager = kwargs['manager']
         variables, measures, cuts = get_api_params_from_lm(query, table, model = 'gpt-4')
-        api = api_build(table, manager, variables, measures, cuts)
+        api = init_api(table, manager, variables, measures, cuts)
         api_url = api.build_api()
         print("API:", api_url)
         return get_api(query, TABLES_PATH, step='fetch_data', **{**kwargs, **{'api': api, "api_url": api_url}})
@@ -52,4 +52,4 @@ def get_api(query, TABLES_PATH, step=None, **kwargs):
 
 if __name__ == "__main__":
     TABLES_PATH = getenv('TABLES_PATH')
-    get_api('How much coffee did Colombia export to Chile between 2010 and 2020?', TABLES_PATH)
+    get_api('How much coffee was exported in 2020?', TABLES_PATH)
