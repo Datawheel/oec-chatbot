@@ -15,7 +15,7 @@ def get_similar_content(text, cube_name, drilldown_names, threshold=0, content_l
 
     drilldown_names_array = "{" + ",".join(map(lambda x: f'"{x}"', drilldown_names)) + "}"
  
-    query = """select product_id, drilldown_name, similarity from "match_drilldowns_aux"('{}','{}' ,'{}','{}','{}'); """.format(embedding[0].tolist().__str__(), str(threshold), str(content_limit), str(cube_name), drilldown_names_array)
+    query = """select drilldown_id, drilldown_name, similarity from "match_drilldowns"('{}','{}' ,'{}','{}','{}'); """.format(embedding[0].tolist().__str__(), str(threshold), str(content_limit), str(cube_name), drilldown_names_array)
     
     if verbose: print(query)
 
@@ -23,7 +23,7 @@ def get_similar_content(text, cube_name, drilldown_names, threshold=0, content_l
 
     if verbose: print(df)
 
-    drilldown_id = df.product_id[0]
+    drilldown_id = df.drilldown_id[0]
     drilldown_name = df.drilldown_name[0]
     similarity = df.similarity[0]
 
