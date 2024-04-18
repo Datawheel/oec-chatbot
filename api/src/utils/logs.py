@@ -5,7 +5,7 @@ import time
 from datetime import datetime
 from sqlalchemy import text
 
-from config import POSTGRES_ENGINE
+from config import POSTGRES_ENGINE, LOGS_TABLE_NAME, SCHEMA_LOGS
 
 def generate_custom_id():
     timestamp = str(int(time.time()))
@@ -31,7 +31,7 @@ def log_apicall(query, api_url, response, drilldowns, measures, cuts, cube, dura
     }
 
     insert_query = text("""
-        INSERT INTO datausa_logs.logs (query_id, question, api_url, response, created_on, drilldowns, measures, cuts, cube, duration)
+        INSERT INTO chat.logs (query_id, question, api_url, response, created_on, drilldowns, measures, cuts, cube, duration)
         VALUES (:query_id, :question, :api_url, :response, :created_on, :drilldowns, :measures, :cuts, :cube, :duration)
     """)
 
