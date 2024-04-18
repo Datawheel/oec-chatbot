@@ -191,11 +191,17 @@ def cuts_processing(cuts, table, table_manager, api):
             api.add_cut(drilldown_name, drilldown_id)
 
 
-def api_build(table, table_manager, drilldowns, measures, cuts, limit = ""):
+def init_api(table, table_manager, drilldowns, measures, cuts, limit = ""):
     """
     Receives the drilldowns, measures and filters obtained from the LLM and adds them as attributes to the api instance.
     """
     base = table.api
+    valid_drilldowns = table.get_dimension_levels()
+
+    for drilldown in drilldowns:
+        if drilldown in valid_drilldowns:
+            pass
+        else: drilldowns.remove(drilldown)
 
     if base == "Mondrian": base = MONDRIAN_API
     else: base = TESSERACT_API + "data.jsonrecords?"
