@@ -23,25 +23,29 @@ def get_api_components_messages(table, model_author, natural_language_query = ""
 
         message = f"""
                 You are an expert data scientist working with data organized in a multidimensional format, such as in OLAP cubes.
-                You are given the following JSON containing the dimensions and measures of a cube that contains data to answer a user's question. 
+                You are given the following JSONs containing the dimensions and measures of a cube that contains data to answer a user's question. 
                 ---------------------\n
-                {table.prompt_columns_description()}
+                Dimensions:
+                {table.get_dimension_hierarchies()}
+
+                Measures:
+                {table.get_measures_description()}
                 ---------------------\n
-                Your goal is to identify the variables, measures and filters needed in order to retrieve the data from the cube through an API.
-                The variables available correspond to the values in the 'levels' key.
+                Your goal is to identify the drilldowns, measures and filters needed in order to retrieve the data from the cube through an API.
+                The drilldowns can be done on any level of any dimension.
                 You should respond in JSON format with your answer separated into the following fields:\n
 
-                    \"variables\" which is a list of strings that contain the variables.\n
+                    \"variables\" which is a list of strings that contain the levels to do the drilldowns.\n
                     \"measures\" which is a list of strings that contain the relevant measures.\n
-                    \"filters\" which is a list of strings that contain the filters in the form of 'variable = filtered_value'.\n
+                    \"filters\" which is a list of strings that contain the filters in the form of 'level = filtered_value'.\n
 
                 in your answer, provide the markdown formatted like this:\n
                 ```
                 {response_part}
                 ```
-                Provide only the list of variables, measures and filters, and nothing else before or after.\n
+                Provide only the list of drilldowns, measures and filters, and nothing else before or after.\n
                 A few rules to take into consideration:\n
-                - You cannot apply filters to different variables with the same parent dimension. Choose only one (the most relevant or most granular)\n
+                - You cannot apply filters to different levels with the same parent dimension. Choose only one (the most relevant or most granular)\n
                 - For cases where the query requires to filter by a certain range of years or months, please specify all of them separately.
                 """
         
@@ -84,7 +88,7 @@ def get_model_author(model):
     return author
 
 
-def get_api_params_from_lm(natural_language_query, table = None, model="gpt-4", top_matches=False):
+def get_api_params_from_lm(natural_language_query, table = None, model="gpt-4-turbo", top_matches=False):
     """
     Identify API parameters to retrieve the data using OpenAI models or Llama.
     """
