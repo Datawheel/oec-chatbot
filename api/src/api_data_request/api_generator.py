@@ -1,9 +1,9 @@
 import json
-import openai
+from openai import OpenAI, APIConnectionError
 import requests
 import time
 
-from config import OLLAMA_API
+from config import OLLAMA_API, OPENAI_KEY
 from table_selection.table import *
 from utils.preprocessors.text import *
 from utils.similarity_search import *
@@ -15,7 +15,8 @@ def get_api_components_messages(table, model_author, natural_language_query = ""
         {
             "drilldowns": "",
             "measures": "",
-            "filters": ""
+            "filters": "",
+            "explanation": ""
         }
         """
 
@@ -32,11 +33,12 @@ def get_api_components_messages(table, model_author, natural_language_query = ""
 
             Your response should be in JSON format with:
 
-            - "drilldowns": List of specific levels within each dimension for drilldowns (only the level names).
+            - "drilldowns": List of specific levels within each dimension for drilldowns (ONLY the level names).
             - "measures": List of relevant measures.
             - "filters": List of filters in 'level = filtered_value' format.
+            - "explanation": one to two sentence comment explaining why the chosen drilldowns and cuts are relevant goes here, double checking that the levels exist in the JSON given above.
 
-            Example response:
+            Response format:
 
             ```
             {response_part}
@@ -46,6 +48,8 @@ def get_api_components_messages(table, model_author, natural_language_query = ""
 
             - Apply filters only to the most relevant or granular level within the same parent dimension.
             - For year or month ranges, specify each separately.
+            - Double check that the drilldowns and cuts contain ONLY the level names, and not the dimension.
+            - For filters, just write the general name, as it will be matched to its ID later on.
         """
         
     else: 
@@ -86,7 +90,7 @@ def get_model_author(model):
     return author
 
 
-def get_api_params_from_lm(natural_language_query, table = None, model="gpt-4-turbo", top_matches=False):
+def get_api_params_from_lm(natural_language_query, table = None, model="gpt-4", top_matches=False):
     """
     Identify API parameters to retrieve the data using OpenAI models or Llama.
     """
@@ -108,35 +112,33 @@ def get_api_params_from_lm(natural_language_query, table = None, model="gpt-4-tu
             "role": "user",
             "content": natural_language_query
         })
+
+        client = OpenAI(api_key=OPENAI_KEY)
         
         while attempts < max_attempts:
             try:
-                response = openai.ChatCompletion.create(
+                response = client.chat.completions.create(
                     model = model,
                     messages = messages,
-                    temperature = 0
+                    temperature = 0,
+                  #  response_format={"type": "json_object"},
                     )
-            except openai.error.Timeout as e:
-                print(f"OpenAI API request timed out (attempt {attempts + 1}): {e}")
-            except openai.error.APIError as e:
-                print(f"OpenAI API returned an API Error (attempt {attempts + 1}): {e}")
-            except openai.error.APIConnectionError as e:
+            except APIConnectionError as e:
                 print(f"OpenAI API request failed to connect: {e}")
-            except openai.error.ServiceUnavailableError as e:
-                print(f"OpenAI API service unavailable: {e}")
             else:
                 break
             attempts += 1
             time.sleep(1)
 
-        output_text = response['choices'][0]['message']['content']
+        output_text = response.choices[0].message.content
         print("\nChatGPT response:", output_text)
         params = extract_text_from_markdown_triple_backticks(output_text)
-        print("\nParameters:", params)
 
         drilldowns = json.loads(params).get("drilldowns")
         measures = json.loads(params).get("measures")
         cuts = json.loads(params).get("filters")
+
+    # alternative prompt
 
     elif model_author == "llama":
         url = "{}generate".format(OLLAMA_API)
@@ -160,4 +162,4 @@ def get_api_params_from_lm(natural_language_query, table = None, model="gpt-4-tu
         # logic: ask for model on the list, or use a default one
         status = "bad status"
 
-    return drilldowns, measures, cuts
+    return drilldowns, measures, cuts # json
