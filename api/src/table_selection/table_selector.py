@@ -2,15 +2,25 @@ import json
 import openai
 import time
 
+from openai import OpenAI, APIConnectionError
 from typing import List
 from sentence_transformers import SentenceTransformer
 
+from config import OPENAI_KEY
 from table_selection.table import *
 from utils.similarity_search import get_similar_tables
 from utils.few_shot_examples import get_few_shot_example_messages
 from utils.preprocessors.text import extract_text_from_markdown_triple_backticks
 
 def _get_table_selection_message_with_descriptions(table_manager, table_names: List[str] = None):
+
+    response_part = """
+        {
+            "explanation": "",
+            "table": ""
+        }
+        """
+
     message = (
         f"""
         You are an expert data analyst. 
@@ -21,15 +31,17 @@ def _get_table_selection_message_with_descriptions(table_manager, table_names: L
         {table_manager.get_table_schemas(table_names)}
         ---------------------\n
 
-        In your answer, provide the following information:
-        - <one to two sentence comment explaining why the chosen table is relevant goes here, double checking it exists in the list provided before>
-        - The markdown JSON with your answer in a field named \"table\" which contains the name of the selected table, formatted like this:
-        ```\n
-        <json of the tables>\n
-        ```\n
+        Your response should be in JSON format with:
 
-        Write your answer in markdown format.
-        Provide only the name of the table and nothing else after.
+            - "explanation": one to two sentence comment explaining why the chosen table is relevant goes here, double checking it exists in the list provided before.
+            - "table": The name of the selected table, the most relevant one to answer the question.
+
+        Response format:
+
+        ```
+        {response_part}
+        ```
+
         """
     )
 
@@ -75,32 +87,27 @@ def get_relevant_tables_from_lm(natural_language_query, table_manager, table_lis
         "role": "user",
         "content": natural_language_query
     })
+
+    client = OpenAI(api_key=OPENAI_KEY)
     
     while attempts < max_attempts:
         try:
-            response = openai.ChatCompletion.create(
+            response = client.chat.completions.create(
                 model=model,
                 messages=messages,
-                temperature=0
+                temperature=0,
+               # response_format={"type": "json_object"},
                 )
-        except openai.error.Timeout as e:
-            print(f"OpenAI API request timed out (attempt {attempts + 1}): {e}")
-        except openai.error.APIError as e:
-            print(f"OpenAI API returned an API Error (attempt {attempts + 1}): {e}")
-        except openai.error.APIConnectionError as e:
+        except APIConnectionError as e:
             print(f"OpenAI API request failed to connect: {e}")
-        except openai.error.ServiceUnavailableError as e:
-            print(f"OpenAI API service unavailable: {e}")
         else:
             break
         attempts += 1
         time.sleep(1)
 
-    output_text = response['choices'][0]['message']['content']
+    output_text = response.choices[0].message.content
     print("\nChatGPT response:", output_text)
     tables_json_str = extract_text_from_markdown_triple_backticks(output_text)
-    print("\nTables:", tables_json_str)
-
     table_list = json.loads(tables_json_str).get("table")
 
     return table_list
