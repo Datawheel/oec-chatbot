@@ -13,7 +13,7 @@ def get_api_components_messages(table, model_author, natural_language_query = ""
 
     response_part = """
         {
-            "variables": "",
+            "drilldowns": "",
             "measures": "",
             "filters": ""
         }
@@ -22,32 +22,31 @@ def get_api_components_messages(table, model_author, natural_language_query = ""
     if(model_author == "openai"):
 
         message = f"""
-                You are an expert data scientist working with data organized in a multidimensional format, such as in OLAP cubes.
-                You are given the following JSONs containing the dimensions and measures of a cube that contains data to answer a user's question. 
-                ---------------------\n
-                Dimensions:
-                {table.get_dimension_hierarchies()}
+            You're a data scientist working with OLAP cubes. Given dimensions and measures in JSON format, identify the drilldowns, measures, and filters for querying the cube via API.
 
-                Measures:
-                {table.get_measures_description()}
-                ---------------------\n
-                Your goal is to identify the drilldowns, measures and filters needed in order to retrieve the data from the cube through an API.
-                The drilldowns can be done on any level of any dimension.
-                You should respond in JSON format with your answer separated into the following fields:\n
+            **Dimensions:**
+            {table.prompt_get_dimensions()}
 
-                    \"variables\" which is a list of strings that contain the levels to do the drilldowns.\n
-                    \"measures\" which is a list of strings that contain the relevant measures.\n
-                    \"filters\" which is a list of strings that contain the filters in the form of 'level = filtered_value'.\n
+            **Measures:**
+            {table.get_measures_description()}
 
-                in your answer, provide the markdown formatted like this:\n
-                ```
-                {response_part}
-                ```
-                Provide only the list of drilldowns, measures and filters, and nothing else before or after.\n
-                A few rules to take into consideration:\n
-                - You cannot apply filters to different levels with the same parent dimension. Choose only one (the most relevant or most granular)\n
-                - For cases where the query requires to filter by a certain range of years or months, please specify all of them separately.
-                """
+            Your response should be in JSON format with:
+
+            - "drilldowns": List of specific levels within each dimension for drilldowns (only the level names).
+            - "measures": List of relevant measures.
+            - "filters": List of filters in 'level = filtered_value' format.
+
+            Example response:
+
+            ```
+            {response_part}
+            ```
+
+            Provide only the required lists, and adhere to these rules:
+
+            - Apply filters only to the most relevant or granular level within the same parent dimension.
+            - For year or month ranges, specify each separately.
+        """
         
     else: 
         
@@ -64,7 +63,6 @@ def get_api_components_messages(table, model_author, natural_language_query = ""
                 This is my question: 
                 {natural_language_query}
                 """
-
     return message
 
 
@@ -136,7 +134,7 @@ def get_api_params_from_lm(natural_language_query, table = None, model="gpt-4-tu
         params = extract_text_from_markdown_triple_backticks(output_text)
         print("\nParameters:", params)
 
-        variables = json.loads(params).get("variables")
+        drilldowns = json.loads(params).get("drilldowns")
         measures = json.loads(params).get("measures")
         cuts = json.loads(params).get("filters")
 
@@ -154,7 +152,7 @@ def get_api_params_from_lm(natural_language_query, table = None, model="gpt-4-tu
         print(response)
         params = extract_text_from_markdown_triple_backticks(response)
 
-        variables = json.loads(params).get("variables")
+        drilldowns = json.loads(params).get("drilldowns")
         measures = json.loads(params).get("measures")
         cuts = json.loads(params).get("filters")
 
@@ -162,4 +160,4 @@ def get_api_params_from_lm(natural_language_query, table = None, model="gpt-4-tu
         # logic: ask for model on the list, or use a default one
         status = "bad status"
 
-    return variables, measures, cuts
+    return drilldowns, measures, cuts
