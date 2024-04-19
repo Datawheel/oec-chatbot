@@ -29,7 +29,7 @@ def _get_table_selection_message_with_descriptions(table_manager, table_names: L
         ```\n
 
         Write your answer in markdown format.
-        Provide only the list of related tables and nothing else after.
+        Provide only the name of the table and nothing else after.
         """
     )
 

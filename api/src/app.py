@@ -26,13 +26,14 @@ def get_api(query, TABLES_PATH, step=None, **kwargs):
         api = kwargs['api']
         api_url = kwargs['api_url']
         data, df, response = api.fetch_data()
-        return get_api(query, TABLES_PATH, step='agent_answer', **{**kwargs, **{'df': df, 'response': response}})
+        return get_api(query, TABLES_PATH, step='agent_answer', **{**kwargs, **{'df': df, 'response': response, 'data': data}})
 
     elif step == 'agent_answer':
         api = kwargs['api']
         table = kwargs['table']
         response = kwargs['response']
         df = kwargs['df']
+        data = kwargs['data']
         variables = api.drilldowns
         measures = api.measures
         cuts = api.cuts
@@ -44,7 +45,7 @@ def get_api(query, TABLES_PATH, step=None, **kwargs):
         
         else:
             response = agent_answer(df, query)
-            log_apicall(query, api_url, response, variables, measures, cuts, table, duration="")
+            #log_apicall(query, api_url, response, variables, measures, cuts, table, duration="")
             return api_url, data, response
         
     else: return get_api(query, TABLES_PATH, step='request_tables_to_lm_from_db')
@@ -52,4 +53,4 @@ def get_api(query, TABLES_PATH, step=None, **kwargs):
 
 if __name__ == "__main__":
     TABLES_PATH = getenv('TABLES_PATH')
-    get_api('How much coffee was exported in 1999?', TABLES_PATH)
+    get_api('What are the top five exporting countries for cars in terms of value?', TABLES_PATH)

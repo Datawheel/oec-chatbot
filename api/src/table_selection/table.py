@@ -93,7 +93,32 @@ class Table:
                 "default_hierarchy": dimension['default_hierarchy'],
                 "description": dimension['description']
             } for dimension in self.schema['dimensions']]
-    
+        
+    def prompt_get_dimensions(self, dimension_name=None) -> List[Dict[str, Any]]:
+        """
+        Returns the levels of each dimension of the table.
+        If passed a dimension name, it will return only the levels of the specified dimension.
+        """
+        dimensions = self.schema['dimensions']
+        
+        def get_level_name(level):
+            return level.get('unique_name') or level['name']
+        
+        if dimension_name:
+            dimension = next((dim for dim in dimensions if dim['name'] == dimension_name), None)
+            if dimension:
+                levels = [get_level_name(level) for hierarchy in dimension['hierarchies'] for level in hierarchy['levels']]
+                return [{
+                    "name": dimension['name'],
+                    "levels": levels
+                }]
+            else:
+                return []
+        else:
+            return [{
+                "name": dimension['name'],
+                "levels": [get_level_name(level) for hierarchy in dimension['hierarchies'] for level in hierarchy['levels']]
+            } for dimension in dimensions]
 
     def prompt_columns_description(self, include_levels = False) -> str:
         dimensions_str_list = []
@@ -137,29 +162,33 @@ class Table:
                         return level['members']
         return []
    
-    def get_dimension_levels(self, dimension_name=None) -> List[str]:
+    def get_dimension_levels(self, name=None) -> List[str]:
         """
-        Returns the names of levels of each dimensions
+        Returns the names of levels of a dimension based on the dimension name or level name
         """
-        if dimension_name:
+        if name:
             for dimension in self.schema['dimensions']:
-                if dimension['name'] == dimension_name:
-                    levels = []
-                    for hierarchy in dimension['hierarchies']:
-                        for level in hierarchy['levels']:
-                            if level['unique_name'] is not None: level_name = level['unique_name']
-                            else: level_name = level['name']
-                            levels.append(level_name)
-                    return levels
+                for hierarchy in dimension['hierarchies']:
+                    for level in hierarchy['levels']:
+                        if level['name'] == name:
+                            levels = []
+                            for level in hierarchy['levels']:
+                                if level['unique_name'] is not None:
+                                    levels.append(level['unique_name'])
+                                else:
+                                    levels.append(level['name'])
+                            return levels
+            # If level or dimension not found
             return []
         else:
             all_levels = []
             for dimension in self.schema['dimensions']:
                 for hierarchy in dimension['hierarchies']:
                     for level in hierarchy['levels']:
-                        if level['unique_name'] is not None: level_name = level['unique_name']
-                        else: level_name = level['name']
-                        all_levels.append(level_name)
+                        if level['unique_name'] is not None:
+                            all_levels.append(level['unique_name'])
+                        else:
+                            all_levels.append(level['name'])
             return all_levels
 
     def __str__(self):

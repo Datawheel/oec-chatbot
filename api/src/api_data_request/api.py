@@ -177,8 +177,6 @@ def cuts_processing(cuts, table, table_manager, api):
 
         var_levels = get_drilldown_levels(table_manager, table.name, var)
 
-        print('var:', var, 'var_levels', var_levels)
-
         if var == "Year" or var == "Month" or var == "Quarter" or var == "Month and Year" or var == "Time":
             api.add_cut(var, cut)
         else:
@@ -202,8 +200,6 @@ def init_api(table, table_manager, drilldowns, measures, cuts, limit = ""):
         if drilldown in valid_drilldowns:
             pass
         else: drilldowns.remove(drilldown)
-
-    print('drilldowns:', drilldowns)
 
     if base == "Mondrian": base = MONDRIAN_API
     else: base = TESSERACT_API + "data.jsonrecords?"
