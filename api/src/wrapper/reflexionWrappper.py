@@ -10,6 +10,7 @@ import json
 from operator import itemgetter
 
 
+
 TABLES_PATH = getenv('TABLES_PATH')
 OLLAMA_URL = 'https://caleuche-ollama.datawheel.us'
 CONFIG_FILE_NAME = 'wrapper_datausa.json'
@@ -42,37 +43,40 @@ def stream_acc(info):
     print('In stream agg: {}'.format(info))
     return info
 
-# LLM Summary chat history 
+# Question LLM chat history 
     # Summary question     
     # route to:
         # no question
         # new question
         # complement question
 
-summary_sys_prompt = """
-You are an expert analyzing chat histories.
+question_sys_prompt = """
+You are an expert analyzing questions in chats.
 """
 
-summary_prompt = PromptTemplate.from_template(
+question_prompt = PromptTemplate.from_template(
 """
-Summarize the following chat history
+In the following Chat history. 
+Is the latest [User] input a new questionor, a complement information from a previous question or not a question?
+
 
 Output format:
 
 {{
 "question": "",
+"reasoning":"",
 "type": "" 
 }}
 
 here is a chat history: {history}
 """)
 
-summary_chain = summary_prompt\
-    .pipe(model.bind(system=summary_sys_prompt, format='json'))\
+question_chain = question_prompt\
+    .pipe(model.bind(system=question_sys_prompt, format='json'))\
         .pipe(stream_acc)\
             .pipe(JsonOutputParser())
 
-summary_chain_alt = summary_prompt.pipe(model)
+question_chain_alt = question_prompt.pipe(model)
 
 @chain
 def route_question(info):
@@ -80,29 +84,80 @@ def route_question(info):
     if info['type'] == 'no_question':
         return PromptTemplate("Answer politely: {}").pipe(model)
     if info['type'] =='new_question':
-        pass
+        reset_form_json()
+        
+        return {'action': 'RAG', }
     if info['type'] == 'complement':
-        pass
+        return { 'action': 'summary','history': info['history']}
 
 # Use table_table selection
-from ..table_selection.table_selector import get_relevant_tables_from_database
+from ..table_selection.table_selector import request_tables_to_lm_from_db
+from ..table_selection.table import TableManager
 
+SCHEMA = getenv('SCHEMA')
 # LLM Classification 
     # rerank RAG answer pick a cube
 
-
-
 # Call Schema Json to build Form JSON
-
+def set_form_json(query):
+    table_manager = TableManager(TABLES_PATH)
+    table = request_tables_to_lm_from_db(query, table_manager)
+    
+    return table.get_drilldown_member()
+ 
 
 # LLM validation
     # Extract variables
     # Route ask missing variables
     # Offer members for missing variables
 
+validation_sys_prompt = """
+You are linguistic expert, used to analyze questions and complete forms.
+"""
+validation_prompt = PromptTemplate.from_template(
+"""
+Based on a question complete the field of the following form in JSON format.
+complete the form with the explicit information contained in the question.
+ Here are some examples:
+
+                                                 """)
+
+alt_validation_prompt = PromptTemplate.from_template(
+"""
+
+""")
+
+valid_chain = validation_prompt\
+    .pipe(model.bind(
+        system = validation_sys_prompt, 
+        format='json'))\
+            .pipe(JsonOutputParser())\
+    .with_fallbacks(
+        alt_validation_prompt\
+            .pipe(model_adv.bind(
+                system = validation_sys_prompt, 
+                format= 'json'))\
+                    .pipe(JsonOutputParser()))
 
 
 # Build Chain
+main_chain = RunnableSequence(
+    question_chain | 
+    {
+        'action': route_question 
+    } | valid_chain
 
 
+)
 # Export function
+
+def wrapper(history, logger=[]):
+    """
+    
+    """
+    for answer in main_chain.stream({
+        history: ';'.join([f"{' [AI]' if m.source =='AIMessage' else ' [User]'}:{m.content}"
+                            for m in history]) + '[.]',
+    }, config = {'callbacks':[logsHandler(logger, print_logs = True, print_starts=False)]}
+    ):
+        yield answer
