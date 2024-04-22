@@ -51,21 +51,26 @@ def stream_acc(info):
         # complement question
 
 question_sys_prompt = """
-You are an expert analyzing questions in chats.
+You are a grammar expert analyzing questions in chats. All output must be in valid JSON format. 
+Don't add explanation beyond the JSON.
 """
 
 question_prompt = PromptTemplate.from_template(
 """
-In the following Chat history. 
-Is the latest [User] input a new questionor, a complement information from a previous question or not a question?
+In the following Chat history, classify if the the latest [User] input is:
 
+- a new question made by the user, or 
+- a complementary information for a previous question, or 
+- not a question
 
-Output format:
+If the input is classified as 'complementary information for a previous question', summarize the the question.
+Answer using following output format, here are some examples:
 
 {{
-"question": "",
+"history": "",
 "reasoning":"",
 "type": "" 
+"question": "",
 }}
 
 here is a chat history: {history}
@@ -155,9 +160,14 @@ def wrapper(history, logger=[]):
     """
     
     """
-    for answer in main_chain.stream({
+    for answer in question_chain.stream({
         history: ';'.join([f"{' [AI]' if m.source =='AIMessage' else ' [User]'}:{m.content}"
                             for m in history]) + '[.]',
     }, config = {'callbacks':[logsHandler(logger, print_logs = True, print_starts=False)]}
     ):
         yield answer
+
+
+if __name__ == "__main__":
+    wrapper([{'source':'AIMessage', 'content':'hi, how can I help you'},
+             {'source':'AIMessage', 'content':'Which country export the most copper?'}])
