@@ -1,15 +1,18 @@
 import json
-from openai import OpenAI, APIConnectionError
-import requests
 import time
+import requests
+
+from typing import Dict, List, Tuple
+from openai import OpenAI, APIConnectionError
 
 from config import OLLAMA_API, OPENAI_KEY
 from table_selection.table import *
 from utils.preprocessors.text import *
 from utils.similarity_search import *
 from api_data_request.api import *
+from data_analysis.token_counter import get_openai_token_cost_for_model
 
-def get_api_components_messages(table, model_author, natural_language_query = ""):
+def _get_api_components_messages(table: Table, model_author: str, natural_language_query: str = "") -> str:
 
     response_part = """
         {
@@ -70,11 +73,16 @@ def get_api_components_messages(table, model_author, natural_language_query = ""
     return message
 
 
-def get_model_author(model):
+def _get_model_author(model: str) -> str:
     """
-    Identify Model Author for Model requests
+    Identifies the model's author.
+
+    Args:
+        model (str): The name of the model.
+
+    Returns:
+        str: Model's author name.
     """
-    # List of possible models
     models = {
       "openai": ["gpt-3.5-turbo", "gpt-4", "gpt-4-0125-preview", "gpt-4-1106-preview"],
       "llama": ["llama2", "mistral", "codellama", "mixtral", "api_params"]
@@ -90,13 +98,25 @@ def get_model_author(model):
     return author
 
 
-def get_api_params_from_lm(natural_language_query, table = None, model="gpt-4", top_matches=False):
+def get_api_params_from_lm(natural_language_query: str, token_tracker: Dict[str, Dict[str, int]], table: Table = None, model: str = "gpt-4") -> Tuple[List[str], List[str], List[str], Dict[str, Dict[str, int]]]:
     """
     Identify API parameters to retrieve the data using OpenAI models or Llama.
-    """
-    model_author = get_model_author(model)
 
-    content = get_api_components_messages(table, model_author, natural_language_query)
+    Args:
+        natural_language_query (str): The user's question.
+        token_tracker (Dict[str, Dict[str, int]]): Dictionary that tracks token usage (completion, prompt and total tokens, and total cost).
+        table (Table, optional): An instance of the Table class. Defaults to None.
+        model (str, optional): The name of the model. Defaults to "gpt-4".
+
+    Returns:
+        Tuple[List[str], List[str], List[str], Dict[str, Dict[str, int]]]: A tuple containing:
+            - A list with the name of the drilldowns.
+            - A list with the name of the measures.
+            - A list with the cuts.
+            - An updated token_tracker dictionary with new token usage information.
+    """
+    model_author = _get_model_author(model)
+    content = _get_api_components_messages(table, model_author, natural_language_query)
 
     # logic for openai models
     if model_author == "openai":
@@ -131,6 +151,25 @@ def get_api_params_from_lm(natural_language_query, table = None, model="gpt-4", 
             time.sleep(1)
 
         output_text = response.choices[0].message.content
+            
+        if 'get_api_params_from_lm' in token_tracker:
+            token_tracker['get_api_params_from_lm']['completion_tokens'] += response.usage.completion_tokens
+            token_tracker['get_api_params_from_lm']['prompt_tokens'] += response.usage.prompt_tokens
+            token_tracker['get_api_params_from_lm']['total_tokens'] += response.usage.total_tokens
+            token_tracker['get_api_params_from_lm']['total_cost'] = (get_openai_token_cost_for_model(model, response.usage.completion_tokens, is_completion = True) 
+                                                                        + get_openai_token_cost_for_model(model, response.usage.prompt_tokens, is_completion = False))
+
+        else:
+            token_tracker['get_api_params_from_lm'] = {
+                'completion_tokens': response.usage.completion_tokens,
+                'prompt_tokens': response.usage.prompt_tokens,
+                'total_tokens': response.usage.total_tokens,
+                'total_cost': (
+                    get_openai_token_cost_for_model(model, response.usage.completion_tokens, is_completion = True) 
+                    + get_openai_token_cost_for_model(model, response.usage.prompt_tokens, is_completion = False)
+                )
+            }
+
         print("\nChatGPT response:", output_text)
         params = extract_text_from_markdown_triple_backticks(output_text)
 
@@ -153,6 +192,7 @@ def get_api_params_from_lm(natural_language_query, table = None, model="gpt-4", 
         response = parse_response(response.text)
         print(response)
         params = extract_text_from_markdown_triple_backticks(response)
+        tokens = ""
 
         drilldowns = json.loads(params).get("drilldowns")
         measures = json.loads(params).get("measures")
@@ -162,4 +202,4 @@ def get_api_params_from_lm(natural_language_query, table = None, model="gpt-4", 
         # logic: ask for model on the list, or use a default one
         status = "bad status"
 
-    return drilldowns, measures, cuts # json
+    return drilldowns, measures, cuts, token_tracker # json
