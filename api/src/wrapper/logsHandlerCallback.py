@@ -40,6 +40,7 @@ class logsHandler(BaseCallbackHandler):
             'names_tags': name +':'+ ','.join(kwargs['tags']),
             'input': inputs
         }
+
         self.tracer[run_id] = {'parent_run_id': kwargs['parent_run_id'],'name': name}
         _track = self.parent_tracking(run_id)
         _id = name +':'+ ','.join(kwargs['tags'])
@@ -58,6 +59,7 @@ class logsHandler(BaseCallbackHandler):
             'name': self.tracer[run_id]['name'],
             'output': outputs
         }
+
         _track = self.parent_tracking(run_id)
         if self.print_logs and self.ends: 
             print(f'Finish chain[{_track}]:  {outputs}')
@@ -71,6 +73,7 @@ class logsHandler(BaseCallbackHandler):
             'error': error,
             'tags': kwargs['tags']
         }
+
         _track = self.parent_tracking(run_id)
         if self.print_logs and self.errors: 
             print(f'Error chain [{_track}]:  {error} ')
@@ -84,6 +87,7 @@ class logsHandler(BaseCallbackHandler):
             'name': str(kwargs['name']) + ':' + str(serialized['name']),
             'prompts': prompts
         }
+
         self.tracer[run_id] = {'parent_run_id': kwargs['parent_run_id'],'name': kwargs['name']}
         _serie = serialized['name']
         _kwargs = kwargs['name']
@@ -94,14 +98,16 @@ class logsHandler(BaseCallbackHandler):
     
     def on_llm_end(self, response, run_id, **kwargs):
         basis_response = response.generations[0][0]
+        print(response)
         formatted_response = {
             'type': 'LLM end',
             'name': self.tracer[run_id]['name'],
             'output':basis_response.text,
-            'duration':basis_response.generation_info['total_duration']/1e+9,
-            'tkn_cnt':basis_response.generation_info['eval_count'],
+            'duration':basis_response.generation_info.get('total_duration', 0)/1e+9,
+            'tkn_cnt':basis_response.generation_info.get('eval_count'),
         }
-        metric = (basis_response.generation_info['total_duration'])/1e+9
+
+        metric = (basis_response.generation_info.get('total_duration',0))/1e+9
         out = basis_response.text
         if self.print_logs and self.ends: 
             print(f'Finish llm[t:{metric}]: {out}')
@@ -113,6 +119,7 @@ class logsHandler(BaseCallbackHandler):
             'type': 'LLM error',
             'error': error
         }
+
         if self.print_logs and self.errors: 
             print(f'Error llm:  {error}')
             self.log_to_file(formatted_response) 
