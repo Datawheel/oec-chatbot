@@ -113,6 +113,6 @@ def log_apicall(
 
     with POSTGRES_ENGINE.connect() as conn:
         conn.execute(insert_query, params)
-       # conn.commit()
+        conn.commit()
 
     return {"status": "success"}
