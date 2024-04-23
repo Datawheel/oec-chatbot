@@ -161,35 +161,50 @@ class Table:
                     if level_name == drilldown_name:
                         return level['members']
         return []
-   
+    
     def get_dimension_levels(self, name=None) -> List[str]:
-        """
-        Returns the names of levels of a dimension based on the dimension name or level name
-        """
-        if name:
-            for dimension in self.schema['dimensions']:
-                for hierarchy in dimension['hierarchies']:
-                    for level in hierarchy['levels']:
-                        if level['name'] == name:
-                            levels = []
+            """
+            Returns the names of levels of a dimension based on the dimension name or level name
+            """
+            if name:
+                # Check if the provided name is a level name
+                for dimension in self.schema['dimensions']:
+                    for hierarchy in dimension['hierarchies']:
+                        for level in hierarchy['levels']:
+                            if level['name'] == name:
+                                levels = []
+                                for level in hierarchy['levels']:
+                                    if level['unique_name'] is not None:
+                                        levels.append(level['unique_name'])
+                                    else:
+                                        levels.append(level['name'])
+                                return levels
+                
+                # If the provided name is not a level name, it might be a dimension name
+                for dimension in self.schema['dimensions']:
+                    if dimension['name'] == name:
+                        levels = []
+                        for hierarchy in dimension['hierarchies']:
                             for level in hierarchy['levels']:
                                 if level['unique_name'] is not None:
                                     levels.append(level['unique_name'])
                                 else:
                                     levels.append(level['name'])
-                            return levels
-            # If level or dimension not found
-            return []
-        else:
-            all_levels = []
-            for dimension in self.schema['dimensions']:
-                for hierarchy in dimension['hierarchies']:
-                    for level in hierarchy['levels']:
-                        if level['unique_name'] is not None:
-                            all_levels.append(level['unique_name'])
-                        else:
-                            all_levels.append(level['name'])
-            return all_levels
+                        return levels
+                
+                # If neither a dimension nor a level with the provided name is found
+                return []
+            
+            else:
+                all_levels = []
+                for dimension in self.schema['dimensions']:
+                    for hierarchy in dimension['hierarchies']:
+                        for level in hierarchy['levels']:
+                            if level['unique_name'] is not None:
+                                all_levels.append(level['unique_name'])
+                            else:
+                                all_levels.append(level['name'])
+                return all_levels
 
     def __str__(self):
         return self.prompt_schema_description(descriptions=True)
