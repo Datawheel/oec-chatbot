@@ -114,30 +114,30 @@ question_chain_alt = question_prompt.pipe(model)
 @chain
 def route_question(info):
     json_form = info['json_form']
-    question = info['question']
-    if question['type'] == 'not a question':
+    action = info['action']
+
+    if action['type'] == 'not a question':
         return PromptTemplate("Answer politely: {question}").pipe(model)
-    if question['type'] =='new question':
-        json_form, table = set_json_form(question['question'])
-        return {'json_form': json_form, 'table': table, 'question': question['question']}
-    if question['type'] == 'complement':
-        return { 'json_form': json_form, 'question': question['question']}
+    
+    if action['type'] =='new question':
+        json_form = set_json_form(action['question'])
+        return {'json_form': json_form, 'question': action['question']} | valid_chain
+    
+    if action['type'] == 'complement information':
+        return {'json_form': json_form, 'question': action['question']} | valid_chain
+
 
 # Use table_table selection
 from table_selection.table_selector import request_tables_to_lm_from_db
 from table_selection.table import TableManager
 
-SCHEMA = getenv('SCHEMA')
-# LLM Classification 
-    # rerank RAG answer pick a cube
-
 # Call Schema Json to build Form JSON
 def set_json_form(query):
     table_manager = TableManager(TABLES_PATH)
     table = request_tables_to_lm_from_db(query, table_manager)
-    json_form = get_form(table)
+    json_form = {'cube': table.name}
     
-    return json_form, table
+    return json_form
 
 # LLM validation
     # Extract variables
@@ -150,19 +150,18 @@ Don't add explanation beyond the JSON.
 """
 validation_prompt = PromptTemplate.from_template(
 """
-Based on a question complete the field of the following form in JSON format.
-complete the form with the explicit information contained in the question.
-Here are some examples:
-
+Complete the form based on the question input. User only the explicit information contained in the question.
+If no information is available in the question, left the field blank.
+Answer in JSON format as shown in the following examples:
 
 {{
-"":"",
-"":"",
-"":"",
-
+"question":""
+"explanation":" ",
+"json_form":"{{}}",
 }}
 
-
+Here is the form: {json_form}
+Here is the question: {question}
 """
 )
 
@@ -183,33 +182,55 @@ valid_chain = validation_prompt\
                 format= 'json'))\
             .pipe(JsonOutputParser())])
 
+def get_empty_json_fields(json):
+    return None
+
+
+@chain
+def route_answer(info):
+    handleAPIBuilder = info['input']['handleAPIBuilder']
+    info = info['process']
+
+    # if answer is not json is not a question
+    if type(info) == str:
+        yield {'content': info}
+
+    json_form = info['json_form']
+    missing = get_empty_json_fields(json_form)
+
+    if missing:
+        for m in missing:
+            yield {'content': f'Please specify {m}'}
+    else:
+        yield {'content': " Good question, let's check the data..."}
+        response = handleAPIBuilder(json_form)
+        yield {'content': response}
+
 
 # Build Chain
-main_chain = RunnableSequence(  
+main_chain = RunnableSequence(
     {
-        'json_form': itemgetter("json_form"),
-        'action': question_chain  
-    } | route_question
-
-)
-
-chain = RunnableSequence(
-    {
-        'json_form': itemgetter("json_form"),
-        'question': question_chain  
-    } | route_question
+        'input': RunnablePassthrough(),
+        'process': (
+                {
+                    'json_form': itemgetter("json_form"),
+                    'action': question_chain  
+                } | route_question 
+            )
+    } | route_answer 
 )
 
 # Export function
 
-def wrapperCall(history, json_form,logger=[] ):
+def wrapperCall(history, json_form, handleAPIBuilder, logger=[] ):
     """
     
     """
-    for answer in chain.stream({
+    for answer in main_chain.stream({
         'chathistory': ';'.join([f"{' [AI]' if m.source =='AIMessage' else ' [User]'}:{m.content}"
                             for m in history]) + '[.]',
-        'json_form': json_form
+        'json_form': json_form, 
+        'handleAPIBuilder': handleAPIBuilder
     }, config = {'callbacks':[logsHandler(logger, print_logs = True, print_starts=False)]}
     ):
         yield answer
