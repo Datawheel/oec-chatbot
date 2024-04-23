@@ -1,18 +1,18 @@
 import json
-import openai
 import time
 
+from typing import Dict, List, Tuple
 from openai import OpenAI, APIConnectionError
-from typing import List
 from sentence_transformers import SentenceTransformer
 
 from config import OPENAI_KEY
-from table_selection.table import *
-from utils.similarity_search import get_similar_tables
+from table_selection.table import Table, TableManager
 from utils.few_shot_examples import get_few_shot_example_messages
 from utils.preprocessors.text import extract_text_from_markdown_triple_backticks
+from utils.similarity_search import get_similar_tables
+from data_analysis.token_counter import get_openai_token_cost_for_model
 
-def _get_table_selection_message_with_descriptions(table_manager, table_names: List[str] = None):
+def _get_table_selection_message_with_descriptions(table_manager: TableManager, table_names: List[str] = None):
 
     response_part = """
         {
@@ -49,29 +49,46 @@ def _get_table_selection_message_with_descriptions(table_manager, table_names: L
 
 
 def _get_table_selection_messages() -> List[str]:
-    """
-    
-    """
     default_messages = []
     default_messages.extend(get_few_shot_example_messages(mode = "table_selection"))
     return default_messages
 
 
-def get_relevant_tables_from_database(natural_language_query, embedding_model = 'multi-qa-MiniLM-L6-cos-v1', content_limit = 1) -> List[str]:
+def get_relevant_tables_from_database(natural_language_query: str, content_limit: int = 1, embedding_model: str = 'multi-qa-MiniLM-L6-cos-v1') -> List[str]:
     """
-    Returns a list of the top k table names (matches the embedding vector of the NLQ with the stored vectors of each table)
+    Matches the user's question to a table using their embeddings.
+
+    Args:
+        natural_language_query (str): The user's question.
+        content_limit (int, optional): Number of table names to retrieve. Defaults to 1.
+        embedding_model (str, optional): The embedding model to use. Defaults to 'multi-qa-MiniLM-L6-cos-v1'.
+
+    Returns:
+        List[str]: List of table names.
     """
-    model = SentenceTransformer(embedding_model) # 384
+    model = SentenceTransformer(embedding_model)
     vector = model.encode([natural_language_query])
 
-    results = get_similar_tables(vector, content_limit=content_limit)
+    results = get_similar_tables(vector, content_limit = content_limit)
 
     return list(results)
 
 
-def get_relevant_tables_from_lm(natural_language_query, table_manager, table_list = None, model = "gpt-4") -> List[str]:
+def get_relevant_tables_from_lm(natural_language_query: str, table_manager: TableManager, token_tracker: Dict[str, Dict[str, int]], table_list: List[str] = None, model: str = "gpt-4") -> Tuple[str, Dict[str, int]]:
     """
-    Identify relevant tables for answering a natural language query via LM
+    Identifies relevant tables to answer a natural language query via LM.
+
+    Args:
+        natural_language_query (str): The user's question.
+        table_manager (TableManager): An instance of the TableManager class.
+        token_tracker (Dict[str, Dict[str, int]]): Dictionary that tracks token usage (completion, prompt and total tokens, and total cost).
+        table_list (List[str], optional): List of table_names for the LM to choose from. Defaults to None.
+        model (str, optional): Name of the model to use. Defaults to "gpt-4".
+
+    Returns:
+        Tuple[str, Dict[str, Dict[str, int]]]: A tuple containing:
+            - Name of the chosen table.
+            - Updated token_tracker dictionary with new token usage information.
     """
     max_attempts = 5
     attempts = 0
@@ -93,9 +110,9 @@ def get_relevant_tables_from_lm(natural_language_query, table_manager, table_lis
     while attempts < max_attempts:
         try:
             response = client.chat.completions.create(
-                model=model,
-                messages=messages,
-                temperature=0,
+                model = model,
+                messages = messages,
+                temperature = 0,
                # response_format={"type": "json_object"},
                 )
         except APIConnectionError as e:
@@ -106,20 +123,52 @@ def get_relevant_tables_from_lm(natural_language_query, table_manager, table_lis
         time.sleep(1)
 
     output_text = response.choices[0].message.content
+
+    if 'request_tables_to_lm_from_db' in token_tracker:
+        token_tracker['request_tables_to_lm_from_db']['completion_tokens'] += response.usage.completion_tokens
+        token_tracker['request_tables_to_lm_from_db']['prompt_tokens'] += response.usage.prompt_tokens
+        token_tracker['request_tables_to_lm_from_db']['total_tokens'] += response.usage.total_tokens
+        token_tracker['request_tables_to_lm_from_db']['total_cost'] = (get_openai_token_cost_for_model(model, response.usage.completion_tokens, is_completion=True) 
+                                                                       + get_openai_token_cost_for_model(model, response.usage.prompt_tokens, is_completion=False))
+
+    else:
+        token_tracker['request_tables_to_lm_from_db'] = {
+                'completion_tokens': response.usage.completion_tokens,
+                'prompt_tokens': response.usage.prompt_tokens,
+                'total_tokens': response.usage.total_tokens,
+                'total_cost': (
+                    get_openai_token_cost_for_model(model, response.usage.completion_tokens, is_completion=True) 
+                    + get_openai_token_cost_for_model(model, response.usage.prompt_tokens, is_completion=False)
+                )
+            }
+
     print("\nChatGPT response:", output_text)
     tables_json_str = extract_text_from_markdown_triple_backticks(output_text)
-    table_list = json.loads(tables_json_str).get("table")
+    table_name = json.loads(tables_json_str).get("table")
 
-    return table_list
+    return table_name, token_tracker
 
 
-def request_tables_to_lm_from_db(natural_language_query, table_manager, content_limit=3):
+def request_tables_to_lm_from_db(natural_language_query: str, table_manager: TableManager, token_tracker: Dict[str, Dict[str, int]], content_limit: int = 3) -> Tuple[Table, Dict, Dict[str, Dict[str, int]]]:
     """
     Extracts most similar tables from database using embeddings and similarity functions, and then lets the llm choose the most relevant one.
+
+    Args:
+        natural_language_query (str): The user's question.
+        table_manager (TableManager): An instance of the TableManager class.
+        token_tracker (Dict[str, Dict[str, int]]): Dictionary that tracks token usage (completion, prompt and total tokens, and total cost).
+        content_limit (int, optional): Number of tables to retrieve from the database, that the LM will choose from. Defaults to 3.
+
+    Returns:
+        Tuple[Table, Dict, Dict[str, Dict[str, int]]]: A tuple containing:
+            - The instance of the Table class with the selected table.
+            - A JSON object with all the parameters needed to build the API.
+            - An updated token_tracker dictionary with new token usage information.
     """
-    tables = get_relevant_tables_from_database(natural_language_query, content_limit = content_limit)
-    gpt_selected_table_str = get_relevant_tables_from_lm(natural_language_query, table_manager, table_list = tables)
+    db_tables = get_relevant_tables_from_database(natural_language_query, content_limit)
+    lm_table, token_tracker = get_relevant_tables_from_lm(natural_language_query, table_manager, token_tracker, db_tables)
 
-    gpt_selected_table = table_manager.get_table(gpt_selected_table_str)
+    selected_table = table_manager.get_table(lm_table)
+    form_json = {}
 
-    return gpt_selected_table
+    return selected_table, form_json, token_tracker
