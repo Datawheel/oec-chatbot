@@ -1,32 +1,37 @@
-# datausa-chat
+# OEC chat
 
-This repository contains scripts for a chatbot that leverages artificial intelligence to interact with users and gather insights from [DataUSA.io](https://datausa.io/). The chatbot aims to deliver meaningful insights directly from natural language queries, simplifying the process for users to access and analyze data.
+This repository contains scripts for a chatbot that leverages artificial intelligence to interact with users and gather insights from the [OEC](https://oec.world/en). The chatbot aims to deliver meaningful insights directly from natural language queries, simplifying the process for users to access and analyze data.
 
 ## Folders inside **`api/`**
 
 ### 1. **`data/`**
    - Contains JSON files featuring few-shot examples tailored for the Language Model (LLM). 
 
-   - Also contains `tables.json` which contains available cubes, with their descriptions, column names, and relevant details.
+   - Also contains `schema.json` which contains available cubes, with their descriptions, column names, and relevant details.
 
-### 2. **`src/utils/`**
+### 2. **`setup/`**
+   - Stores all the scripts used to extract the schema and ingest the cubes and drilldowns into a database.
+
+### 3. **`src/`**
    - Houses all the main scripts to run the chatbot.
   
    - **Subfolders:**
      1. **`api_data_request/`**
         - Core scripts responsible for constructing the API URL. Contains functions for processing query cuts and matching values with their respective IDs.
+        - Stores de ApiBuilder class.
 
      2. **`data_analysis/`**
         - Contains scripts used for data analysis (mainly using [LangChain](https://python.langchain.com/docs/get_started/introduction)).
 
-     3. **`helpers/`**
-        - Stores scripts to ingest cubes and drilldowns into a database. Also contains a script to map the tesseract schema to the custom `tables.json` format needed to run the chat.
-
-     4. **`preprocessors/`**
-        - Contains scripts that preprocess text (or any other data type as needed).
-
-     5. **`table_selection/`**
+     3. **`table_selection/`**
         - All scripts needed to lookup and manage the relevant cube that contains the data needed to answer the user's query.
+
+     4. **`utils/`**
+        - Stores preprocessing, logs and similarity search scripts. Also stores the SQL similarity functions needed for the similarity search.
+
+     5. **`wrapper/`**
+        - Contains the scripts that power the wrapper of the chat.
+
 
 ## General Workflow
 
@@ -43,9 +48,6 @@ This repository contains scripts for a chatbot that leverages artificial intelli
    - **Option 3: request_tables_to_lm_from_db()**
      - Hybrid approach that obtains the top N matches from the database using embeddings. It then asks the LM to choose between these N tables.
 
-   - **Option 4: [in progress]**
-      - Will receive the table name from the wrapper.
-
 2. All the above functions return the name of the most relevant table. The app currenty works with Option 3.
 
 ### 2. API URL Generator & Data Request
@@ -57,7 +59,7 @@ This repository contains scripts for a chatbot that leverages artificial intelli
 
 ```json
      {
-        "variables": ["Origin State", "Destination State"],
+        "drilldowns": ["Origin State", "Destination State"],
         "measures": ["Thousands Of Tons"],
         "filters": ["Year = 2020", "SCTG2 = Coal", "Origin State = New York", "Destination State = California"]
      }
@@ -69,101 +71,60 @@ This repository contains scripts for a chatbot that leverages artificial intelli
 
    4. For the cuts, a similarity search is done over the corresponding dimension members of the cube to extract their ids from the database (with the `cuts_processing()` function).
 
-   5. The API URL (for Mondrian or Tesseract) is built using the processed cuts, drilldowns and measures obtained from previous steps by running the `build_url()` method.
+   5. The API URL (for Mondrian or Tesseract) is built using the processed cuts, drilldowns and measures obtained from previous steps by running the `build_api()` method.
 
    6. The data is retrieved from the API using the `fetch_data()` method and stored in a pandas dataframe.
 
 
 ### 3. Data Analysis/Processing
 
-- [In progress...] Data Analysis is done with LangChain, using the pandas dataframe agent. 
+- Data Analysis is done with LangChain, using the pandas dataframe agent. The Agent receives the dataframe, the user's question and the API endpoint used to retrieve the data and returns an answer back. 
 
 ## Adding cubes
 
 Currently, the cubes available to be queried by the chatbot are:
 
-   - Consumer Price Index - CPI
-   - dot_faf
-   - Data_USA_Senate_election
-   - Data_USA_President_election
-   - Data_USA_House_election
-   - [in progress] pums_5
+   - trade_i_baci_a_96
+   - trade_i_baci_a_22
+   - trade_s_rus_m_hs
+   - tariffs_i_wits_a_hs_new
+   - trade_s_esp_m_hs
+   - trade_unit_value_96
+   - complexity_eci_multidimensional
+   - complexity_pci_a_hs96_hs6
+   - complexity_pci_a_hs22_hs6
+   - complexity_pci_a_hs96_hs4
+   - complexity_pci_a_hs22_hs4
+   - services_i_comtrade_a_eb02
+   - trade_i_oec_a_sitc2
+   - complexity_eci_a_hs96_hs6
+   - complexity_eci_a_hs22_hs6
+   - complexity_eci_a_hs96_hs4
+   - complexity_eci_a_hs22_hs4
+   - indicators_i_wdi_a
+   - gini_inequality_income
 
-In order to add one cube, the steps are:
+In order to add a new cube, the steps are:
 
-   1. Add the cube to the `tables.json` file. The following fields must be filled:
-      - name
-      - api (Tesseract or Mondrian)
-      - description
-      - measures:
-         ```json
-            {
-               "name": "Millions Of Dollars",
-               "description": "value in millions of dollars of a shipment"
-            }
-         ```
+   1. Ensure the new cube is in the `schema.json` file. 
 
-      - dimensions
-         - Add each hierarchy separately, filling the following fields for each:
-            ```json
-               {
-                  "name": "Millions Of Dollars",
-                  "description": "value in millions of dollars of a certain shipment."   
-               }
-            ```
-      - dimensions
-         - Add each hierarchy separately, filling the following fields for each:
-            ```json
-               {
-                  "name": "Time",
-                  "description": "Periodicity of the data (monthly or annual).",
-                  "hierarchies": [
-                        {
-                            "name": "Month and Year",
-                            "description": "'Month and Year' has the format YYYYMM (example March of 2015 is 201503)",
-                            "levels": [
-                                "Year",
-                                "Month and Year"
-                            ]
-                        }
-                    ]
+   2. Add the name of the new cube to the include_cubes list in the `load_cubes_to_db.py` script and run it. This will ingest the cube, along with its' description and embedding, to the **chat.cubes** table in the database.
+      - If include_cubes is set to False, it will ingest all the cubes found in `schema.json`.
 
-                  "name": "Time",
-                  "description": "Periodicity of the data (monthly or annual).",
-                  "hierarchies": [
-                        {
-                            "name": "Month and Year",
-                            "description": "'Month and Year' has the format YYYYMM (example March of 2015 is 201503)",
-                            "levels": [
-                                "Year",
-                                "Month and Year"
-                            ]
-                        }
-                    ]
-               }
-            ```
-
-   2. Add the cube to the database (**datausa_tables.cubes**), filling the following columns (you can use the `cubes_to_db.py` script):
-      - table_name
-      - table_description
-      - embedding (embedding of the table's description is represented as a 384-dimensional vector, derived using the `SentenceTransformer('multi-qa-MiniLM-L6-cos-v1')` model)
-
-   3. Add drilldown members & ids to the db (**datausa_drilldowns.drilldowns**)
-      - This process can be initiated by executing the `drilldowns_to_db.py` script. During execution, the code will prompt for the API URL to fetch the drilldown members and IDs. Then, it will request the measure name in order to remove it from the dataframe before loading the data to the database.
-      - The script then appends a column containing embeddings generated from the drilldown names using the same embedding model mentioned before.
-      - This process needs to be repeated for each drilldown level within the cube or those required for making cuts. Time variables don't need to be loaded into the database.
+   3. Add drilldown members & ids to the db (**chat.drilldowns**)
+      - This process can be initiated by executing the `load_drilldowns_to_db.py` script. 
+      - Add the name of the new cube to the include_cubes list and run the script.
+      - Same as before, if include_cubes is set to False, it will ingest all the drilldowns of cubes found in `schema.json`.
 
 ### [For future projects] In progress...
 
-To add all the cubes of a project automatically, they can be mapped from the tesseract schema json to the custom format needed in the app. To do this follow these steps:
+To add all the cubes of a project automatically, they can be mapped from the tesseract cubes endpoint to the custom format needed in the app. To do this follow these steps:
 
-   1. Retrieve the tesseract schema json (for example [this one](https://api-dev.datausa.io/tesseract/debug/schema)) and store it in the **`/helpers`** folder.
+   1. Run `schema_to_json.py`. This will map the tesseract cubes endpoint to `schema.json`.
 
-   2. Run the following command in the terminal (replacing the file names):
-      ```
-      python tesseract_schema_mapping.py <input.json> <output.json>
-      ```
+   2. Run `load_cubes_to_db.py`.
 
+   3. Run `load_drilldowns_to_db.py`.
 
 # API beeing served by FastAPI
 
