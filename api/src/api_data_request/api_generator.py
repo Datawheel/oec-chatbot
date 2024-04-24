@@ -12,7 +12,11 @@ from utils.similarity_search import *
 from api_data_request.api import *
 from data_analysis.token_counter import get_openai_token_cost_for_model
 
-def _get_api_components_messages(table: Table, model_author: str, natural_language_query: str = "") -> str:
+def _get_api_components_messages(
+        table: Table,
+        model_author: str,
+        natural_language_query: str = ""
+        ) -> str:
 
     response_part = """
         {
@@ -98,14 +102,19 @@ def _get_model_author(model: str) -> str:
     return author
 
 
-def get_api_params_from_lm(natural_language_query: str, token_tracker: Dict[str, Dict[str, int]], table: Table = None, model: str = "gpt-4") -> Tuple[List[str], List[str], List[str], Dict[str, Dict[str, int]]]:
+def get_api_params_from_lm(
+        natural_language_query: str,
+        table: Table = None,
+        token_tracker: Dict[str, Dict[str, int]] = None,
+        model: str = "gpt-4"
+        ) -> Tuple[List[str], List[str], List[str], Dict[str, Dict[str, int]]]:
     """
     Identify API parameters to retrieve the data using OpenAI models or Llama.
 
     Args:
         natural_language_query (str): The user's question.
-        token_tracker (Dict[str, Dict[str, int]]): Dictionary that tracks token usage (completion, prompt and total tokens, and total cost).
         table (Table, optional): An instance of the Table class. Defaults to None.
+        token_tracker (Dict[str, Dict[str, int]]): Dictionary that tracks token usage (completion, prompt and total tokens, and total cost).
         model (str, optional): The name of the model. Defaults to "gpt-4".
 
     Returns:
@@ -152,23 +161,37 @@ def get_api_params_from_lm(natural_language_query: str, token_tracker: Dict[str,
 
         output_text = response.choices[0].message.content
             
-        if 'get_api_params_from_lm' in token_tracker:
-            token_tracker['get_api_params_from_lm']['completion_tokens'] += response.usage.completion_tokens
-            token_tracker['get_api_params_from_lm']['prompt_tokens'] += response.usage.prompt_tokens
-            token_tracker['get_api_params_from_lm']['total_tokens'] += response.usage.total_tokens
-            token_tracker['get_api_params_from_lm']['total_cost'] = (get_openai_token_cost_for_model(model, response.usage.completion_tokens, is_completion = True) 
-                                                                        + get_openai_token_cost_for_model(model, response.usage.prompt_tokens, is_completion = False))
+        if token_tracker:
 
-        else:
+            if 'get_api_params_from_lm' in token_tracker:
+                token_tracker['get_api_params_from_lm']['completion_tokens'] += response.usage.completion_tokens
+                token_tracker['get_api_params_from_lm']['prompt_tokens'] += response.usage.prompt_tokens
+                token_tracker['get_api_params_from_lm']['total_tokens'] += response.usage.total_tokens
+                token_tracker['get_api_params_from_lm']['total_cost'] = (get_openai_token_cost_for_model(model, response.usage.completion_tokens, is_completion = True) 
+                                                                            + get_openai_token_cost_for_model(model, response.usage.prompt_tokens, is_completion = False))
+
+            else:
+                token_tracker['get_api_params_from_lm'] = {
+                    'completion_tokens': response.usage.completion_tokens,
+                    'prompt_tokens': response.usage.prompt_tokens,
+                    'total_tokens': response.usage.total_tokens,
+                    'total_cost': (
+                        get_openai_token_cost_for_model(model, response.usage.completion_tokens, is_completion = True) 
+                        + get_openai_token_cost_for_model(model, response.usage.prompt_tokens, is_completion = False)
+                    )
+                }
+
+        else: 
+            token_tracker = {}
             token_tracker['get_api_params_from_lm'] = {
-                'completion_tokens': response.usage.completion_tokens,
-                'prompt_tokens': response.usage.prompt_tokens,
-                'total_tokens': response.usage.total_tokens,
-                'total_cost': (
-                    get_openai_token_cost_for_model(model, response.usage.completion_tokens, is_completion = True) 
-                    + get_openai_token_cost_for_model(model, response.usage.prompt_tokens, is_completion = False)
-                )
-            }
+                    'completion_tokens': response.usage.completion_tokens,
+                    'prompt_tokens': response.usage.prompt_tokens,
+                    'total_tokens': response.usage.total_tokens,
+                    'total_cost': (
+                        get_openai_token_cost_for_model(model, response.usage.completion_tokens, is_completion = True) 
+                        + get_openai_token_cost_for_model(model, response.usage.prompt_tokens, is_completion = False)
+                    )
+                }
 
         print("\nChatGPT response:", output_text)
         params = extract_text_from_markdown_triple_backticks(output_text)

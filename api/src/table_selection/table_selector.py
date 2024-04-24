@@ -54,7 +54,11 @@ def _get_table_selection_messages() -> List[str]:
     return default_messages
 
 
-def get_relevant_tables_from_database(natural_language_query: str, content_limit: int = 1, embedding_model: str = 'multi-qa-MiniLM-L6-cos-v1') -> List[str]:
+def get_relevant_tables_from_database(
+        natural_language_query: str, 
+        content_limit: int = 1, 
+        embedding_model: str = 'multi-qa-MiniLM-L6-cos-v1'
+        ) -> List[str]:
     """
     Matches the user's question to a table using their embeddings.
 
@@ -74,15 +78,21 @@ def get_relevant_tables_from_database(natural_language_query: str, content_limit
     return list(results)
 
 
-def get_relevant_tables_from_lm(natural_language_query: str, table_manager: TableManager, token_tracker: Dict[str, Dict[str, int]], table_list: List[str] = None, model: str = "gpt-4") -> Tuple[str, Dict[str, int]]:
+def get_relevant_tables_from_lm(
+        natural_language_query: str, 
+        table_manager: TableManager, 
+        table_list: List[str] = None, 
+        token_tracker: Dict[str, Dict[str, int]] = None, 
+        model: str = "gpt-4"
+        ) -> Tuple[str, Dict[str, int]]:
     """
     Identifies relevant tables to answer a natural language query via LM.
 
     Args:
         natural_language_query (str): The user's question.
         table_manager (TableManager): An instance of the TableManager class.
-        token_tracker (Dict[str, Dict[str, int]]): Dictionary that tracks token usage (completion, prompt and total tokens, and total cost).
         table_list (List[str], optional): List of table_names for the LM to choose from. Defaults to None.
+        token_tracker (Dict[str, Dict[str, int]]): Dictionary that tracks token usage (completion, prompt and total tokens, and total cost).
         model (str, optional): Name of the model to use. Defaults to "gpt-4".
 
     Returns:
@@ -124,32 +134,52 @@ def get_relevant_tables_from_lm(natural_language_query: str, table_manager: Tabl
 
     output_text = response.choices[0].message.content
 
-    if 'request_tables_to_lm_from_db' in token_tracker:
-        token_tracker['request_tables_to_lm_from_db']['completion_tokens'] += response.usage.completion_tokens
-        token_tracker['request_tables_to_lm_from_db']['prompt_tokens'] += response.usage.prompt_tokens
-        token_tracker['request_tables_to_lm_from_db']['total_tokens'] += response.usage.total_tokens
-        token_tracker['request_tables_to_lm_from_db']['total_cost'] = (get_openai_token_cost_for_model(model, response.usage.completion_tokens, is_completion=True) 
-                                                                       + get_openai_token_cost_for_model(model, response.usage.prompt_tokens, is_completion=False))
+    if token_tracker:
 
-    else:
+        if 'request_tables_to_lm_from_db' in token_tracker:
+            token_tracker['request_tables_to_lm_from_db']['completion_tokens'] += response.usage.completion_tokens
+            token_tracker['request_tables_to_lm_from_db']['prompt_tokens'] += response.usage.prompt_tokens
+            token_tracker['request_tables_to_lm_from_db']['total_tokens'] += response.usage.total_tokens
+            token_tracker['request_tables_to_lm_from_db']['total_cost'] = (get_openai_token_cost_for_model(model, response.usage.completion_tokens, is_completion=True) 
+                                                                        + get_openai_token_cost_for_model(model, response.usage.prompt_tokens, is_completion=False))
+
+        else:
+            token_tracker['request_tables_to_lm_from_db'] = {
+                    'completion_tokens': response.usage.completion_tokens,
+                    'prompt_tokens': response.usage.prompt_tokens,
+                    'total_tokens': response.usage.total_tokens,
+                    'total_cost': (
+                        get_openai_token_cost_for_model(model, response.usage.completion_tokens, is_completion=True) 
+                        + get_openai_token_cost_for_model(model, response.usage.prompt_tokens, is_completion=False)
+                    )
+                }
+            
+    else: 
+        token_tracker = {}
         token_tracker['request_tables_to_lm_from_db'] = {
-                'completion_tokens': response.usage.completion_tokens,
-                'prompt_tokens': response.usage.prompt_tokens,
-                'total_tokens': response.usage.total_tokens,
-                'total_cost': (
-                    get_openai_token_cost_for_model(model, response.usage.completion_tokens, is_completion=True) 
-                    + get_openai_token_cost_for_model(model, response.usage.prompt_tokens, is_completion=False)
-                )
-            }
+                    'completion_tokens': response.usage.completion_tokens,
+                    'prompt_tokens': response.usage.prompt_tokens,
+                    'total_tokens': response.usage.total_tokens,
+                    'total_cost': (
+                        get_openai_token_cost_for_model(model, response.usage.completion_tokens, is_completion=True) 
+                        + get_openai_token_cost_for_model(model, response.usage.prompt_tokens, is_completion=False)
+                    )
+                }
 
     print("\nChatGPT response:", output_text)
     tables_json_str = extract_text_from_markdown_triple_backticks(output_text)
     table_name = json.loads(tables_json_str).get("table")
 
     return table_name, token_tracker
+    
 
 
-def request_tables_to_lm_from_db(natural_language_query: str, table_manager: TableManager, token_tracker: Dict[str, Dict[str, int]], content_limit: int = 3) -> Tuple[Table, Dict, Dict[str, Dict[str, int]]]:
+def request_tables_to_lm_from_db(
+        natural_language_query: str, 
+        table_manager: TableManager, 
+        token_tracker: Dict[str, Dict[str, int]] = None, 
+        content_limit: int = 3
+        ) -> Tuple[Table, Dict, Dict[str, Dict[str, int]]]:
     """
     Extracts most similar tables from database using embeddings and similarity functions, and then lets the llm choose the most relevant one.
 
@@ -166,9 +196,12 @@ def request_tables_to_lm_from_db(natural_language_query: str, table_manager: Tab
             - An updated token_tracker dictionary with new token usage information.
     """
     db_tables = get_relevant_tables_from_database(natural_language_query, content_limit)
-    lm_table, token_tracker = get_relevant_tables_from_lm(natural_language_query, table_manager, token_tracker, db_tables)
+
+    if token_tracker: 
+        lm_table, token_tracker = get_relevant_tables_from_lm(natural_language_query, table_manager, db_tables, token_tracker)
+        
+    else: lm_table, token_tracker = get_relevant_tables_from_lm(natural_language_query, table_manager, db_tables)
 
     selected_table = table_manager.get_table(lm_table)
     form_json = {}
-
     return selected_table, form_json, token_tracker
