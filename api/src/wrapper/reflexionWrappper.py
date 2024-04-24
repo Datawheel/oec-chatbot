@@ -113,18 +113,18 @@ question_chain_alt = question_prompt.pipe(model)
 
 @chain
 def route_question(info):
-    json_form = info['json_form']
+    form_json = info['form_json']
     action = info['action']
 
     if action['type'] == 'not a question':
         return PromptTemplate("Answer politely: {question}").pipe(model)
     
     if action['type'] =='new question':
-        json_form = set_json_form(action['question'])
-        return {'json_form': json_form, 'question': action['question']} | valid_chain
+        form_json = set_form_json(action['question'])
+        return {'form_json': lambda x: form_json, 'question': lambda x: action['question']} | valid_chain
     
     if action['type'] == 'complement information':
-        return {'json_form': json_form, 'question': action['question']} | valid_chain
+        return {'form_json': str(form_json), 'question': action['question']} | valid_chain
 
 
 # Use table_table selection
@@ -132,12 +132,12 @@ from table_selection.table_selector import request_tables_to_lm_from_db
 from table_selection.table import TableManager
 
 # Call Schema Json to build Form JSON
-def set_json_form(query):
+def set_form_json(query):
     table_manager = TableManager(TABLES_PATH)
-    table = request_tables_to_lm_from_db(query, table_manager)
-    json_form = {'cube': table.name}
+    selected_table, form_json, token_tracker = request_tables_to_lm_from_db(query, table_manager, {})
+    form_json = {'cube': selected_table.name}
     
-    return json_form
+    return form_json
 
 # LLM validation
     # Extract variables
@@ -155,12 +155,31 @@ If no information is available in the question, left the field blank.
 Answer in JSON format as shown in the following examples:
 
 {{
-"question":""
-"explanation":" ",
-"json_form":"{{}}",
+"question":"Which country export the most copper?"
+"explanation":"question mention a flow, a product, but does not mention a time. Then time is left blank and product and flow filled with corresponding values",
+"form_json":{{
+    "base_url": "https://api-dev.datausa.io/tesseract/data.jsonrecords?",
+    "cube": "trade_i_baci_a_96",
+    "cuts": {{
+        "Time": [
+            "2021",
+            "2019",
+            "2020"
+        ],
+        "product": ["copper"]
+    }},
+    "drilldowns": {{
+        "Time":[],
+        "product":["copper"],
+        "flow": "exports"
+    }},
+    "limit": "",
+    "sort": "",
+    "locale": ""
+}},
 }}
 
-Here is the form: {json_form}
+Here is the form: {form_json}
 Here is the question: {question}
 """
 )
@@ -170,10 +189,9 @@ alt_validation_prompt = PromptTemplate.from_template(
 
 """)
 
+#.bind(system = validation_sys_prompt, format='json'))\
 valid_chain = validation_prompt\
-    .pipe(model.bind(
-        system = validation_sys_prompt, 
-        format='json'))\
+    .pipe(model)\
     .pipe(JsonOutputParser())\
     .with_fallbacks(
         [alt_validation_prompt\
@@ -189,22 +207,22 @@ def get_empty_json_fields(json):
 @chain
 def route_answer(info):
     handleAPIBuilder = info['input']['handleAPIBuilder']
-    info = info['process']
+    process = info['process']
 
     # if answer is not json is not a question
-    if type(info) == str:
-        yield {'content': info}
+    if type(process) == str:
+        return json.dumps({'content': process})
 
-    json_form = info['json_form']
-    missing = get_empty_json_fields(json_form)
+    form_json = process['form_json']
+    missing = get_empty_json_fields(form_json)
 
     if missing:
         for m in missing:
-            yield {'content': f'Please specify {m}'}
+            yield json.dumps({'content': f'Please specify {m}'})
     else:
-        yield {'content': " Good question, let's check the data..."}
-        response = handleAPIBuilder(json_form)
-        yield {'content': response}
+        yield json.dumps({'content': " Good question, let's check the data..."})
+        response = handleAPIBuilder(form_json)
+        yield json.dumps({'content': response})
 
 
 # Build Chain
@@ -213,27 +231,29 @@ main_chain = RunnableSequence(
         'input': RunnablePassthrough(),
         'process': (
                 {
-                    'json_form': itemgetter("json_form"),
+                    'form_json': itemgetter("form_json"),
                     'action': question_chain  
                 } | route_question 
             )
     } | route_answer 
 )
 
+chain_ = {'form_json': lambda x:{'cube':'jmn'}, 'question': lambda x: 'Which country export the most copper?'} | valid_chain
 # Export function
 
-def wrapperCall(history, json_form, handleAPIBuilder, logger=[] ):
+def wrapperCall(history, form_json, handleAPIBuilder, logger=[] ):
     """
     
     """
     for answer in main_chain.stream({
         'chathistory': ';'.join([f"{' [AI]' if m.source =='AIMessage' else ' [User]'}:{m.content}"
                             for m in history]) + '[.]',
-        'json_form': json_form, 
+        'form_json': form_json, 
         'handleAPIBuilder': handleAPIBuilder
     }, config = {'callbacks':[logsHandler(logger, print_logs = True, print_starts=False)]}
     ):
         yield answer
+    #return chain_.invoke({'input':""})
 
 """
 if __name__ == "__main__":
