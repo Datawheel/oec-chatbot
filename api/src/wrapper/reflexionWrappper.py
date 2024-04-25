@@ -6,16 +6,20 @@ from langchain_core.runnables import RunnableSequence, RunnablePassthrough, Runn
 from langchain_core.output_parsers import JsonOutputParser
 from wrapper.logsHandlerCallback import logsHandler
 from langchain.globals import set_debug, set_verbose
+from wrapper.json_check import json_iterator
 from os import getenv
 import json
 from operator import itemgetter
-
+from table_selection.table_selector import request_tables_to_lm_from_db
+from table_selection.table import TableManager
 
 
 TABLES_PATH = getenv('TABLES_PATH')
 OLLAMA_URL = 'https://caleuche-ollama.datawheel.us'
 CONFIG_FILE_NAME = 'wrapper_datausa.json'
 OPENAI = getenv('OPENAI_KEY')
+
+# Models
 
 model = OpenAI(
     model_name="gpt-3.5-turbo-instruct",
@@ -42,9 +46,18 @@ model_adv = Ollama(
     run_name= 'advance_mixtral',
 )
 
-
-
 #Aux func
+
+
+# Call Schema Json to build Form JSON
+def set_form_json(query):
+    table_manager = TableManager(TABLES_PATH)
+    selected_table, form_json, token_tracker = request_tables_to_lm_from_db(query, table_manager, {})
+    form_json = {'cube': selected_table.name}
+    
+    return form_json
+
+
 @chain
 def stream_acc(info):
     """
@@ -53,12 +66,9 @@ def stream_acc(info):
     print('In stream agg: {}'.format(info))
     return info
 
+#Prompts
+
 # Question LLM chat history 
-    # Summary question     
-    # route to:
-        # no question
-        # new question
-        # complement question
 
 question_sys_prompt = """
 You are a grammar expert analyzing questions in chats. All output must be in valid JSON format. 
@@ -103,6 +113,12 @@ Answer using following output format, here are some examples:
 here is a chat history: {chathistory}
 """)
 
+
+
+
+
+# CHAIN
+
           #.bind(system=question_sys_prompt, format='json'))\
 question_chain = question_prompt\
     .pipe(model)\
@@ -127,22 +143,8 @@ def route_question(info):
         return {'form_json': str(form_json), 'question': action['question']} | valid_chain
 
 
-# Use table_table selection
-from table_selection.table_selector import request_tables_to_lm_from_db
-from table_selection.table import TableManager
-
-# Call Schema Json to build Form JSON
-def set_form_json(query):
-    table_manager = TableManager(TABLES_PATH)
-    selected_table, form_json, token_tracker = request_tables_to_lm_from_db(query, table_manager, {})
-    form_json = {'cube': selected_table.name}
-    
-    return form_json
 
 # LLM validation
-    # Extract variables
-    # Route ask missing variables
-    # Offer members for missing variables
 
 validation_sys_prompt = """
 You are linguistic expert, used to analyze questions and complete forms precisely. All output must be in valid JSON format. 
@@ -186,8 +188,39 @@ Here is the question: {question}
 
 alt_validation_prompt = PromptTemplate.from_template(
 """
+Complete the form based on the question input. User only the explicit information contained in the question.
+If no information is available in the question, left the field blank.
+Answer in JSON format as shown in the following examples:
 
-""")
+{{
+"question":"Which country export the most copper?"
+"explanation":"question mention a flow, a product, but does not mention a time. Then time is left blank and product and flow filled with corresponding values",
+"form_json":{{
+    "base_url": "https://api-dev.datausa.io/tesseract/data.jsonrecords?",
+    "cube": "trade_i_baci_a_96",
+    "cuts": {{
+        "Time": [
+            "2021",
+            "2019",
+            "2020"
+        ],
+        "product": ["copper"]
+    }},
+    "drilldowns": {{
+        "Time":[],
+        "product":["copper"],
+        "flow": "exports"
+    }},
+    "limit": "",
+    "sort": "",
+    "locale": ""
+}},
+}}
+
+Here is the form: {form_json}
+Here is the question: {question}
+"""
+)
 
 #.bind(system = validation_sys_prompt, format='json'))\
 valid_chain = validation_prompt\
@@ -200,8 +233,6 @@ valid_chain = validation_prompt\
                 format= 'json'))\
             .pipe(JsonOutputParser())])
 
-def get_empty_json_fields(json):
-    return None
 
 
 @chain
@@ -214,15 +245,16 @@ def route_answer(info):
         return json.dumps({'content': process})
 
     form_json = process['form_json']
-    missing = get_empty_json_fields(form_json)
+    missing = json_iterator(form_json)
 
     if missing:
         for m in missing:
-            yield json.dumps({'content': f'Please specify {m}'})
+            yield json.dumps({'content': f'Please specify {m[1]}'})
     else:
-        yield json.dumps({'content': " Good question, let's check the data..."})
+        yield json.dumps({'content': "Good question, let's check the data..."})
         response = handleAPIBuilder(form_json)
         yield json.dumps({'content': response})
+
 
 
 # Build Chain
