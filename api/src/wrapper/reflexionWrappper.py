@@ -6,7 +6,7 @@ from langchain_core.runnables import RunnableSequence, RunnablePassthrough, Runn
 from langchain_core.output_parsers import JsonOutputParser
 from wrapper.logsHandlerCallback import logsHandler
 from langchain.globals import set_debug, set_verbose
-from wrapper.json_check import json_iterator
+from wrapper.json_check import json_iterator, set_form_json
 from os import getenv
 import json
 from operator import itemgetter
@@ -46,18 +46,8 @@ model_adv = Ollama(
     run_name= 'advance_mixtral',
 )
 
+
 #Aux func
-
-
-# Call Schema Json to build Form JSON
-def set_form_json(query):
-    table_manager = TableManager(TABLES_PATH)
-    selected_table, form_json, token_tracker = request_tables_to_lm_from_db(query, table_manager, {})
-    form_json = {'cube': selected_table.name}
-    
-    return form_json
-
-
 @chain
 def stream_acc(info):
     """
@@ -270,7 +260,6 @@ main_chain = RunnableSequence(
     } | route_answer 
 )
 
-chain_ = {'form_json': lambda x:{'cube':'jmn'}, 'question': lambda x: 'Which country export the most copper?'} | valid_chain
 # Export function
 
 def wrapperCall(history, form_json, handleAPIBuilder, logger=[] ):
@@ -285,7 +274,7 @@ def wrapperCall(history, form_json, handleAPIBuilder, logger=[] ):
     }, config = {'callbacks':[logsHandler(logger, print_logs = True, print_starts=False)]}
     ):
         yield answer
-    #return chain_.invoke({'input':""})
+  
 
 """
 if __name__ == "__main__":
