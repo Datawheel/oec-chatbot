@@ -41,6 +41,7 @@ OLLAMA_API = getenv("OLLAMA_API")
 
 # Tesseract Connection
 TESSERACT_API = getenv("TESSERACT_API")
+TESSERACT_API_SECRET = getenv("TESSERACT_API_SECRET")
 
 # Mondrian Connection
 MONDRIAN_API = getenv("MONDRIAN_API")
