@@ -5,7 +5,7 @@ import time
 import xml.etree.ElementTree as ET
 
 from utils.functions import request_to_tesseract
-from config import DATA_PATH, TESSERACT_API
+from config import DATA_PATH, TESSERACT_API, TESSERACT_API_SECRET
 
 
 def parse_xml_to_json(xml_file):
@@ -85,7 +85,7 @@ def get_members(cube_name, level_name):
     retries = 0
     while retries < 5:
         try: 
-            response = request_to_tesseract(TESSERACT_API + 'members.jsonrecords?cube={}&level={}'.format(cube_name, level_name))
+            response = request_to_tesseract(TESSERACT_API + 'members.jsonrecords?cube={}&level={}'.format(cube_name, level_name), TESSERACT_API_SECRET)
             if response.status_code == 200:
                 return response.json()['data']  # Return the data if successful
         except Exception as e:
@@ -130,7 +130,7 @@ def parse_html_cubes_to_json(endpoint, json_file):
     """
     Download the latest cubes endpoint from tesseract and saves the request as a json.
     """
-    r = request_to_tesseract(endpoint)
+    r = request_to_tesseract(endpoint, TESSERACT_API_SECRET)
     schema = r.json()
     schema = add_extra_entries(r.json())
 
