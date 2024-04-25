@@ -1,5 +1,4 @@
 import json
-import requests
 import time
 
 import xml.etree.ElementTree as ET
@@ -107,21 +106,38 @@ def add_extra_entries(schema_json):
         """
         return "Label" if "Label" in member else "ID"
 
+    cubes = {
+      "trade_i_baci_a_96": "Product trade data by year, detailing value and quantity of transaction of goods categorized by the 1996 revision of Harmonized System (HS) product codes. Includes importer and exporter country and continent."
+    }
+
+    dimensions = {
+      "Year": "Time dimension of the table.",
+      "HS Product": "Product dimension based on HS categories. Includes Section, HS2, HS4 and HS6.",
+      "Exporter": "Exporter country or continent.",
+      "Importer": "Importer country or continent.",
+      "Unit": "Unit of measurement."
+    }
+
+    measures = {
+      "Trade Value": "Trade value in USD.",
+      "Quantity": "Quantity in metric tons."
+    }
+
     for cube in schema_json["cubes"]:
-        print('cube:', cube['name'])
+        print('Processing cube:', cube['name'])
         cube["api"] = "Tesseract"
         cube["default"] = {}
-        cube["description"] = ""
+        cube["description"] = cubes.get(cube["name"], "")
         cube["examples"] = []
         for dimension in cube["dimensions"]:
-            dimension["description"] = ""
+            dimension["description"] = dimensions.get(dimension["name"], "")
             for hierarchy in dimension["hierarchies"]:
                 for level in hierarchy["levels"]:
                     members = get_members(cube['name'], level['name'])
                     members_list = [member[get_member_key(member)] for member in members]
                     level["members"] = members_list
         for measure in cube["measures"]:
-            measure["description"] = ""
+            measure["description"] = measures.get(measure["name"], "")
 
     return schema_json
 
