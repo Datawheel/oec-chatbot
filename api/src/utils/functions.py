@@ -2,26 +2,31 @@ import datetime
 import jwt
 import requests
 
-from config import TESSERACT_API_SECRET
-
-def request_to_tesseract(endpoint):
+def request_to_tesseract(endpoint, auth=None):
     '''
-    Make a request to tesseract with authentication.
+    Make a request to the tesseract api endpoint. 
+    If you want to make a request with authentication required, please add as a second parameter to the function call the TESSERACT_API_SECRET variable.
     '''
-    JWT_ALGORITHM = 'HS256'
-    JWT_EXP_DELTA_MINUTES = 30
 
-    payload = {
-      'auth_level': 10,
-      'sub': 'c58b2eed-0aac-92f4-e4ce-2c707bafec8f',
-      'status': 'valid',
-      'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=JWT_EXP_DELTA_MINUTES)
-    }
+    if auth != None:
+      JWT_ALGORITHM = 'HS256'
+      JWT_EXP_DELTA_MINUTES = 30
 
-    jwt_token = jwt.encode(payload, TESSERACT_API_SECRET, JWT_ALGORITHM)
+      payload = {
+        'auth_level': 2,
+        'sub': 'server',
+        'status': 'valid',
+        'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=JWT_EXP_DELTA_MINUTES)
+      }
 
-    headers = {
-      "x-tesseract-jwt-token": jwt_token
-    }
+      jwt_token = jwt.encode(payload, auth, JWT_ALGORITHM)
 
-    return requests.get(endpoint, headers=headers)
+      headers = {
+        "x-tesseract-jwt-token": jwt_token
+      }
+
+      response = requests.get(endpoint, headers=headers)
+    else:
+      response = requests.get(endpoint)
+
+    return response
