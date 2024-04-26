@@ -1,0 +1,16 @@
+{
+  "cubes": {
+    "trade_i_baci_a_96": "Product trade data by year, detailing value and quantity of transaction of goods categorized by the 1996 revision of Harmonized System (HS) product codes. Includes importer and exporter country and continent."
+  },
+  "dimensions": {
+    "Exporter": "Exporter country or continent.",
+    "HS Product": "Product dimension based on HS categories. Includes Section, HS2, HS4 and HS6.",
+    "Importer": "Importer country or continent.",
+    "Unit": "Unit of measurement.",
+    "Year": "Time dimension of the table."
+  },
+  "measures": {
+    "Quantity": "Quantity in metric tons.",
+    "Trade Value": "Trade value in USD."
+  }
+}

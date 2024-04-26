@@ -41,16 +41,29 @@ OLLAMA_API = getenv("OLLAMA_API")
 
 # Tesseract Connection
 TESSERACT_API = getenv("TESSERACT_API")
+TESSERACT_API_SECRET = getenv("TESSERACT_API_SECRET")
 
 # Mondrian Connection
 MONDRIAN_API = getenv("MONDRIAN_API")
 
 # Files Directories
-TABLES_PATH = getenv("TABLES_PATH")
-FEW_SHOT_PATH = getenv("FEW_SHOT_PATH")
 DATA_PATH = getenv("DATA_PATH")
+if not DATA_PATH:
+    print("DATA_PATH not found, please check your environment")
+    exit(1)
+
+TABLES_PATH = getenv("TABLES_PATH")
+if not TABLES_PATH:
+    TABLES_PATH = DATA_PATH + "few_shot_examples.json"
+
+FEW_SHOT_PATH = getenv("FEW_SHOT_PATH")
+if not FEW_SHOT_PATH:
+    FEW_SHOT_PATH = DATA_PATH + "schema.json"
+
+DESCRIPTIONS_PATH = getenv("")
+if not DESCRIPTIONS_PATH:
+    DESCRIPTIONS_PATH = DATA_PATH + "descriptions.json"
 
 # OEC token and API
-
 OEC_TOKEN = getenv("OEC_TOKEN")
 OEC_API = getenv("OEC_API")
