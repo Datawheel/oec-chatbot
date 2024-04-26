@@ -26,11 +26,11 @@ class historyMock:
         self.content = content
     
 
-@app.get("/wrap/{query}")
-async def wrap(query):
-    #return StreamingResponse(Langbot(query, get_api, [], TABLES_PATH), media_type="application/json")
-    query = [historyMock("HumanMessage", query)]
-    return StreamingResponse(wrapperCall(query, form_json = {'empty':''}, handleAPIBuilder = lambda x: x), media_type="application/json")
+@app.post("/wrap/")
+async def wrap(query, form_json):
+    #query = [historyMock("HumanMessage", query)]
+    print(form_json)
+    return StreamingResponse(wrapperCall(query, form_json, handleAPIBuilder = lambda x: x), media_type="application/json")
 
 
 @app.get("/query/{query}")

@@ -1,4 +1,10 @@
 import json
+from os import getenv
+from table_selection.table_selector import request_tables_to_lm_from_db
+from table_selection.table import TableManager
+
+TABLES_PATH = getenv('TABLES_PATH')
+
 
 
 def get_children(node, parent_id):
@@ -64,6 +70,11 @@ def json_iterator(json):
 
 # Call Schema Json to build Form JSON
 def set_form_json(query):
+    """
+    Call request_tables_to_lm_from_db to obtain a new form_json
+
+    Return: form_json
+    """
     table_manager = TableManager(TABLES_PATH)
     selected_table, form_json, token_tracker = request_tables_to_lm_from_db(query, table_manager, {})
     form_json = {'cube': selected_table.name}

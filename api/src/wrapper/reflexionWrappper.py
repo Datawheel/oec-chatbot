@@ -10,8 +10,7 @@ from wrapper.json_check import json_iterator, set_form_json
 from os import getenv
 import json
 from operator import itemgetter
-from table_selection.table_selector import request_tables_to_lm_from_db
-from table_selection.table import TableManager
+
 
 
 TABLES_PATH = getenv('TABLES_PATH')
@@ -127,17 +126,20 @@ def route_question(info):
     
     if action['type'] =='new question':
         form_json = set_form_json(action['question'])
-        return {'form_json': lambda x: form_json, 'question': lambda x: action['question']} | valid_chain
+        if form_json:
+            return {'form_json': lambda x: form_json, 'question': lambda x: action['question']} | valid_chain
+        else:
+            return "I'm sorry, but OEC does not have data regarding your question, please try something different"
     
     if action['type'] == 'complement information':
-        return {'form_json': str(form_json), 'question': action['question']} | valid_chain
+        return {'form_json': lambda x: form_json, 'question': lambda x: action['question']} | valid_chain
 
 
 
 # LLM validation
 
 validation_sys_prompt = """
-You are linguistic expert, used to analyze questions and complete forms precisely. All output must be in valid JSON format. 
+You are linguistic expert used to analyze questions and complete forms precisely. All output must be in valid JSON format. 
 Don't add explanation beyond the JSON.
 """
 validation_prompt = PromptTemplate.from_template(
@@ -242,6 +244,7 @@ def route_answer(info):
             yield json.dumps({'content': f'Please specify {m[1]}'})
     else:
         yield json.dumps({'content': "Good question, let's check the data..."})
+        #response = handleAPIBuilder(form_json, step= 'get_api_params_from_lm')
         response = handleAPIBuilder(form_json)
         yield json.dumps({'content': response})
 
@@ -264,7 +267,7 @@ main_chain = RunnableSequence(
 
 def wrapperCall(history, form_json, handleAPIBuilder, logger=[] ):
     """
-    
+    Stream main_chain answers
     """
     for answer in main_chain.stream({
         'chathistory': ';'.join([f"{' [AI]' if m.source =='AIMessage' else ' [User]'}:{m.content}"
