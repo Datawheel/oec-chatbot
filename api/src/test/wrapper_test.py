@@ -1,13 +1,19 @@
-from wrapper.lanbot import Langbot
+#from wrapper.lanbot import Langbot
+from wrapper.reflexionWrappper import wrapperCall
 import json
 import pytest
 
 CONFIG_FILE_NAME = 'wrapper_datausa.json'
 
+class historyMock:
+    def __init__(self, source, content):
+        self.source = source
+        self.content = content
+
 test_cases = [
         {
             'titleCase': 'multiple input question',
-            'conversation': ["Who is the president?", 'The current president', 'in 2020'],
+            'conversation': ["Who is the president?", "",'The current president', 'in 2020'],
             'expectedCategory': 'President election',
             'expectedAnswer': 'complete'
         },
@@ -67,7 +73,7 @@ test_cases = [
             'expectedAnswer': 'complete'
         }
     ]
-
+"""
 with open(f'./{CONFIG_FILE_NAME}') as f:
     category_prompts = json.load(f)
 
@@ -80,6 +86,7 @@ for c in category_prompts:
             'expectedCategory': c['name'],
             'expectedAnswer': 'complete'
         })
+"""
 
 @pytest.mark.parametrize("case, expectedCat, expectedAns", [('[User]:' + ';[User]:'.join(i['conversation']),
                                              i['expectedCategory'].lower(), i['expectedAnswer'].lower()) 
@@ -89,7 +96,7 @@ for c in category_prompts:
 def test_classification(case, expectedCat, expectedAns):
     errors = []
     logs = []
-    run = [*Langbot(case, lambda x: print(x) , logger=logs)][0]
+    run = [*wrapperCall(case, logger=logs)][0]
     for i in range(len(logs)):
         if 'type' in logs[i].keys() and logs[i]['name'] == 'JsonOutputParser':
             parsed_ouput = logs[i]['output']

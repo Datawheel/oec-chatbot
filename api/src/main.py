@@ -1,4 +1,3 @@
-
 import time
 import json
 
@@ -8,6 +7,7 @@ from langchain_core.runnables import RunnableLambda, chain
 from app import get_api
 from config import TABLES_PATH
 from wrapper.lanbot import Langbot
+from wrapper.reflexionWrappper import wrapperCall
 
 # fastapi instance declaration
 app = FastAPI()
@@ -20,9 +20,17 @@ async def root():
         "status": "ok"
       }
 
-@app.get("/wrap/{query}")
-async def wrap(query):
-    return StreamingResponse(Langbot(query, get_api, [], TABLES_PATH), media_type="application/json")
+class historyMock:
+    def __init__(self, source, content):
+        self.source = source
+        self.content = content
+    
+
+@app.post("/wrap/")
+async def wrap(query, form_json):
+    #query = [historyMock("HumanMessage", query)]
+    print(form_json)
+    return StreamingResponse(wrapperCall(query, form_json, handleAPIBuilder = lambda x: x), media_type="application/json")
 
 
 @app.get("/query/{query}")

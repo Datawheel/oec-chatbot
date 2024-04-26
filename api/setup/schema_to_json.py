@@ -1,10 +1,10 @@
 import json
-import requests
 import time
 
 import xml.etree.ElementTree as ET
 
-from config import DATA_PATH, TESSERACT_API, OEC_TOKEN
+from utils.functions import request_to_tesseract
+from config import DATA_PATH, DESCRIPTIONS_PATH, TESSERACT_API, TESSERACT_API_SECRET
 
 
 def parse_xml_to_json(xml_file):
@@ -18,41 +18,41 @@ def parse_xml_to_json(xml_file):
     tables = []
 
     shared_dimensions = {}
-    for shared_dimension in root.findall('.//SharedDimension'):
-        shared_dimension_name = shared_dimension.get('name')
-        hierarchy = shared_dimension.find('.//Hierarchy')
-        hierarchy_name = hierarchy.get('name')
-        levels = [level.get('name') for level in hierarchy.findall('.//Level')]
+    for shared_dimension in root.findall(".//SharedDimension"):
+        shared_dimension_name = shared_dimension.get("name")
+        hierarchy = shared_dimension.find(".//Hierarchy")
+        hierarchy_name = hierarchy.get("name")
+        levels = [level.get("name") for level in hierarchy.findall(".//Level")]
         shared_dimensions[shared_dimension_name] = {"hierarchy": hierarchy_name, "levels": levels}
 
-    for cube in root.findall('.//Cube'):
-        table_name = cube.get('name')
+    for cube in root.findall(".//Cube"):
+        table_name = cube.get("name")
 
         measures = []
         dimensions = []
         table_description = None
 
-        for measure in cube.findall('.//Measure'):
-            measure_name = measure.get('name')
-            measure_description = measure.find('.//Annotation[@name="caption_en"]')
+        for measure in cube.findall(".//Measure"):
+            measure_name = measure.get("name")
+            measure_description = measure.find(".//Annotation[@name='caption_en']")
             measure_description = measure_description.text if measure_description is not None else ""
             measures.append({"name": measure_name, "description": measure_description})
 
-        for dimension in cube.findall('.//Dimension'):
-            dimension_name = dimension.get('name')
-            hierarchy_name = dimension.find('.//Hierarchy').get('name')
-            levels = [level.get('name') for level in dimension.findall('.//Level')]
+        for dimension in cube.findall(".//Dimension"):
+            dimension_name = dimension.get("name")
+            hierarchy_name = dimension.find(".//Hierarchy").get("name")
+            levels = [level.get("name") for level in dimension.findall(".//Level")]
             dimensions.append({"name": dimension_name, "hierarchy": hierarchy_name, "levels": levels})
 
-        for dimension_usage in cube.findall('.//DimensionUsage'):
-            dimension_name = dimension_usage.get('name')
-            shared_dimension_name = dimension_usage.get('source')
+        for dimension_usage in cube.findall(".//DimensionUsage"):
+            dimension_name = dimension_usage.get("name")
+            shared_dimension_name = dimension_usage.get("source")
             hierarchy_info = shared_dimensions.get(shared_dimension_name)
             hierarchy_name = hierarchy_info["hierarchy"]
             levels = hierarchy_info["levels"]
             dimensions.append({"name": dimension_name, "hierarchy": hierarchy_name, "levels": levels})
 
-        table_annotation = cube.find('.//Annotation[@name="table_en"]')
+        table_annotation = cube.find(".//Annotation[@name='table_en']")
         if table_annotation is not None:
             table_description = table_annotation.text
 
@@ -84,9 +84,9 @@ def get_members(cube_name, level_name):
     retries = 0
     while retries < 5:
         try: 
-            response = requests.get(TESSERACT_API + 'members.jsonrecords?cube={}&level={}'.format(cube_name, level_name) + '&token=' + OEC_TOKEN)
+            response = request_to_tesseract(TESSERACT_API + "members.jsonrecords?cube={}&level={}".format(cube_name, level_name), TESSERACT_API_SECRET)
             if response.status_code == 200:
-                return response.json()['data']  # Return the data if successful
+                return response.json()["data"]  # Return the data if successful
         except Exception as e:
             print(f"Error occurred: {e}")
         retries += 1
@@ -95,32 +95,39 @@ def get_members(cube_name, level_name):
     return None  # Return None if failed after retries
 
 
-def add_extra_entries(schema_json):
+def add_extra_entries(schema_json, custom_descriptions=None):
     """
     Add extra entries to the downloaded json file required by the api.
     """
     def get_member_key(member):
         """
-        Get's the members key for obtaining the members list.
+        Get"s the members key for obtaining the members list.
         If the tesseract member have the entry LABEL, then use it, if not, use ID
         """
         return "Label" if "Label" in member else "ID"
 
+    if custom_descriptions:
+        with open(DESCRIPTIONS_PATH) as f:
+            descriptions = json.load(f)
+
     for cube in schema_json["cubes"]:
-        print('cube:', cube['name'])
+        print("Processing cube:", cube["name"])
         cube["api"] = "Tesseract"
         cube["default"] = {}
-        cube["description"] = ""
+        # cube["description"] = cubes.get(cube["name"], "")
+        cube["description"] = cube.get("description", descriptions["cubes"].get(cube["name"], ""))
         cube["examples"] = []
         for dimension in cube["dimensions"]:
-            dimension["description"] = ""
+            # dimension["description"] = dimensions.get(dimension["name"], "")
+            dimension["description"] = dimension.get("description", descriptions["dimensions"].get(dimension["name"], ""))
             for hierarchy in dimension["hierarchies"]:
                 for level in hierarchy["levels"]:
-                    members = get_members(cube['name'], level['name'])
+                    members = get_members(cube["name"], level["name"])
                     members_list = [member[get_member_key(member)] for member in members]
                     level["members"] = members_list
         for measure in cube["measures"]:
-            measure["description"] = ""
+            # measure["description"] = measures.get(measure["name"], "")
+            measure["description"] = measure.get("description", descriptions["measures"].get(measure["name"], ""))
 
     return schema_json
 
@@ -129,10 +136,11 @@ def parse_html_cubes_to_json(endpoint, json_file):
     """
     Download the latest cubes endpoint from tesseract and saves the request as a json.
     """
-    r = requests.get(endpoint)
-    schema = add_extra_entries(r.json())
+    r = request_to_tesseract(endpoint, TESSERACT_API_SECRET)
+    schema = r.json()
+    schema = add_extra_entries(r.json(), custom_descriptions=True)
 
-    with open(DATA_PATH + json_file, 'w') as f:
+    with open(DATA_PATH + json_file, "w") as f:
         json.dump(schema, f, indent=4)
 
 
@@ -142,7 +150,6 @@ def main(json_file):
 
 
 if __name__ == "__main__":
-    
     json_file = "schema.json"
     
     main(json_file)
