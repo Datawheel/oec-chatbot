@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import styles from './chatbot.module.css';
-import Langbot from './Langbot';
 import axios from "axios";
 import DataResults from "./DataResults";
 import {
@@ -11,7 +10,7 @@ import ReflectionWrap from './ReflectionWrapper';
 
 
 function Loading({visible, text}) {
-  if (!visible) return;
+  //if (!visible) return;
   // eslint-disable-next-line consistent-return
   return (
     <Box h="40px" my={90}>
@@ -27,6 +26,8 @@ const Chatbot = () => {
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [formJSON, setFormJSON] = useState(
+    {base_url:'', cube: '', dimensions:'', measures:''})
 
 
   const handleSubmit = async (e) => {
@@ -36,7 +37,7 @@ const Chatbot = () => {
     setMessages((prevMessages) => [...prevMessages, userMessage]);
     setLoading(true);
 
-    ReflectionWrap(input, handleData, setMessages, setLoading);
+    ReflectionWrap(messages, formJSON, setFormJSON, handleData, setMessages, setLoading);
 
     setInput('');
   };
@@ -48,10 +49,13 @@ const Chatbot = () => {
         .then((resp) => {
             setMessages((prevMessages) => [...prevMessages,
                {text: <DataResults dataResponse={resp.data}/>, user: false}]);
-            setLoading(false);
+            //setLoading(false);
         })
         .catch((error) => {
             console.error("Error al realizar la consulta:", error);
+            //setLoading(false);
+        })
+        .finally(()=>{
             setLoading(false);
         });
 };

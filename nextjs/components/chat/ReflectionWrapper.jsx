@@ -8,13 +8,18 @@ const NEXT_PUBLIC_CHAT_API = process.env.NEXT_PUBLIC_CHAT_API;
  * @param {*} updater  function to handle setMessegas
  * @param {*} setLoading function to handle loading 
  */
-export default async function ReflectionWrap(input, handleTable, updater, setLoading) {
+export default async function ReflectionWrap(input, formJSON, setFormJSON, handleTable, updater, setLoading) {
     
-    const _URL = `${NEXT_PUBLIC_CHAT_API}wrap/${input}`
+    const _URL = `${NEXT_PUBLIC_CHAT_API}wrap/`
+    const body = JSON.stringify({
+        query: input,
+        form_json: formJSON
+    })
 
     try {
         const response = await fetch(_URL, {
-            method: 'GET'
+            method: 'POST',
+            body: body
         });
 
         if(response.body){
@@ -35,16 +40,18 @@ export default async function ReflectionWrap(input, handleTable, updater, setLoa
                     } else {
                         updater((prevMessages) => [...prevMessages, { text: resp.content, user: false }]);
                     }
+                    if (resp.form_json){
+                        setFormJSON(resp.form_json)
+                    }
 
                 } catch (error) {
                     console.error(error);
-                    setLoading(false);
                 } 
             }
-            setLoading(false);
         }
     } catch (error) {
-        console.error(error);
+        console.error(error);   
+    } finally {
         setLoading(false);
     }
     

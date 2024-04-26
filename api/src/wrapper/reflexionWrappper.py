@@ -133,7 +133,7 @@ def route_question(info):
     
     if action['type'] == 'complement information':
         return {'form_json': lambda x: form_json, 'question': lambda x: action['question']} | valid_chain
-
+    #case type no api call needed
 
 
 # LLM validation
@@ -241,12 +241,12 @@ def route_answer(info):
 
     if missing:
         for m in missing:
-            yield json.dumps({'content': f'Please specify {m[1]}'})
+            yield json.dumps({'content': f'Please specify {m[1]}','form_json': form_json})
     else:
         yield json.dumps({'content': "Good question, let's check the data..."})
         #response = handleAPIBuilder(form_json, step= 'get_api_params_from_lm')
         response = handleAPIBuilder(form_json)
-        yield json.dumps({'content': response})
+        yield json.dumps({'content': response, 'form_json': form_json})
 
 
 
@@ -270,7 +270,7 @@ def wrapperCall(history, form_json, handleAPIBuilder, logger=[] ):
     Stream main_chain answers
     """
     for answer in main_chain.stream({
-        'chathistory': ';'.join([f"{' [AI]' if m.source =='AIMessage' else ' [User]'}:{m.content}"
+        'chathistory': ';'.join([f"{' [AI]' if m.user == False else ' [User]'}:{m.content}"
                             for m in history]) + '[.]',
         'form_json': form_json, 
         'handleAPIBuilder': handleAPIBuilder

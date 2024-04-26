@@ -20,14 +20,15 @@ async def root():
         "status": "ok"
       }
 
-class historyMock:
-    def __init__(self, source, content):
-        self.source = source
-        self.content = content
+class Item(BaseModel):
+    query: list
+    form_json: dict | None = None
+   
     
 
 @app.post("/wrap/")
-async def wrap(query, form_json):
+async def wrap(item: Item):
+    query, form_json = item['query'], item['form_json']
     #query = [historyMock("HumanMessage", query)]
     print(form_json)
     return StreamingResponse(wrapperCall(query, form_json, handleAPIBuilder = lambda x: x), media_type="application/json")
