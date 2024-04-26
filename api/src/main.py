@@ -1,6 +1,6 @@
 import time
 import json
-
+from pydantic import BaseModel
 from fastapi import FastAPI
 from fastapi.responses import StreamingResponse
 from langchain_core.runnables import RunnableLambda, chain
