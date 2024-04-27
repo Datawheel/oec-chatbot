@@ -286,6 +286,8 @@ def route_answer(info):
         form_json = process['form_json']
         missing = json_iterator(form_json)
 
+        # TODO: Debugg missing result
+
         if missing:
             for m in missing:
                 yield json.dumps({'content': f'Please specify {m[1]}','form_json': form_json})

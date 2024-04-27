@@ -30,7 +30,7 @@ export default function ChatPage() {
             w="fit-content"
             // sx={{backgroundClip: "text"}}
           >
-            Welcome to OEC Chat
+            Welcome to OEC AI Chat
           </Title>
           </Stack>
       </Container>
