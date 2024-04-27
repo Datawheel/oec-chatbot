@@ -19,7 +19,7 @@ export default function ChatPage() {
       <NextSeo title="DataUSA Chat" />
       <Container size="xl" py="xl">
         <Stack justify="flex-start" mt="20px">
-          <Image src="/OEC-initials-logo.png" width={100} height={35} style={{display: "block", margin: "0 auto"}} />
+          <Image src="/OEC-initials-logo.png" width={100} height={35} style={{display: "block", margin: "0 auto"}} alt='logo' />
           <Title
             align="center"
             c="white"

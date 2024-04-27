@@ -9,7 +9,7 @@ import {IconSearch} from "@tabler/icons-react";
 import ReflectionWrap from './ReflectionWrapper';
 
 
-function Loading({visible, text}) {
+function Loading({text}) {
   //if (!visible) return;
   // eslint-disable-next-line consistent-return
   return (
@@ -27,7 +27,7 @@ const Chatbot = () => {
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
   const [formJSON, setFormJSON] = useState(
-    {base_url:'', cube: '', dimensions:'', measures:''})
+    {base_url:'', cube: '', dimensions:'', measures:''});
 
 
   const handleSubmit = async (e) => {
@@ -35,9 +35,10 @@ const Chatbot = () => {
     if (!input.trim()) return;
     const userMessage = { text: input, user: true };
     setMessages((prevMessages) => [...prevMessages, userMessage]);
+    const addMessage = [...messages, userMessage]
     setLoading(true);
 
-    ReflectionWrap(messages, formJSON, setFormJSON, handleData, setMessages, setLoading);
+    ReflectionWrap(addMessage, formJSON, setFormJSON, handleData, setMessages, setLoading);
 
     setInput('');
   };
@@ -70,7 +71,7 @@ const Chatbot = () => {
             className={`${styles.message} ${message.user ? styles.userMessage : styles.aiMessage}`}
           >
             { message.text }
-            {loading? <Loading visible={true}/>:<></>}
+            {loading? <Loading />:<></>}
           </div>
         ))}
       </div>

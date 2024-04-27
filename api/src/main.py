@@ -8,9 +8,20 @@ from app import get_api
 from config import TABLES_PATH
 from wrapper.lanbot import Langbot
 from wrapper.reflexionWrappper import wrapperCall
-
+from typing import List, Dict
+from fastapi.middleware.cors import CORSMiddleware
 # fastapi instance declaration
 app = FastAPI()
+
+origins = ["*"]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # api functions
 @app.get("/")
@@ -21,14 +32,14 @@ async def root():
       }
 
 class Item(BaseModel):
-    query: list
-    form_json: dict | None = None
-   
-    
+    query: List[Dict]
+    form_json: Dict | None = None
+  
 
 @app.post("/wrap/")
 async def wrap(item: Item):
-    query, form_json = item['query'], item['form_json']
+    print(item)
+    query, form_json = item.query, item.form_json
     #query = [historyMock("HumanMessage", query)]
     print(form_json)
     return StreamingResponse(wrapperCall(query, form_json, handleAPIBuilder = lambda x: x), media_type="application/json")
