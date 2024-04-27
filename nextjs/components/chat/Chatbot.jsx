@@ -13,7 +13,7 @@ function Loading({text}) {
   //if (!visible) return;
   // eslint-disable-next-line consistent-return
   return (
-    <Box h="40px" my={90}>
+    <Box h="20px" my={90}>
       <Stack>
         <Text ta="center">{text}</Text>
         <Loader variant="bars" mx="auto" />
@@ -71,9 +71,9 @@ const Chatbot = () => {
             className={`${styles.message} ${message.user ? styles.userMessage : styles.aiMessage}`}
           >
             { message.text }
-            {loading? <Loading />:<></>}
           </div>
         ))}
+        {loading? <Loading />:<></>}
       </div>
       <TextInput
             className={styles.chatbotInputForm}
