@@ -40,25 +40,43 @@ def load_data_to_db(api_url, measure_name, cube_name, drilldown_name, drilldown_
     df_embeddings = embedding(df, 'drilldown_name')
     df_embeddings.to_sql(db_table_name, con=POSTGRES_ENGINE, if_exists='append', index=False, schema=schema_name)
 
-def main(include_cubes=[]):
+def main(include_cubes=False):
     with open(TABLES_PATH, 'r') as file:
         cubes_json = json.load(file)
 
-    create_table()
+    if not include_cubes:
+        user_input = input("Are you sure you want to upload all cubes? (y/n): ")
+        if user_input.lower() == 'y':
+            create_table()
 
-    for table in cubes_json['cubes']:
-        cube_name = table['name']
-        if include_cubes and cube_name not in include_cubes:
-            continue
-        measure = table['measures'][0]['name']
-        for dimension in table['dimensions']:
-            for hierarchy in dimension['hierarchies']:
-                for level in hierarchy['levels']:
-                    drilldown_name = level['name']
-                    drilldown_unique_name = level.get('unique_name')
-                    api_url = f"{TESSERACT_API}data.jsonrecords?cube={cube_name}&drilldowns={level['unique_name'] if drilldown_unique_name is not None else drilldown_name}&measures={measure}"
-                    load_data_to_db(api_url, measure, cube_name, drilldown_name, drilldown_unique_name)
+            for table in cubes_json['cubes']:
+                cube_name = table['name']
+                measure = table['measures'][0]['name']
+                for dimension in table['dimensions']:
+                    for hierarchy in dimension['hierarchies']:
+                        for level in hierarchy['levels']:
+                            drilldown_name = level['name']
+                            drilldown_unique_name = level.get('unique_name')
+                            api_url = f"{TESSERACT_API}data.jsonrecords?cube={cube_name}&drilldowns={level['unique_name'] if drilldown_unique_name is not None else drilldown_name}&measures={measure}"
+                            load_data_to_db(api_url, measure, cube_name, drilldown_name, drilldown_unique_name)
+        else: pass
+
+    else: 
+        create_table()
+
+        for table in cubes_json['cubes']:
+            cube_name = table['name']
+            if include_cubes and cube_name not in include_cubes:
+                continue
+            measure = table['measures'][0]['name']
+            for dimension in table['dimensions']:
+                for hierarchy in dimension['hierarchies']:
+                    for level in hierarchy['levels']:
+                        drilldown_name = level['name']
+                        drilldown_unique_name = level.get('unique_name')
+                        api_url = f"{TESSERACT_API}data.jsonrecords?cube={cube_name}&drilldowns={level['unique_name'] if drilldown_unique_name is not None else drilldown_name}&measures={measure}"
+                        load_data_to_db(api_url, measure, cube_name, drilldown_name, drilldown_unique_name)
 
 if __name__ == "__main__":
-    include_cubes = ['gini_inequality_income'] # if set to False it will upload the drilldowns of all cubes in the schema.json
+    include_cubes = False # if set to False it will upload the drilldowns of all cubes in the schema.json
     main(include_cubes)

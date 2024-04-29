@@ -8,7 +8,13 @@ from data_analysis.token_counter import *
 
 cb = TokenTrackingHandler()
 
-def agent_answer(df: DataFrame, natural_language_query: str, api_url: str, token_tracker: Dict[str, Dict[str, int]], model='gpt-4-turbo') -> Tuple[str, Dict[str, Dict[str, int]]]:
+def agent_answer(
+        df: DataFrame, 
+        natural_language_query: str, 
+        api_url: str, 
+        token_tracker: Dict[str, Dict[str, int]] = None, 
+        model = 'gpt-4-turbo'
+        ) -> Tuple[str, Dict[str, Dict[str, int]]]:
     """
     Answer the user's question based on the provided dataframe and additional information.
 
@@ -47,23 +53,36 @@ def agent_answer(df: DataFrame, natural_language_query: str, api_url: str, token
     agent =  create_pandas_dataframe_agent(llm, df, verbose=True)
     response = agent.invoke(prompt)
 
-    if 'agent_answer' in token_tracker:
-        token_tracker['agent_answer']['completion_tokens'] += cb.completion_tokens
-        token_tracker['agent_answer']['prompt_tokens'] += cb.prompt_tokens
-        token_tracker['agent_answer']['total_tokens'] += cb.total_tokens
-        token_tracker['agent_answer']['total_cost'] = (get_openai_token_cost_for_model(model, cb.completion_tokens, is_completion = True) 
-                                                                    + get_openai_token_cost_for_model(model, cb.prompt_tokens, is_completion = False))
+    if token_tracker:
 
-    else:
+        if 'agent_answer' in token_tracker:
+            token_tracker['agent_answer']['completion_tokens'] += cb.completion_tokens
+            token_tracker['agent_answer']['prompt_tokens'] += cb.prompt_tokens
+            token_tracker['agent_answer']['total_tokens'] += cb.total_tokens
+            token_tracker['agent_answer']['total_cost'] = (get_openai_token_cost_for_model(model, cb.completion_tokens, is_completion = True) 
+                                                                        + get_openai_token_cost_for_model(model, cb.prompt_tokens, is_completion = False))
+
+        else:
+            token_tracker['agent_answer'] = {
+                            'completion_tokens': cb.completion_tokens,
+                            'prompt_tokens': cb.prompt_tokens,
+                            'total_tokens': cb.total_tokens,
+                            'total_cost': (
+                                get_openai_token_cost_for_model(model, cb.completion_tokens, is_completion = True) 
+                                + get_openai_token_cost_for_model(model, cb.prompt_tokens, is_completion = False)
+                            )
+                        }
+    else: 
+        token_tracker = {}
         token_tracker['agent_answer'] = {
-                        'completion_tokens': cb.completion_tokens,
-                        'prompt_tokens': cb.prompt_tokens,
-                        'total_tokens': cb.total_tokens,
-                        'total_cost': (
-                            get_openai_token_cost_for_model(model, cb.completion_tokens, is_completion = True) 
-                            + get_openai_token_cost_for_model(model, cb.prompt_tokens, is_completion = False)
-                        )
-                    }
+                            'completion_tokens': cb.completion_tokens,
+                            'prompt_tokens': cb.prompt_tokens,
+                            'total_tokens': cb.total_tokens,
+                            'total_cost': (
+                                get_openai_token_cost_for_model(model, cb.completion_tokens, is_completion = True) 
+                                + get_openai_token_cost_for_model(model, cb.prompt_tokens, is_completion = False)
+                            )
+                        }
 
     if(response == "Agent stopped due to iteration limit or time limit."): response = "I can't answer your question with the available data."
     

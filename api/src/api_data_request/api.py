@@ -11,24 +11,54 @@ from utils.similarity_search import *
 
 class ApiBuilder:
 
-    def __init__(self, base_url: str):
+    def __init__(
+            self, 
+            table: Table, 
+            base_url: str = TESSERACT_API + "data.jsonrecords?",
+            drilldowns: List[str] = None, 
+            measures: List[str] = None, 
+            cuts: List[str] = None,
+            form_json: Dict = None, 
+            ):
         """
         Initializes the ApiBuilder.
 
         Args:
             base_url (str): The base URL for the API.
+            table (Table): The table.
+            drilldowns (List[str]): List of drilldowns.
+            measures (List[str]): List of measures.
+            cuts (List[str]): List of cuts.
+            form_json (Dict): JSON data for initialization.
+            limit (str): The limit.
         """
         self.base_url = base_url
-        self.cube = None
+        self.cube = table.name
         self.cuts = {}
         self.drilldowns = set()
         self.measures = set()
         self.limit = None
         self.sort = None
         self.locale = None
+        
+        if form_json:
+            self.from_json(form_json = form_json, table = table)
+        
+        else:
+            if table:
+                self.cube = table.name
+                valid_drilldowns = table.get_dimension_levels()
 
-    def add_cube(self, cube: str):
-        self.cube = cube
+                if drilldowns:
+                    drilldowns = [drilldown for drilldown in drilldowns if drilldown in valid_drilldowns]
+                    self.add_drilldown(drilldowns)
+
+                if measures:
+                    self.add_measure(measures)
+                else: self.measures = table.measures
+
+                if cuts:
+                    cuts_processing(cuts, table, self)
 
     def add_cut(self, key: str, value: str):
         if key not in self.cuts:
@@ -60,30 +90,41 @@ class ApiBuilder:
         else:
             self.measures.add(measure)
 
-    def set_limit(self, limit: int):
-        self.limit = limit
-
     def set_sort(self, drilldown: str, order: str):
         self.sort = f"{drilldown}.{order}"
 
-    def set_locale(self, locale: str):
-        self.locale = locale
-
-    def from_json(self, json_data: Dict[str, Any]):
+    def from_json(self, form_json: Dict[str, Any], table: Table):
         """
         Initializes the ApiBuilder from JSON data.
 
         Args:
-            json_data (Dict[str, Any]): JSON data containing API parameters.
+            form_json (Dict[str, Any]): JSON data containing API parameters.
         """
-        self.base_url = json_data.get("base_url", self.base_url)
-        self.cube = json_data.get("cube", self.cube)
-        self.cuts = json_data.get("cuts", self.cuts)
-        self.drilldowns = set(json_data.get("drilldowns", self.drilldowns))
-        self.measures = set(json_data.get("measures", self.measures))
-        self.limit = json_data.get("limit", self.limit)
-        self.sort = json_data.get("sort", self.sort)
-        self.locale = json_data.get("locale", self.locale)
+        self.cube = form_json.get("cube", self.cube)
+        #self.limit = form_json.get("limit", self.limit)
+        #self.sort = form_json.get("sort", self.sort)
+        #self.locale = form_json.get("locale", self.locale)
+        self.measures = set(form_json.get("measures", self.measures))
+
+        for dimension, values in form_json["dimensions"].items():
+            if isinstance(values, list):
+                if all(isinstance(val, dict) for val in values):
+                    for subdict in values:
+                        for key, val in subdict.items():
+                            cuts = []
+                            for value in val:
+                                cut = str(key) + " = " + str(value)
+                                cuts.append(cut)
+                            cuts_processing(cuts, table, self)
+                else:
+                    if values:
+                        cuts = []
+                        for value in values:
+                            cut = str(dimension) + " = " + str(value)
+                            cuts.append(cut)
+                        cuts_processing(cuts, table, self)
+            else:
+                print(f"Unexpected format for dimension '{dimension}': {values}")
 
     def update_json(self, json_data: Dict[str, Any]):
         """
@@ -145,14 +186,13 @@ class ApiBuilder:
     def __str__(self):
         return self.build_api()
 
-def cuts_processing(cuts: List[str], table: Table, table_manager: TableManager, api: ApiBuilder):
+def cuts_processing(cuts: List[str], table: Table, api: ApiBuilder):
     """
     Process cuts for the API request.
 
     Args:
         cuts (List[str]): List of cuts.
         table (Table): The table.
-        table_manager (TableManager): The table manager.
         api (ApiBuilder): The ApiBuilder instance.
     """
     year_cuts = []
@@ -168,7 +208,9 @@ def cuts_processing(cuts: List[str], table: Table, table_manager: TableManager, 
     # Process year cuts separately
     year_range = None
     for cut in year_cuts:
-        if ">=" in cut:
+        if 'All' in cut:
+            api.add_drilldown('Year')
+        elif ">=" in cut:
             start_year = int(cut.split('>=')[1].strip())
             if year_range:
                 year_range = (max(year_range[0], start_year), year_range[1])
@@ -202,52 +244,20 @@ def cuts_processing(cuts: List[str], table: Table, table_manager: TableManager, 
         var = cut.split('=')[0].strip()
         cut = cut.split('=')[1].strip()
 
-        var_levels = get_drilldown_levels(table_manager, table.name, var)
+        if 'All' in cut:
+            api.add_drilldown(var)
 
-        if var == "Year" or var == "Month" or var == "Quarter" or var == "Month and Year" or var == "Time":
-            api.add_cut(var, cut)
         else:
-            drilldown_id, drilldown_name, s = get_similar_content(cut, table.name, var_levels)
 
-            if drilldown_name != var:
-                api.drilldowns.discard(var)
-                api.add_drilldown(drilldown_name)
+            var_levels = table.get_dimension_levels(var)
 
-            api.add_cut(drilldown_name, drilldown_id)
+            if var == "Year" or var == "Month" or var == "Quarter" or var == "Month and Year" or var == "Time":
+                api.add_cut(var, cut)
+            else:
+                drilldown_id, drilldown_name, s = get_similar_content(cut, table.name, var_levels)
 
+                if drilldown_name != var:
+                    api.drilldowns.discard(var)
+                    api.add_drilldown(drilldown_name)
 
-def init_api(table: Table, table_manager: TableManager, drilldowns: List[str], measures: List[str], cuts: List[str], limit: str = ""):
-    """
-    Initialize the API request.
-
-    Args:
-        table (Table): The table.
-        table_manager (TableManager): The table manager.
-        drilldowns (List[str]): List of drilldowns.
-        measures (List[str]): List of measures.
-        cuts (List[str]): List of cuts.
-        limit (str, optional): The limit. Defaults to "".
-    
-    Returns:
-        ApiBuilder: The ApiBuilder instance.
-    """
-    base = table.api
-    valid_drilldowns = table.get_dimension_levels()
-
-    for drilldown in drilldowns:
-        if drilldown in valid_drilldowns:
-            pass
-        else: drilldowns.remove(drilldown)
-
-    if base == "Mondrian": base = MONDRIAN_API
-    else: base = TESSERACT_API + "data.jsonrecords?"
-    
-    api = ApiBuilder(base)
-
-    api.add_cube(table.name)
-    api.add_drilldown(drilldowns)
-    api.add_measure(measures)
-
-    cuts_processing(cuts, table, table_manager, api)
-
-    return api
+                api.add_cut(drilldown_name, drilldown_id)

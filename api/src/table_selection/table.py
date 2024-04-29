@@ -40,6 +40,79 @@ class Table:
             measures_str = ", ".join([f"{measure['name']} ({measure.get('description', 'No description')})" for measure in self.schema['measures']])
         return f"Table Name: {self.name}\nDescription: {self.description}\nDimensions: {dimensions_str}\nMeasures: {measures_str}\n"
 
+    def prompt_get_dimensions(self, dimension_name: str = None) -> List[Dict[str, Any]]:
+        """
+        Generates a description of dimension levels.
+
+        Args:
+            dimension_name (str): The name of the dimension.
+
+        Returns:
+            List[Dict[str, Any]]: Description of dimension levels.
+        """
+        dimensions = self.schema['dimensions']
+        
+        def get_level_name(level):
+            return level.get('unique_name') or level['name']
+        
+        if dimension_name:
+            dimension = next((dim for dim in dimensions if dim['name'] == dimension_name), None)
+            if dimension:
+                levels = [get_level_name(level) for hierarchy in dimension['hierarchies'] for level in hierarchy['levels']]
+                return [{
+                    "name": dimension['name'],
+                    "levels": levels
+                }]
+            else:
+                return []
+        else:
+            return [{
+                "name": dimension['name'],
+                "levels": [get_level_name(level) for hierarchy in dimension['hierarchies'] for level in hierarchy['levels']]
+            } for dimension in dimensions]
+        
+    def prompt_columns_description(self, include_levels: bool = False) -> str:
+        """
+        Generates a description of columns.
+
+        Args:
+            include_levels (bool): Flag to include levels.
+
+        Returns:
+            str: The description of columns.
+        """
+        dimensions_str_list = []
+        for dimension in self.schema['dimensions']:
+            default_hierarchy_name = dimension['default_hierarchy']
+            if default_hierarchy_name:
+                for hierarchy in dimension['hierarchies']:
+                    if hierarchy['name'] == default_hierarchy_name:
+                        if include_levels:
+                            levels = [level['unique_name'] if level.get('unique_name') else level['name'] for level in hierarchy['levels']]
+                            dimensions_str_list.append(f"{dimension['name']} ({dimension.get('description', 'No description')}) [Levels: {', '.join(levels)}];\n")
+                        else: 
+                            dimensions_str_list.append(f"{dimension['name']} ({dimension.get('description', 'No description')});\n")
+                        break
+            else:
+                if include_levels: 
+                    levels = [level['unique_name'] if level.get('unique_name') else level['name'] for level in dimension['hierarchies'][0]['levels']]
+                    dimensions_str_list.append(f"{dimension['name']} ({dimension.get('description', 'No description')}) [Levels: {', '.join(levels)}];\n")
+                else: 
+                    dimensions_str_list.append(f"{dimension['name']} ({dimension.get('description', 'No description')});\n")
+        
+        measures_str_list = [
+            f"{measure['name']} ({measure.get('description', 'No description')});\n"
+            for measure in self.schema['measures']
+        ]
+        
+        dimensions_str = ''.join(dimensions_str_list)
+        measures_str = ''.join(measures_str_list)
+
+        columns_str = f"Dimensions:\n" + dimensions_str + "\nMeasures:\n" + measures_str
+        return columns_str
+    
+    # Other methods
+
     def get_measures_description(self, measure_name: str = None) -> List[Dict[str, Any]]:
         """
         Retrieves descriptions of measures.
@@ -130,83 +203,12 @@ class Table:
                 "description": dimension['description']
             } for dimension in self.schema['dimensions']]
         
-    def prompt_get_dimensions(self, dimension_name: str = None) -> List[Dict[str, Any]]:
-        """
-        Generates a description of dimension levels.
-
-        Args:
-            dimension_name (str): The name of the dimension.
-
-        Returns:
-            List[Dict[str, Any]]: Description of dimension levels.
-        """
-        dimensions = self.schema['dimensions']
-        
-        def get_level_name(level):
-            return level.get('unique_name') or level['name']
-        
-        if dimension_name:
-            dimension = next((dim for dim in dimensions if dim['name'] == dimension_name), None)
-            if dimension:
-                levels = [get_level_name(level) for hierarchy in dimension['hierarchies'] for level in hierarchy['levels']]
-                return [{
-                    "name": dimension['name'],
-                    "levels": levels
-                }]
-            else:
-                return []
-        else:
-            return [{
-                "name": dimension['name'],
-                "levels": [get_level_name(level) for hierarchy in dimension['hierarchies'] for level in hierarchy['levels']]
-            } for dimension in dimensions]
-
-    def prompt_columns_description(self, include_levels: bool = False) -> str:
-        """
-        Generates a description of columns.
-
-        Args:
-            include_levels (bool): Flag to include levels.
-
-        Returns:
-            str: The description of columns.
-        """
-        dimensions_str_list = []
-        for dimension in self.schema['dimensions']:
-            default_hierarchy_name = dimension['default_hierarchy']
-            if default_hierarchy_name:
-                for hierarchy in dimension['hierarchies']:
-                    if hierarchy['name'] == default_hierarchy_name:
-                        if include_levels:
-                            levels = [level['unique_name'] if level.get('unique_name') else level['name'] for level in hierarchy['levels']]
-                            dimensions_str_list.append(f"{dimension['name']} ({dimension.get('description', 'No description')}) [Levels: {', '.join(levels)}];\n")
-                        else: 
-                            dimensions_str_list.append(f"{dimension['name']} ({dimension.get('description', 'No description')});\n")
-                        break
-            else:
-                if include_levels: 
-                    levels = [level['unique_name'] if level.get('unique_name') else level['name'] for level in dimension['hierarchies'][0]['levels']]
-                    dimensions_str_list.append(f"{dimension['name']} ({dimension.get('description', 'No description')}) [Levels: {', '.join(levels)}];\n")
-                else: 
-                    dimensions_str_list.append(f"{dimension['name']} ({dimension.get('description', 'No description')});\n")
-        
-        measures_str_list = [
-            f"{measure['name']} ({measure.get('description', 'No description')});\n"
-            for measure in self.schema['measures']
-        ]
-        
-        dimensions_str = ''.join(dimensions_str_list)
-        measures_str = ''.join(measures_str_list)
-
-        columns_str = f"Dimensions:\n" + dimensions_str + "\nMeasures:\n" + measures_str
-        return columns_str
-    
     def get_drilldown_members(self, drilldown_name: str) -> List[str]:
         """
         Retrieves drilldown members.
 
         Args:
-            drilldown_name (str): The name of the drilldown.
+            drilldown_name (str): The name of the drilldown/level.
 
         Returns:
             List[str]: Drilldown members.
@@ -236,7 +238,7 @@ class Table:
             for dimension in self.schema['dimensions']:
                 for hierarchy in dimension['hierarchies']:
                     for level in hierarchy['levels']:
-                        if level['name'] == name:
+                        if level['name'] == name or level['unique_name'] == name:
                             levels = []
                             for level in hierarchy['levels']:
                                 if level['unique_name'] is not None:
@@ -270,6 +272,50 @@ class Table:
                         else:
                             all_levels.append(level['name'])
             return all_levels
+
+    def get_form_json(self):
+        #levels = self.get_dimension_levels()
+        dimensions_info = self.schema["dimensions"]
+
+        drilldowns = {}
+
+        dimension_hierarchies = {}
+        for dimension_info in dimensions_info:
+            dimension_name = dimension_info["name"]
+            for hierarchy_info in dimension_info["hierarchies"]:
+                hierarchy_name = hierarchy_info["name"]
+                if hierarchy_name not in dimension_hierarchies:
+                    dimension_hierarchies[hierarchy_name] = []
+                dimension_hierarchies[hierarchy_name].append(dimension_name)
+
+        for hierarchy_name, dimensions in dimension_hierarchies.items():
+            if len(dimensions) == 1:
+                dimension_name = dimensions[0]
+                if dimension_name == 'Time' or dimension_name == 'Year': 
+                    years = self.get_drilldown_members(drilldown_name = 'Year')
+                    latest_year = max(years)
+                    drilldowns[dimension_name] = [latest_year]
+                else:
+                    drilldowns[dimension_name] = []
+            else:
+                hierarchy_drilldowns = []
+                for dimension_name in dimensions:
+                    item = {dimension_name: []}
+                    hierarchy_drilldowns.append(item)
+                drilldowns["Hierarchy:" + (hierarchy_name)] = hierarchy_drilldowns
+
+        # Construct JSON data
+        json_data = {
+            "base_url": "",
+            "cube": self.name,
+            "dimensions": drilldowns,
+            "measures": self.measures,
+            "limit": "",
+            "sort": "",
+            "locale": ""
+        }
+
+        return json.dumps(json_data, indent=4)
 
     def __str__(self) -> str:
         """
@@ -360,22 +406,3 @@ class TableManager:
                 tables_str_list.append(table.prompt_schema_description())
         
         return "\n\n".join(tables_str_list)
-
-
-def get_drilldown_levels(manager: TableManager, table_name: str, dimension_name: str) -> Union[List[str], None]:
-    """
-    Retrieves levels of a dimension in a table.
-
-    Args:
-        manager (TableManager): The TableManager instance.
-        table_name (str): The name of the table.
-        dimension_name (str): The name of the dimension.
-
-    Returns:
-        Union[List[str], None]: List of dimension levels if found, None otherwise.
-    """
-    table = manager.get_table(table_name)
-    if table:
-        return table.get_dimension_levels(dimension_name)
-    else:
-        return None
