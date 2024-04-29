@@ -77,9 +77,11 @@ def set_form_json(query):
     """
     table_manager = TableManager(TABLES_PATH)
     selected_table, form_json, token_tracker = request_tables_to_lm_from_db(query, table_manager, {})
-    form_json = {'cube': selected_table.name}
-    
-    return form_json
+    if selected_table:
+        form_json = {'cube': selected_table.name}
+        return form_json
+    else:
+        return None
 
 
 

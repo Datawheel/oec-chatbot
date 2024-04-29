@@ -18,15 +18,15 @@ OLLAMA_URL = 'https://caleuche-ollama.datawheel.us'
 CONFIG_FILE_NAME = 'wrapper_datausa.json'
 OPENAI = getenv('OPENAI_KEY')
 
-# Models
+######### Models
 
-model = OpenAI(
+model_ = OpenAI(
     model_name="gpt-3.5-turbo-instruct",
     temperature=0,
     openai_api_key=OPENAI
     )
 
-model_ = Ollama(
+model = Ollama(
     base_url= OLLAMA_URL,
     model= "llama2:7b-chat-q8_0",
     temperature= 0,
@@ -46,18 +46,18 @@ model_adv = Ollama(
 )
 
 
-#Aux func
+############# Aux func
 @chain
 def stream_acc(info):
     """
     Prevent LLMs to stream (stutter) within a langchain chain. Use after the LLM.
     """
-    print('In stream agg: {}'.format(info))
+    print('In stream acc: {}'.format(info))
     return info
 
-#Prompts
+############# Prompts
 
-# Question LLM chat history 
+#####  LLM Question
 
 question_sys_prompt = """
 You are a grammar expert analyzing questions in chats. All output must be in valid JSON format. 
@@ -66,17 +66,15 @@ Don't add explanation beyond the JSON.
 
 question_prompt = PromptTemplate.from_template(
 """
-You are a grammar expert analyzing questions in chats. All output must be in valid JSON format. 
-Don't add explanation beyond the JSON.
-
-In the following Chat history, classify if the the latest [User] input is:
-
+In the following Chat history, classify if the latest [User] input is:
 - a new question made by the user, or 
 - a complementary information for a previous question, or 
 - not a question
 
-If the input is classified as 'complementary information for a previous question', summarize the the question.
-Answer using following output format, here are some examples:
+If the input is classified as 'complementary information', summarize the question.
+
+Answer using following output format. All answer must contain all the four fields (history, reasoning, type and question).
+Here are some examples:
 
 {{
 "history": "[User]: Which country exported most copper;[AI]: Which year?;[User]:2022[.]",
@@ -96,79 +94,95 @@ Answer using following output format, here are some examples:
 "history": "[User]: Hi. how are you?[.]",
 "reasoning":"The user greet",
 "type": "not a question" 
-"question": "None",
+"question": "User said hi",
 }}
 
 here is a chat history: {chathistory}
 """)
 
+alt_question_prompt = PromptTemplate.from_template(
+"""
+You are a grammar expert analyzing questions in chats. All output must be in valid JSON format. 
+Don't add explanation beyond the JSON.
 
+In the following Chat history, classify if the latest [User] input is:
 
+- a new question made by the user, or 
+- a complementary information for a previous question, or 
+- not a question
 
+If the input is classified as 'complementary information', summarize the question.
+Answer using following output format. 
+All answer must contain all the four fields: 
+"history" withthe chat history, 
+"reasoning" with your analysis, 
+"type": with the classification categoty
+"question": with a synthesis of the user's question
 
-# CHAIN
+Here are some examples:
 
-          #.bind(system=question_sys_prompt, format='json'))\
-question_chain = question_prompt\
-    .pipe(model)\
-        .pipe(stream_acc)\
-            .pipe(JsonOutputParser())
+{{
+"history": "[User]: Which country exported most copper;[AI]: Which year?;[User]:2022[.]",
+"reasoning":"User initially asked which country exported the most copper, then AI asked in which year, then user complemented with year 2022",
+"type": "complementary information" 
+"question": "Which country exported most copper in 2022",
+}}
 
-question_chain_alt = question_prompt.pipe(model)
+{{
+"history": "[User]: Which country exported most copper in 2022?;[AI]:Chile;[User]:What are the top five exporting countries for cars in terms of value?;[.]",
+"reasoning":"The lastest question is What are the top five exporting countries for cars in terms of value? which is not related to previous questions",
+"type": "new question" 
+"question": "What are the top five exporting countries for cars in terms of value?",
+}}
 
-@chain
-def route_question(info):
-    form_json = info['form_json']
-    action = info['action']
+{{
+"history": "[User]: Hi. how are you?[.]",
+"reasoning":"The user greet",
+"type": "not a question" 
+"question": "User said hi",
+}}
 
-    if action['type'] == 'not a question':
-        return PromptTemplate("Answer politely: {question}").pipe(model)
-    
-    if action['type'] =='new question':
-        form_json = set_form_json(action['question'])
-        if form_json:
-            return {'form_json': lambda x: form_json, 'question': lambda x: action['question']} | valid_chain
-        else:
-            return "I'm sorry, but OEC does not have data regarding your question, please try something different"
-    
-    if action['type'] == 'complement information':
-        return {'form_json': lambda x: form_json, 'question': lambda x: action['question']} | valid_chain
+here is a chat history: {chathistory}
+""")
 
-
-
-# LLM validation
+##### LLM validation
 
 validation_sys_prompt = """
 You are linguistic expert used to analyze questions and complete forms precisely. All output must be in valid JSON format. 
-Don't add explanation beyond the JSON.
+Don't add explanations beyond the JSON.
 """
 validation_prompt = PromptTemplate.from_template(
 """
 Complete the form based on the question input. User only the explicit information contained in the question.
-If no information is available in the question, left the field blank.
+If no information is available in the question, left the field blank or the current value.
+If the question contains information that is already filled in the form, replace it with que question information.
 Answer in JSON format as shown in the following examples:
 
 {{
 "question":"Which country export the most copper?"
 "explanation":"question mention a flow, a product, but does not mention a time. Then time is left blank and product and flow filled with corresponding values",
 "form_json":{{
-    "base_url": "https://api-dev.datausa.io/tesseract/data.jsonrecords?",
+    "base_url": "",
     "cube": "trade_i_baci_a_96",
-    "cuts": {{
-        "Time": [
-            "2021",
-            "2019",
-            "2020"
+    "dimensions": {{
+        "Year": [2023],
+        "HS Product": ["copper"],
+        "Hierarchy:Geography": [
+            {{
+                "Exporter": []
+            }},
+            {{
+                "Importer": []
+            }}
         ],
-        "product": ["copper"]
+        "Unit": []
     }},
-    "drilldowns": {{
-        "Time":[],
-        "product":["copper"],
-        "flow": "exports"
-    }},
-    "limit": "",
-    "sort": "",
+    "measures": [
+        "Trade Value",
+        "Quantity"
+    ],
+    "limit": "1",
+    "sort": "desc",
     "locale": ""
 }},
 }}
@@ -181,42 +195,61 @@ Here is the question: {question}
 alt_validation_prompt = PromptTemplate.from_template(
 """
 Complete the form based on the question input. User only the explicit information contained in the question.
-If no information is available in the question, left the field blank.
+If no information is available in the question, left the field blank or the current value.
+If the question contains information that is already filled in the form, replace it with que question information.
 Answer in JSON format as shown in the following examples:
 
 {{
 "question":"Which country export the most copper?"
 "explanation":"question mention a flow, a product, but does not mention a time. Then time is left blank and product and flow filled with corresponding values",
 "form_json":{{
-    "base_url": "https://api-dev.datausa.io/tesseract/data.jsonrecords?",
+    "base_url": "",
     "cube": "trade_i_baci_a_96",
-    "cuts": {{
-        "Time": [
-            "2021",
-            "2019",
-            "2020"
+    "dimensions": {{
+        "Year": [2023],
+        "HS Product": ["copper"],
+        "Hierarchy:Geography": [
+            {{
+                "Exporter": []
+            }},
+            {{
+                "Importer": []
+            }}
         ],
-        "product": ["copper"]
+        "Unit": []
     }},
-    "drilldowns": {{
-        "Time":[],
-        "product":["copper"],
-        "flow": "exports"
-    }},
+    "measures": [
+        "Trade Value",
+        "Quantity"
+    ],
     "limit": "",
     "sort": "",
     "locale": ""
 }},
 }}
 
+
 Here is the form: {form_json}
 Here is the question: {question}
 """
 )
 
-#.bind(system = validation_sys_prompt, format='json'))\
+# CHAINs
+
+question_chain = question_prompt\
+    .pipe(model.bind(system=question_sys_prompt, format='json'))\
+    .pipe(stream_acc)\
+    .pipe(JsonOutputParser())\
+    .with_fallbacks([
+        alt_question_prompt\
+        .pipe(model_adv.bind(system=question_sys_prompt, format='json'))\
+        .pipe(stream_acc)\
+        .pipe(JsonOutputParser)
+        ])
+
+
 valid_chain = validation_prompt\
-    .pipe(model)\
+    .pipe(model.bind(system = validation_sys_prompt, format='json'))\
     .pipe(JsonOutputParser())\
     .with_fallbacks(
         [alt_validation_prompt\
@@ -225,32 +258,59 @@ valid_chain = validation_prompt\
                 format= 'json'))\
             .pipe(JsonOutputParser())])
 
+########## ROUTING LOGIC
+
+@chain
+def route_question(info):
+
+    print('In route_question: ', info)
+    form_json = info['form_json']
+    action = info['action']
+
+    if action['type'] == 'not a question':
+        return {'question': lambda x: action['question'] } | PromptTemplate.from_template("Answer politely: {question}").pipe(model)
+    
+    elif action['type'] =='new question':
+        form_json = set_form_json(action['question'])
+        if form_json:
+            return {'form_json': lambda x: form_json, 'question': lambda x: action['question']} | valid_chain
+        else:
+            return "I'm sorry, but OEC does not have data regarding your question, please try something different"
+    
+    elif action['type'] == 'complementary information':
+        print('complement!!!!!!!!!!!!!')
+        return {'form_json': lambda x: form_json, 'question': lambda x: action['question']} | valid_chain
+    #case type no api call needed
 
 
 @chain
 def route_answer(info):
+    print('In route_answer: ', info )
     handleAPIBuilder = info['input']['handleAPIBuilder']
     process = info['process']
 
     # if answer is not json is not a question
     if type(process) == str:
-        return json.dumps({'content': process})
-
-    form_json = process['form_json']
-    missing = json_iterator(form_json)
-
-    if missing:
-        for m in missing:
-            yield json.dumps({'content': f'Please specify {m[1]}'})
+        yield json.dumps({'content': process})
+    
     else:
-        yield json.dumps({'content': "Good question, let's check the data..."})
-        #response = handleAPIBuilder(form_json, step= 'get_api_params_from_lm')
-        response = handleAPIBuilder(form_json)
-        yield json.dumps({'content': response})
+        form_json = process['form_json']
+        missing = json_iterator(form_json)
+
+        # TODO: Debugg missing result
+
+        if missing:
+            for m in missing:
+                yield json.dumps({'content': f'Please specify {m[1]}','form_json': form_json})
+        else:
+            yield json.dumps({'content': "Good question, let's check the data..."})
+            #response = handleAPIBuilder(form_json, step= 'get_api_params_from_lm')
+            response = handleAPIBuilder(form_json)
+            yield json.dumps({'content': response, 'form_json': form_json})
 
 
+################ Build Chain
 
-# Build Chain
 main_chain = RunnableSequence(
     {
         'input': RunnablePassthrough(),
@@ -260,17 +320,17 @@ main_chain = RunnableSequence(
                     'action': question_chain  
                 } | route_question 
             )
-    } | route_answer 
+    } | route_answer,
 )
 
-# Export function
+############# Export function
 
 def wrapperCall(history, form_json, handleAPIBuilder, logger=[] ):
     """
     Stream main_chain answers
     """
     for answer in main_chain.stream({
-        'chathistory': ';'.join([f"{' [AI]' if m.source =='AIMessage' else ' [User]'}:{m.content}"
+        'chathistory': ';'.join([f"{' [AI]' if m['user'] == False else ' [User]'}:{m['text']}"
                             for m in history]) + '[.]',
         'form_json': form_json, 
         'handleAPIBuilder': handleAPIBuilder
@@ -279,8 +339,11 @@ def wrapperCall(history, form_json, handleAPIBuilder, logger=[] ):
         yield answer
   
 
-"""
+
 if __name__ == "__main__":
-    wrapperCall([{'source':'AIMessage', 'content':'hi, how can I help you'},
-             {'source':'AIMessage', 'content':'Which country export the most copper?'}])
-"""
+    wrapperCall(
+        [{'user':False, 'text':'hi, how can I help you'},
+         {'user':True, 'text':'Which country export the most copper?'}],
+         form_json={},
+         handleAPIBuilder=lambda x: x,
+         )

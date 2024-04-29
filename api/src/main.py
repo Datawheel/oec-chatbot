@@ -1,6 +1,6 @@
 import time
 import json
-
+from pydantic import BaseModel
 from fastapi import FastAPI
 from fastapi.responses import StreamingResponse
 from langchain_core.runnables import RunnableLambda, chain
@@ -8,9 +8,20 @@ from app import get_api
 from config import TABLES_PATH
 from wrapper.lanbot import Langbot
 from wrapper.reflexionWrappper import wrapperCall
-
+from typing import List, Dict
+from fastapi.middleware.cors import CORSMiddleware
 # fastapi instance declaration
 app = FastAPI()
+
+origins = ["*"]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # api functions
 @app.get("/")
@@ -20,14 +31,15 @@ async def root():
         "status": "ok"
       }
 
-class historyMock:
-    def __init__(self, source, content):
-        self.source = source
-        self.content = content
-    
+class Item(BaseModel):
+    query: List[Dict]
+    form_json: Dict | None = None
+  
 
 @app.post("/wrap/")
-async def wrap(query, form_json):
+async def wrap(item: Item):
+    print(item)
+    query, form_json = item.query, item.form_json
     #query = [historyMock("HumanMessage", query)]
     print(form_json)
     return StreamingResponse(wrapperCall(query, form_json, handleAPIBuilder = lambda x: x), media_type="application/json")
