@@ -28,7 +28,14 @@ def get_api(
         
     elif step == 'get_api_params_from_lm':
         variables, measures, cuts, token_tracker = get_api_params_from_lm(natural_language_query, kwargs['table'], token_tracker, model = 'gpt-4')
-        api = init_api(kwargs['table'], kwargs['manager'], variables, measures, cuts)
+        api = ApiBuilder(table = kwargs['table'], drilldowns = variables, measures = measures, cuts = cuts)
+        api_url = api.build_api()
+        print("API:", api_url)
+        return get_api(natural_language_query, token_tracker, step = 'fetch_data', **{**kwargs, **{'api': api, "api_url": api_url}})
+
+    elif step == 'get_api_params_from_wrapper':
+        variables, measures, cuts, token_tracker = get_api_params_from_lm(natural_language_query, kwargs['table'], token_tracker, model = 'gpt-4')
+        api = ApiBuilder(table = kwargs['table'], form_json = form_json)
         api_url = api.build_api()
         print("API:", api_url)
         return get_api(natural_language_query, token_tracker, step = 'fetch_data', **{**kwargs, **{'api': api, "api_url": api_url}})
@@ -49,8 +56,8 @@ def get_api(
             log_apicall(natural_language_query, kwargs['api_url'], kwargs['response'], variables, measures, cuts, kwargs['table'], kwargs['start_time'], tokens = token_tracker)
 
         return kwargs['api_url'], kwargs['data'], kwargs['response']
-        
+
     else: return get_api(natural_language_query, step = 'request_tables_to_lm_from_db')
 
 if __name__ == "__main__":
-    get_api('What are the top five exporting countries for cars in terms of value in 2022?')
+    get_api('How much coffee was exported from Colombia to chile between 2010 and 2015?')
