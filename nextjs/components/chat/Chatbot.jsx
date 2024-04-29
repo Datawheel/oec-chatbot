@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import styles from './chatbot.module.css';
 import axios from "axios";
 import DataResults from "./DataResults";
@@ -16,7 +16,7 @@ function Loading({text}) {
     <Box h="20px" my={90}>
       <Stack>
         <Text ta="center">{text}</Text>
-        <Loader variant="bars" mx="auto" />
+        <Loader variant="bars" mx="auto" color='#FFD43B' />
       </Stack>
     </Box>
   );
@@ -26,7 +26,7 @@ const Chatbot = () => {
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [formJSON, setFormJSON] = useState(
+  const formJSON = useRef(
     {base_url:'', cube: '', dimensions:'', measures:''});
 
 
@@ -38,7 +38,7 @@ const Chatbot = () => {
     const addMessage = [...messages, userMessage]
     setLoading(true);
 
-    ReflectionWrap(addMessage, formJSON, setFormJSON, handleData, setMessages, setLoading);
+    ReflectionWrap(addMessage, formJSON, handleData, setMessages, setLoading);
 
     setInput('');
   };

@@ -176,7 +176,7 @@ Answer in JSON format as shown in the following examples:
             }}
         ],
         "Unit": []
-    },
+    }},
     "measures": [
         "Trade Value",
         "Quantity"
@@ -217,7 +217,7 @@ Answer in JSON format as shown in the following examples:
             }}
         ],
         "Unit": []
-    },
+    }},
     "measures": [
         "Trade Value",
         "Quantity"

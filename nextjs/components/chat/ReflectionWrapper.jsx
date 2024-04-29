@@ -10,13 +10,13 @@ const NEXT_PUBLIC_CHAT_API = process.env.NEXT_PUBLIC_CHAT_API;
  * @param {*} updater  function to handle setMessegas
  * @param {*} setLoading function to handle loading 
  */
-export default async function ReflectionWrap(chatHistory, formJSON, setFormJSON, handleTable, updater, setLoading) {
+export default async function ReflectionWrap(chatHistory, formJSON, handleTable, updater, setLoading) {
     
-    //const _URL = `${NEXT_PUBLIC_CHAT_API}wrap/`
-    const _URL = "http://127.0.0.1:8000/wrap/"
+    const _URL = `${NEXT_PUBLIC_CHAT_API}wrap/`
+
     const body = JSON.stringify({
         query: chatHistory,
-        form_json: formJSON
+        form_json: formJSON.current
     });
 
     try {
@@ -51,7 +51,7 @@ export default async function ReflectionWrap(chatHistory, formJSON, setFormJSON,
                     }
                     
                     if (Object.hasOwn(resp,'form_json')){
-                        setFormJSON(resp.form_json)
+                        formJSON.current = resp.form_json;
                     }
 
                 } catch (error) {
