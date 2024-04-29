@@ -5,7 +5,7 @@ from typing import Dict, List, Tuple
 from openai import OpenAI, APIConnectionError
 from sentence_transformers import SentenceTransformer
 
-from config import OPENAI_KEY
+from config import OPENAI_KEY, TESSERACT_API
 from table_selection.table import Table, TableManager
 from utils.few_shot_examples import get_few_shot_example_messages
 from utils.preprocessors.text import extract_text_from_markdown_triple_backticks
@@ -115,7 +115,7 @@ def get_relevant_tables_from_lm(
         "content": natural_language_query
     })
 
-    client = OpenAI(api_key=OPENAI_KEY)
+    client = OpenAI(api_key = OPENAI_KEY)
     
     while attempts < max_attempts:
         try:
@@ -171,7 +171,6 @@ def get_relevant_tables_from_lm(
     table_name = json.loads(tables_json_str).get("table")
 
     return table_name, token_tracker
-    
 
 
 def request_tables_to_lm_from_db(
@@ -196,12 +195,10 @@ def request_tables_to_lm_from_db(
             - An updated token_tracker dictionary with new token usage information.
     """
     db_tables = get_relevant_tables_from_database(natural_language_query, content_limit)
-
-    if token_tracker: 
-        lm_table, token_tracker = get_relevant_tables_from_lm(natural_language_query, table_manager, db_tables, token_tracker)
-        
-    else: lm_table, token_tracker = get_relevant_tables_from_lm(natural_language_query, table_manager, db_tables)
-
+    lm_table, token_tracker = get_relevant_tables_from_lm(natural_language_query, table_manager, db_tables, token_tracker)
+    
     selected_table = table_manager.get_table(lm_table)
-    form_json = {}
+
+    form_json = selected_table.get_form_json()
+
     return selected_table, form_json, token_tracker
