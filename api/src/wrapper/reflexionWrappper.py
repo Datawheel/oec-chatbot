@@ -154,30 +154,35 @@ Don't add explanations beyond the JSON.
 validation_prompt = PromptTemplate.from_template(
 """
 Complete the form based on the question input. User only the explicit information contained in the question.
-If no information is available in the question, left the field blank.
+If no information is available in the question, left the field blank or the current value.
+If the question contains information that is already filled in the form, replace it with que question information.
 Answer in JSON format as shown in the following examples:
 
 {{
 "question":"Which country export the most copper?"
 "explanation":"question mention a flow, a product, but does not mention a time. Then time is left blank and product and flow filled with corresponding values",
 "form_json":{{
-    "base_url": "https://api-dev.datausa.io/tesseract/data.jsonrecords?",
+    "base_url": "",
     "cube": "trade_i_baci_a_96",
-    "cuts": {{
-        "Time": [
-            "2021",
-            "2019",
-            "2020"
+    "dimensions": {{
+        "Year": [2023],
+        "HS Product": ["copper"],
+        "Hierarchy:Geography": [
+            {{
+                "Exporter": []
+            }},
+            {{
+                "Importer": []
+            }}
         ],
-        "product": ["copper"]
-    }},
-    "drilldowns": {{
-        "Time":[],
-        "product":["copper"],
-        "flow": "exports"
-    }},
-    "limit": "",
-    "sort": "",
+        "Unit": []
+    },
+    "measures": [
+        "Trade Value",
+        "Quantity"
+    ],
+    "limit": "1",
+    "sort": "desc",
     "locale": ""
 }},
 }}
@@ -190,33 +195,39 @@ Here is the question: {question}
 alt_validation_prompt = PromptTemplate.from_template(
 """
 Complete the form based on the question input. User only the explicit information contained in the question.
-If no information is available in the question, left the field blank.
+If no information is available in the question, left the field blank or the current value.
+If the question contains information that is already filled in the form, replace it with que question information.
 Answer in JSON format as shown in the following examples:
 
 {{
 "question":"Which country export the most copper?"
 "explanation":"question mention a flow, a product, but does not mention a time. Then time is left blank and product and flow filled with corresponding values",
 "form_json":{{
-    "base_url": "https://api-dev.datausa.io/tesseract/data.jsonrecords?",
+    "base_url": "",
     "cube": "trade_i_baci_a_96",
-    "cuts": {{
-        "Time": [
-            "2021",
-            "2019",
-            "2020"
+    "dimensions": {{
+        "Year": [2023],
+        "HS Product": ["copper"],
+        "Hierarchy:Geography": [
+            {{
+                "Exporter": []
+            }},
+            {{
+                "Importer": []
+            }}
         ],
-        "product": ["copper"]
-    }},
-    "drilldowns": {{
-        "Time":[],
-        "product":["copper"],
-        "flow": "exports"
-    }},
+        "Unit": []
+    },
+    "measures": [
+        "Trade Value",
+        "Quantity"
+    ],
     "limit": "",
     "sort": "",
     "locale": ""
 }},
 }}
+
 
 Here is the form: {form_json}
 Here is the question: {question}
