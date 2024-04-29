@@ -3,18 +3,29 @@ const NEXT_PUBLIC_CHAT_API = process.env.NEXT_PUBLIC_CHAT_API;
 
 /**
  * Handle streaming response from FASTAPI Datausa-chat API wrapper
- * @param {*} input question input
+ * @param {*} chatHistory question input
+ * @param {*} formJSON current form_json state
+ * @param {*} setFormJSON function to set the form_json state
  * @param {*} handleTable function to handle table response from API
  * @param {*} updater  function to handle setMessegas
  * @param {*} setLoading function to handle loading 
  */
-export default async function ReflectionWrap(input, handleTable, updater, setLoading) {
+export default async function ReflectionWrap(chatHistory, formJSON, handleTable, updater, setLoading) {
     
-    const _URL = `${NEXT_PUBLIC_CHAT_API}wrap/${input}`
+    const _URL = `${NEXT_PUBLIC_CHAT_API}wrap/`
+
+    const body = JSON.stringify({
+        query: chatHistory,
+        form_json: formJSON.current
+    });
 
     try {
         const response = await fetch(_URL, {
-            method: 'GET'
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json' 
+              },
+            body: body
         });
 
         if(response.body){
@@ -29,22 +40,28 @@ export default async function ReflectionWrap(input, handleTable, updater, setLoa
                 try {
                     const jsonStr = str.replace(/^data: /, '').trim();
                     const resp = JSON.parse(jsonStr);
-                    if (resp.content.length === 3 ) {
-                        handleTable(resp.content[0]);
-                        updater((prevMessages) => [...prevMessages, { text: resp.content[2], user: false }]);
-                    } else {
-                        updater((prevMessages) => [...prevMessages, { text: resp.content, user: false }]);
+
+                    if (Object.hasOwn(resp,'content')){
+                        if (resp.content.length === 3 ) {
+                            handleTable(resp.content[0]);
+                            updater((prevMessages) => [...prevMessages, { text: resp.content[2], user: false }]);
+                        } else {
+                            updater((prevMessages) => [...prevMessages, { text: resp.content, user: false }]);
+                        }
+                    }
+                    
+                    if (Object.hasOwn(resp,'form_json')){
+                        formJSON.current = resp.form_json;
                     }
 
                 } catch (error) {
                     console.error(error);
-                    setLoading(false);
                 } 
             }
-            setLoading(false);
         }
     } catch (error) {
-        console.error(error);
+        console.error(error);   
+    } finally {
         setLoading(false);
     }
     

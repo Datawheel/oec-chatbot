@@ -22,10 +22,10 @@
     line-height: 1.5;
   }
   .userMessage {
-    background-color: #1971c2;
+    background-color:#1971c2;
     color: #fff;
     text-align: right;
-    min-width: 15vw;
+    min-width: 5vw;
     width: fit-content;
     margin-left: auto; 
     margin-right: 0;

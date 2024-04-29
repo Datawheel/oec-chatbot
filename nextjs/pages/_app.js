@@ -6,7 +6,7 @@ export default function App(props) {
 
   return (
     <>
-      <DefaultSeo title="DataUSA Chat" titleTemplate="%s | DataUSA Chat" />
+      <DefaultSeo title="OEC AI Chat" titleTemplate="%s | OEC AI Chat" />
       <MantineProvider
         withGlobalStyles
         

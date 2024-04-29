@@ -7,19 +7,16 @@ import {
 import Chatbot from "@/components/chat/Chatbot";
 // import RelatedResults from "../../components/chat/RelatedResults";
 
-
-
-
 export default function ChatPage() {
   // initialize required variables
   
 
   return (
     <>
-      <NextSeo title="DataUSA Chat" />
+      <NextSeo title="OEC AI Chat" />
       <Container size="xl" py="xl">
         <Stack justify="flex-start" mt="20px">
-          <Image src="/logo-shadow.png" width={200} height={50} style={{display: "block", margin: "0 auto"}} />
+          <Image src="/OEC-initials-logo.png" width={100} height={35} style={{display: "block", margin: "0 auto"}} alt='logo' />
           <Title
             align="center"
             c="white"
@@ -30,7 +27,7 @@ export default function ChatPage() {
             w="fit-content"
             // sx={{backgroundClip: "text"}}
           >
-            Welcome to DataUSA Chat
+            Welcome to OEC AI Chat
           </Title>
           </Stack>
       </Container>

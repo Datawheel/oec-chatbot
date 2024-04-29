@@ -1,6 +1,6 @@
-# datausa-chat
+# OEC-chat
 
-This repository contains scripts for a chatbot that leverages artificial intelligence to interact with users and gather insights from [DataUSA.io](https://datausa.io/). The chatbot aims to deliver meaningful insights directly from natural language queries, simplifying the process for users to access and analyze data.
+This repository contains scripts for a chatbot that leverages artificial intelligence to interact with users and gather insights from [oec.world](https://https://oec.world/). The chatbot aims to deliver meaningful insights directly from natural language queries, simplifying the process for users to access and analyze data.
 
 ## Folders inside **`api/`**
 

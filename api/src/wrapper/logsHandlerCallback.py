@@ -98,7 +98,6 @@ class logsHandler(BaseCallbackHandler):
     
     def on_llm_end(self, response, run_id, **kwargs):
         basis_response = response.generations[0][0]
-        print(response)
         formatted_response = {
             'type': 'LLM end',
             'name': self.tracer[run_id]['name'],

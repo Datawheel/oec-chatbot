@@ -1,6 +1,5 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import styles from './chatbot.module.css';
-import Langbot from './Langbot';
 import axios from "axios";
 import DataResults from "./DataResults";
 import {
@@ -10,14 +9,14 @@ import {IconSearch} from "@tabler/icons-react";
 import ReflectionWrap from './ReflectionWrapper';
 
 
-function Loading({visible, text}) {
-  if (!visible) return;
+function Loading({text}) {
+  //if (!visible) return;
   // eslint-disable-next-line consistent-return
   return (
-    <Box h="40px" my={90}>
+    <Box h="20px" my={90}>
       <Stack>
         <Text ta="center">{text}</Text>
-        <Loader variant="bars" mx="auto" />
+        <Loader variant="bars" mx="auto" color='#FFD43B' />
       </Stack>
     </Box>
   );
@@ -27,6 +26,8 @@ const Chatbot = () => {
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
+  const formJSON = useRef(
+    {base_url:'', cube: '', dimensions:'', measures:''});
 
 
   const handleSubmit = async (e) => {
@@ -34,9 +35,10 @@ const Chatbot = () => {
     if (!input.trim()) return;
     const userMessage = { text: input, user: true };
     setMessages((prevMessages) => [...prevMessages, userMessage]);
+    const addMessage = [...messages, userMessage]
     setLoading(true);
 
-    ReflectionWrap(input, handleData, setMessages, setLoading);
+    ReflectionWrap(addMessage, formJSON, handleData, setMessages, setLoading);
 
     setInput('');
   };
@@ -48,10 +50,13 @@ const Chatbot = () => {
         .then((resp) => {
             setMessages((prevMessages) => [...prevMessages,
                {text: <DataResults dataResponse={resp.data}/>, user: false}]);
-            setLoading(false);
+            //setLoading(false);
         })
         .catch((error) => {
             console.error("Error al realizar la consulta:", error);
+            //setLoading(false);
+        })
+        .finally(()=>{
             setLoading(false);
         });
 };
@@ -66,9 +71,9 @@ const Chatbot = () => {
             className={`${styles.message} ${message.user ? styles.userMessage : styles.aiMessage}`}
           >
             { message.text }
-            {loading? <Loading visible={true}/>:<></>}
           </div>
         ))}
+        {loading? <Loading />:<></>}
       </div>
       <TextInput
             className={styles.chatbotInputForm}
