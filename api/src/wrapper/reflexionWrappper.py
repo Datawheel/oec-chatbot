@@ -159,17 +159,17 @@ If the question contains information that is already filled in the form, replace
 Answer in JSON format as shown in the following examples:
 
 {{
-"question":"Which country export the most copper?"
+"question":"Which country export the most copper?",
 "explanation":"question mention a flow, a product, but does not mention a time. Then time is left blank and product and flow filled with corresponding values",
 "form_json":{{
-    "base_url": "",
+    "base_url": "https://oec.world/api/olap-proxy/data.jsonrecords?",
     "cube": "trade_i_baci_a_96",
     "dimensions": {{
         "Year": [2023],
         "HS Product": ["copper"],
         "Hierarchy:Geography": [
             {{
-                "Exporter": []
+                "Exporter": ["all"]
             }},
             {{
                 "Importer": []
@@ -200,17 +200,17 @@ If the question contains information that is already filled in the form, replace
 Answer in JSON format as shown in the following examples:
 
 {{
-"question":"Which country export the most copper?"
+"question":"Which country export the most copper?",
 "explanation":"question mention a flow, a product, but does not mention a time. Then time is left blank and product and flow filled with corresponding values",
 "form_json":{{
-    "base_url": "",
+    "base_url": "https://oec.world/api/olap-proxy/data.jsonrecords?",
     "cube": "trade_i_baci_a_96",
     "dimensions": {{
         "Year": [2023],
         "HS Product": ["copper"],
         "Hierarchy:Geography": [
             {{
-                "Exporter": []
+                "Exporter": ["all"]
             }},
             {{
                 "Importer": []
