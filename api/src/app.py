@@ -13,7 +13,7 @@ def get_api(
         natural_language_query: str, 
         token_tracker: Dict[str, Dict[str, int]] = None, 
         step: str = None, 
-        tables_path: str = TABLES_PATH, 
+        form_json: Dict = None,
         **kwargs
         ) -> Tuple[str, Dict, str]:
     
@@ -22,7 +22,7 @@ def get_api(
 
     if step == 'request_tables_to_lm_from_db':
         start_time = time.time()
-        manager = TableManager(tables_path)
+        manager = TableManager(TABLES_PATH)
         table, form_json, token_tracker = request_tables_to_lm_from_db(natural_language_query, manager, token_tracker)
         return get_api(natural_language_query, token_tracker, step ='get_api_params_from_lm', **{'table': table, 'manager': manager, 'start_time': start_time})
         
@@ -34,11 +34,14 @@ def get_api(
         return get_api(natural_language_query, token_tracker, step = 'fetch_data', **{**kwargs, **{'api': api, "api_url": api_url}})
 
     elif step == 'get_api_params_from_wrapper':
-        variables, measures, cuts, token_tracker = get_api_params_from_lm(natural_language_query, kwargs['table'], token_tracker, model = 'gpt-4')
-        api = ApiBuilder(table = kwargs['table'], form_json = form_json)
+        start_time = time.time()
+        table_name = form_json.get("cube")
+        manager = TableManager(TABLES_PATH)
+        table = manager.get_table(table_name)
+        api = ApiBuilder(table = table, form_json = form_json)
         api_url = api.build_api()
         print("API:", api_url)
-        return get_api(natural_language_query, token_tracker, step = 'fetch_data', **{**kwargs, **{'api': api, "api_url": api_url}})
+        return get_api(natural_language_query, token_tracker, step = 'fetch_data', **{**kwargs, **{'api': api, "api_url": api_url, 'table': table, 'start_time': start_time}})
 
     elif step == 'fetch_data': 
         data, df, response = kwargs['api'].fetch_data()
@@ -59,5 +62,6 @@ def get_api(
 
     else: return get_api(natural_language_query, step = 'request_tables_to_lm_from_db')
 
+
 if __name__ == "__main__":
-    get_api('How much coffee was exported from Colombia to chile between 2010 and 2015?')
+    get_api('What where the main products exported from chile and argentina export to the rest of the world in 2022?')
