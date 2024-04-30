@@ -19,7 +19,7 @@ def get_children(node, parent_id):
         return [(parent_id, key, val) for key, val in node.items()]
     elif type(node) == list:
         return [(parent_id, inx, val) for inx, val in enumerate(node)]
-    return None
+    return []
 
 
 def repath_json(goal, visited):
@@ -30,40 +30,71 @@ def repath_json(goal, visited):
     Returns paths to a goal
     """
     # navegate paths in reverse from goal value to json top
-    parent, position = visited[goal]
+    parent, position, child_cnt, completion, type = visited[goal]
     path = [] # list of indices and keys
     while parent:
+        if (child_cnt == completion and completion > 0):
+            return None
         path.append(position)
-        parent, position = visited[parent]
+        parent, position, child_cnt, completion, type = visited[parent]
     
     return path
 
+
+def commpletion_updater(node_id, visited):
+    parent, position, child_cnt, completion, type = visited[node_id]
+    while True:
+        # update value
+        completion += 1
+        visited[node_id] = (parent, position, child_cnt, completion, type)
+        
+        # if 1 child is completed and is list, then mark as completed
+        if (type == list and child_cnt > 1) and parent:
+            completion = child_cnt
+            visited[node_id] = (parent, position, child_cnt, completion, type)
+
+        # if completed, update parent
+        if (child_cnt == completion) and parent:
+            node_id = parent
+            parent, position, child_cnt, completion, type = visited[node_id]
+        else:
+            break
+
+    return visited
+    
 
 
 def json_iterator(json):
     """
     Iterate through JSON of any shape. Evaluate value changes againts other JSON of similar structure
     """
-    visited = {} # shape { node_id : (parent_id, position)}
+    visited = {} # shape { node_id : (parent_id, position, child_cnt, completion, types)}
     ids = 0
-    queue = [(None, None, json)] # Every node is a tuple of parent_id, position and node
-    missing = []
+    stack = [(None, None, json)] # Every node is a tuple of parent_id, position and node
+    blank, missing = [], []
 
-    while queue:
-        parent_id, position, node = queue.pop(0)
+    while stack:
+        parent_id, position, node = stack.pop()
         ids += 1
-        visited[ids] = (parent_id, position)
         children = get_children(node, ids)
-        
+        visited[ids] = (parent_id, position, len(children), 0, type(node))
+                     
         if children:
-            queue += children
+            stack += children
 
         else:
-            # is leaf
-           
+            # is leaf  
             if node == '' or node == []:
-                path_to_node = repath_json(parent_id, visited)
-                missing.append((path_to_node, position))
+                blank.append(ids)
+            else:
+                visited = commpletion_updater(parent_id, visited)
+
+    for id in blank:
+        parent_id, position, child_cnt, completion, types = visited[id]
+        path_to_node = repath_json(parent_id, visited)
+        if path_to_node is not None:
+            missing.append((path_to_node, position))
+
     
     return missing
 
@@ -78,7 +109,28 @@ def set_form_json(query):
     table_manager = TableManager(TABLES_PATH)
     selected_table, form_json, token_tracker = request_tables_to_lm_from_db(query, table_manager, {})
     if selected_table:
-        form_json = {'cube': selected_table.name}
+        form_json = {'base_url':"https://oec.world/api/olap-proxy/data.jsonrecords?",
+                    'cube': selected_table.name,
+                    'dimensions':{
+                            "Year": [2023],
+                            "HS Product": [],
+                            "Hierarchy:Geography": [
+                                {
+                                    "Exporter": []
+                                },
+                                {
+                                    "Importer": []
+                                }
+                            ],
+                            "Unit": ["place_holder"]
+                        },
+                    'measures': [
+                    "Trade Value",
+                    "Quantity"
+                    ],
+                    "limit": "",
+                    "sort": "",
+                    "locale": "en"}
         return form_json
     else:
         return None
@@ -87,29 +139,43 @@ def set_form_json(query):
 
 if __name__ == "__main__":
     form_json = {
-    "base_url": "https://api-dev.datausa.io/tesseract/data.jsonrecords?",
-    "cube": "Consumer Price Index - CPI",
-    "cuts": {
-        "Time": [
-            "2021",
-            "2019",
-            "2020"
+    "base_url": "https://oec.world/api/olap-proxy/data.jsonrecords?",
+    "cube": "trade_i_baci_a_96",
+    "dimensions": {
+        "Year": [2023],
+        "HS Product": [],
+        "Hierarchy:Geography": [
+            {
+                "Exporter": [
+                    {'continent':""},
+                    {'country':""}
+                ]
+            },
+            {
+                "Importer": [
+                    {'continent':""},
+                    {'country':""}
+                ]
+            }
         ],
-        "Level 5.5": [
-            "501010407009"
-        ]
-    },
-    "drilldowns": {
-        "Flow": [ "Imports", "Exports" ],
-        "Level 5.5": []
+        "Unit": []
     },
     "measures": [
-        "Consumer Price Index",
-        "Percent Change"
+        "Trade Value",
+        "Measure"
     ],
-    "limit": "",
-    "sort": "",
+    "limit": "1",
+    "sort": "desc",
     "locale": ""
-    } 
-    missing = json_iterator(form_json)
-    print(missing)
+    }
+
+    missing, visited, blank = json_iterator(form_json)
+    #for k, v in visited.items(): print(k,v)
+    print('\n missing')
+    for m in missing: print(m)
+    print('\n blanks')
+    for m in blank:
+        parent_id, position, child_cnt, completion, types = visited[m]
+        path_to_node = repath_json(parent_id, visited)
+        print(visited[m], path_to_node)
+

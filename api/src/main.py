@@ -42,7 +42,7 @@ async def wrap(item: Item):
     query, form_json = item.query, item.form_json
     #query = [historyMock("HumanMessage", query)]
     print(form_json)
-    return StreamingResponse(wrapperCall(query, form_json, handleAPIBuilder = lambda x: x), media_type="application/json")
+    return StreamingResponse(wrapperCall(query, form_json, handleAPIBuilder = lambda x: str(x)), media_type="application/json")
 
 
 @app.get("/query/{query}")
