@@ -316,7 +316,7 @@ def route_answer(info):
         else:
             yield json.dumps({'content': "Good question, let's check the data..."})
             #response = handleAPIBuilder(form_json, step= 'get_api_params_from_lm')
-            response = handleAPIBuilder(form_json)
+            response = handleAPIBuilder(form_json['measures'])
             yield json.dumps({'content': response, 'form_json': form_json})
 
 

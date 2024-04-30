@@ -56,7 +56,7 @@ const Chatbot = () => {
             console.error("Error al realizar la consulta:", error);
             //setLoading(false);
         })
-        .finally(()=>{
+        .finally(() => {
             setLoading(false);
         });
 };
