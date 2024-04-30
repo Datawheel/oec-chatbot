@@ -200,7 +200,7 @@ def cuts_processing(cuts: List[str], table: Table, api: ApiBuilder):
 
     # Separate year cuts from other cuts
     for cut in cuts:
-        if "Year" in cut:
+        if "Year" in cut and ("<=" in cut or ">=" in cut):
             year_cuts.append(cut)
         else:
             other_cuts.append(cut)
@@ -208,7 +208,7 @@ def cuts_processing(cuts: List[str], table: Table, api: ApiBuilder):
     # Process year cuts separately
     year_range = None
     for cut in year_cuts:
-        if 'All' in cut:
+        if 'All' in cut or 'all' in cut:
             api.add_drilldown('Year')
         elif ">=" in cut:
             start_year = int(cut.split('>=')[1].strip())
@@ -236,7 +236,7 @@ def cuts_processing(cuts: List[str], table: Table, api: ApiBuilder):
                 year_range = (year, year)
 
     if year_range:
-        for year in range(year_range[0], year_range[1] + 1):
+        for year in range(min(year_range), max(year_range) + 1):
             api.add_cut("Year", str(year))
 
     # Process other cuts
@@ -245,10 +245,10 @@ def cuts_processing(cuts: List[str], table: Table, api: ApiBuilder):
         cut = cut.split('=')[1].strip()
 
         if 'All' in cut:
-            api.add_drilldown(var)
+            var_levels = table.get_dimension_levels(var)
+            api.add_drilldown(var_levels[-1])
 
         else:
-
             var_levels = table.get_dimension_levels(var)
 
             if var == "Year" or var == "Month" or var == "Quarter" or var == "Month and Year" or var == "Time":
@@ -261,3 +261,9 @@ def cuts_processing(cuts: List[str], table: Table, api: ApiBuilder):
                     api.add_drilldown(drilldown_name)
 
                 api.add_cut(drilldown_name, drilldown_id)
+
+    for cut, values in api.cuts.items():
+        if len(values) > 1:
+            api.add_drilldown(cut)
+
+        else: api.drilldowns.discard(cut)

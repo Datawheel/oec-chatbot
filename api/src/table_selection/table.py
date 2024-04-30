@@ -312,7 +312,7 @@ class Table:
             "measures": self.measures,
             "limit": "",
             "sort": "",
-            "locale": ""
+            "locale": "en"
         }
 
         return json.dumps(json_data, indent=4)
