@@ -1,7 +1,7 @@
 import json
 from os import getenv
-#from table_selection.table_selector import request_tables_to_lm_from_db
-#from table_selection.table import TableManager
+from table_selection.table_selector import request_tables_to_lm_from_db
+from table_selection.table import TableManager
 
 TABLES_PATH = getenv('TABLES_PATH')
 
