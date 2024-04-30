@@ -161,7 +161,7 @@ Answer in JSON format as shown in the following examples:
 
 {{
 "question":"Which country export the most copper?",
-"explanation":"question mentions a flow, a product, but does not mention a year. 
+"explanation":"question mentions a exporter, a product, but does not mention a year. 
 Then year is left blank and product and flow filled with corresponding values.
 User wants the most, then sort is set to 'desc' for descending and limit is set to '1'",
 "form_json":{{
@@ -186,9 +186,73 @@ User wants the most, then sort is set to 'desc' for descending and limit is set 
     ],
     "limit": "1",
     "sort": "desc",
-    "locale": "place_holder"
+    "locale": "en"
 }},
 }}
+
+{{
+"question":"How much coffee did Colombia exported to US?",
+"explanation":"question mentions a exporter geography, importer geography, a product, but does not mention a year. 
+Then year is left as it is and product and exportenr and imported filled with corresponding values.
+User wants to know how much, then sort is set to 'all' for descending and limit is set to 'all'",
+"form_json":{{
+    "base_url": "https://oec.world/api/olap-proxy/data.jsonrecords?",
+    "cube": "trade_i_baci_a_96",
+    "dimensions": {{
+        "Year": [2023],
+        "HS Product": ["coffee"],
+        "Hierarchy:Geography": [
+            {{
+                "Exporter": ["Colombia"]
+            }},
+            {{
+                "Importer": ["US"]
+            }}
+        ],
+        "Unit": ["place_holder"]
+    }},
+    "measures": [
+        "Trade Value",
+        "Quantity"
+    ],
+    "limit": "all",
+    "sort": "desc",
+    "locale": "en"
+}},
+}}
+
+{{
+"question":"How much coffee did Colombia exported to US?",
+"explanation":"question mentions a exporter geography, importer geography, a product, but does not mention a year. 
+Then year is left as it is and product and exportenr and imported filled with corresponding values.
+User wants to know how much, then sort is set to 'all' for descending and limit is set to 'all'",
+"form_json":{{
+    "base_url": "https://oec.world/api/olap-proxy/data.jsonrecords?",
+    "cube": "trade_i_baci_a_96",
+    "dimensions": {{
+        "Year": [2023],
+        "HS Product": ["coffee"],
+        "Hierarchy:Geography": [
+            {{
+                "Exporter": ["Colombia"]
+            }},
+            {{
+                "Importer": ["US"]
+            }}
+        ],
+        "Unit": ["place_holder"]
+    }},
+    "measures": [
+        "Trade Value",
+        "Quantity"
+    ],
+    "limit": "all",
+    "sort": "desc",
+    "locale": "en"
+}},
+}}
+
+
 
 Here is the form: {form_json}
 Here is the question: {question}
@@ -306,9 +370,14 @@ def route_answer(info):
         if missing:
             request_info = 'Please, specify the following '
             for m in missing:
+                if ':' in m[1]:
+                    dimension = m[1].split(':')[-1]
+                    
+                else:
+                    dimension = m[1]
 
-                options = table.get_drilldown_members(m[1])
-                request_info += '{}, such as {}:'.format(m[1], options)
+                options = table.get_drilldown_members(dimension)
+                request_info += '{}, such as {}:'.format(dimension, options)
 
             yield json.dumps({'content': request_info, 'form_json': form_json })
 

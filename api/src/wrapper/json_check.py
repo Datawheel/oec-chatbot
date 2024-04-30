@@ -109,7 +109,28 @@ def set_form_json(query):
     table_manager = TableManager(TABLES_PATH)
     selected_table, form_json, token_tracker = request_tables_to_lm_from_db(query, table_manager, {})
     if selected_table:
-        form_json = {'cube': selected_table.name}
+        form_json = {'base_url':"https://oec.world/api/olap-proxy/data.jsonrecords?",
+                    'cube': selected_table.name,
+                    'dimensions':{
+                            "Year": [2023],
+                            "HS Product": [],
+                            "Hierarchy:Geography": [
+                                {
+                                    "Exporter": []
+                                },
+                                {
+                                    "Importer": []
+                                }
+                            ],
+                            "Unit": ["place_holder"]
+                        },
+                    'measures': [
+                    "Trade Value",
+                    "Quantity"
+                    ],
+                    "limit": "",
+                    "sort": "",
+                    "locale": "en"}
         return form_json
     else:
         return None
