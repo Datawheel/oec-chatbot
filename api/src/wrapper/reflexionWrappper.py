@@ -12,8 +12,6 @@ from os import getenv
 import json
 from operator import itemgetter
 
-
-
 TABLES_PATH = getenv('TABLES_PATH')
 OLLAMA_URL = 'https://caleuche-ollama.datawheel.us'
 CONFIG_FILE_NAME = 'wrapper_datausa.json'
@@ -149,21 +147,24 @@ here is a chat history: {chathistory}
 ##### LLM validation
 
 validation_sys_prompt = """
-You are linguistic expert used to analyze questions and complete forms precisely. All output must be in valid JSON format. 
+You are linguistic and OEC expert analyst used to analyze questions and complete forms in JSON format precisely. 
+All output must be in valid JSON format. 
 Don't add explanations beyond the JSON.
 """
 validation_prompt = PromptTemplate.from_template(
 """
-Complete the form based on the question input. User only the explicit information contained in the question.
-If no information is available in the question, left the field blank or the current value.
-If the question contains information that is already filled in the form, replace it with que question information.
+Complete the form based on the question. Use only the explicit information contained in the question.
+If no information is available in the question, left the field blank or keep the current value.
+If the question contains information that is already filled in the form, replace it with the question information.
 Answer in JSON format as shown in the following examples:
 
 {{
 "question":"Which country export the most copper?",
 "explanation":"question mentions a exporter, a product, but does not mention a year. 
-Then year is left blank and product and flow filled with corresponding values.
-User wants the most, then sort is set to 'desc' for descending and limit is set to '1'",
+Then year is left blank, the product and Exporter filled with corresponding values.
+User wants 'the most', then sort is set to 'desc' for descending order and limit is set to '1'.
+The rest is left untouched.
+",
 "form_json":{{
     "base_url": "https://oec.world/api/olap-proxy/data.jsonrecords?",
     "cube": "trade_i_baci_a_96",
@@ -172,7 +173,7 @@ User wants the most, then sort is set to 'desc' for descending and limit is set 
         "HS Product": ["copper"],
         "Hierarchy:Geography": [
             {{
-                "Exporter": ["all"]
+                "Exporter": ["All"]
             }},
             {{
                 "Importer": []
@@ -193,8 +194,8 @@ User wants the most, then sort is set to 'desc' for descending and limit is set 
 {{
 "question":"How much coffee did Colombia exported to US?",
 "explanation":"question mentions a exporter geography, importer geography, a product, but does not mention a year. 
-Then year is left as it is and product and exportenr and imported filled with corresponding values.
-User wants to know how much, then sort is set to 'all' for descending and limit is set to 'all'",
+Then year is left as it is and product and exporter and imported filled with corresponding values.
+User wants to know 'how much', then sort is set to 'desc' for descending order and limit is set to 'All'",
 "form_json":{{
     "base_url": "https://oec.world/api/olap-proxy/data.jsonrecords?",
     "cube": "trade_i_baci_a_96",
@@ -215,29 +216,64 @@ User wants to know how much, then sort is set to 'all' for descending and limit 
         "Trade Value",
         "Quantity"
     ],
-    "limit": "all",
+    "limit": "All",
+    "sort": "desc",
+    "locale": "en"
+}},
+}}
+
+
+{{
+"question":"How much product?",
+"explanation":"question mentions product, but does not mention a year or geography. 
+Then year is left as it is and product is set to 'All" but exporter and imported are left blank.
+User wants to know 'how much', then sort is set to 'desc' for descending order and limit is set to 'All'
+",
+"form_json":{{
+    "base_url": "https://oec.world/api/olap-proxy/data.jsonrecords?",
+    "cube": "trade_i_baci_a_96",
+    "dimensions": {{
+        "Year": [2023],
+        "HS Product": ["All"],
+        "Hierarchy:Geography": [
+            {{
+                "Exporter": []
+            }},
+            {{
+                "Importer": []
+            }}
+        ],
+        "Unit": ["place_holder"]
+    }},
+    "measures": [
+        "Trade Value",
+        "Quantity"
+    ],
+    "limit": "All",
     "sort": "desc",
     "locale": "en"
 }},
 }}
 
 {{
-"question":"How much coffee did Colombia exported to US?",
-"explanation":"question mentions a exporter geography, importer geography, a product, but does not mention a year. 
-Then year is left as it is and product and exportenr and imported filled with corresponding values.
-User wants to know how much, then sort is set to 'all' for descending and limit is set to 'all'",
+"question":"What products among HS4 had the largest share of exports from USA in 2020?",
+"explanation":"question mentions a year, a exporter geography and product, it also mention a product level,
+so we add that to the product description as a python dictionary. 
+Then year is left as it is and product is set to 'All', and exporter is set to 'USA'.
+User wants to know 'what', then sort is set to 'desc' for descending order and limit is set to 'All'
+",
 "form_json":{{
     "base_url": "https://oec.world/api/olap-proxy/data.jsonrecords?",
     "cube": "trade_i_baci_a_96",
     "dimensions": {{
         "Year": [2023],
-        "HS Product": ["coffee"],
+        "HS Product": [{'HS4: "All"}],
         "Hierarchy:Geography": [
             {{
-                "Exporter": ["Colombia"]
+                "Exporter": []
             }},
             {{
-                "Importer": ["US"]
+                "Importer": []
             }}
         ],
         "Unit": ["place_holder"]
@@ -246,13 +282,11 @@ User wants to know how much, then sort is set to 'all' for descending and limit 
         "Trade Value",
         "Quantity"
     ],
-    "limit": "all",
+    "limit": "All",
     "sort": "desc",
     "locale": "en"
 }},
 }}
-
-
 
 Here is the form: {form_json}
 Here is the question: {question}
@@ -277,7 +311,7 @@ Answer in JSON format as shown in the following examples:
         "HS Product": ["copper"],
         "Hierarchy:Geography": [
             {{
-                "Exporter": ["all"]
+                "Exporter": ["All"]
             }},
             {{
                 "Importer": []
@@ -384,8 +418,9 @@ def route_answer(info):
 
         else:
             yield json.dumps({'content': "Good question, let's check the data..."})
-            #response = handleAPIBuilder(form_json, step= 'get_api_params_from_lm')
-            response = handleAPIBuilder(form_json['measures'])
+            query = process['question']
+            response = handleAPIBuilder(query, form_json, step= 'get_api_params_from_wrapper')
+            #response = handleAPIBuilder(form_json['measures'])
             yield json.dumps({'content': response, 'form_json': form_json})
 
 
