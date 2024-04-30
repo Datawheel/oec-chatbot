@@ -96,7 +96,7 @@ def json_iterator(json):
             missing.append((path_to_node, position))
 
     
-    return missing, visited, blank
+    return missing
 
 
 # Call Schema Json to build Form JSON

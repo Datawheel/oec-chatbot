@@ -7,6 +7,7 @@ from langchain_core.output_parsers import JsonOutputParser
 from wrapper.logsHandlerCallback import logsHandler
 from langchain.globals import set_debug, set_verbose
 from wrapper.json_check import json_iterator, set_form_json
+from table_selection.table import TableManager
 from os import getenv
 import json
 from operator import itemgetter
@@ -160,7 +161,9 @@ Answer in JSON format as shown in the following examples:
 
 {{
 "question":"Which country export the most copper?",
-"explanation":"question mention a flow, a product, but does not mention a time. Then time is left blank and product and flow filled with corresponding values",
+"explanation":"question mentions a flow, a product, but does not mention a year. 
+Then year is left blank and product and flow filled with corresponding values.
+User wants the most, then sort is set to 'desc' for descending and limit is set to '1'",
 "form_json":{{
     "base_url": "https://oec.world/api/olap-proxy/data.jsonrecords?",
     "cube": "trade_i_baci_a_96",
@@ -175,7 +178,7 @@ Answer in JSON format as shown in the following examples:
                 "Importer": []
             }}
         ],
-        "Unit": []
+        "Unit": ["place_holder"]
     }},
     "measures": [
         "Trade Value",
@@ -183,7 +186,7 @@ Answer in JSON format as shown in the following examples:
     ],
     "limit": "1",
     "sort": "desc",
-    "locale": ""
+    "locale": "place_holder"
 }},
 }}
 
@@ -298,10 +301,18 @@ def route_answer(info):
         missing = json_iterator(form_json)
 
         # TODO: Debugg missing result
-
+        table_manager = TableManager(TABLES_PATH)
+        table = table_manager.get_table(form_json['cube'])
         if missing:
+            request_info = 'Please, specify the following '
             for m in missing:
-                yield json.dumps({'content': f'Please specify {m[1]}','form_json': form_json})
+
+                options = table.get_drilldown_members(m[1])
+                request_info += '{}, such as {}:'.format(m[1], options)
+
+            yield json.dumps({'content': request_info, 'form_json': form_json })
+
+
         else:
             yield json.dumps({'content': "Good question, let's check the data..."})
             #response = handleAPIBuilder(form_json, step= 'get_api_params_from_lm')
@@ -338,7 +349,6 @@ def wrapperCall(history, form_json, handleAPIBuilder, logger=[] ):
     ):
         yield answer
   
-
 
 if __name__ == "__main__":
     wrapperCall(

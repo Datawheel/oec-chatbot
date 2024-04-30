@@ -51,6 +51,7 @@ export default async function ReflectionWrap(chatHistory, formJSON, handleTable,
                     }
                     
                     if (Object.hasOwn(resp,'form_json')){
+                        console.log(resp.form_json);
                         formJSON.current = resp.form_json;
                     }
 
