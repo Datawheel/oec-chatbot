@@ -54,7 +54,7 @@ serviceAccount:
   annotations: {}
   # The name of the service account to use.
   # If not set and create is true, a name is generated using the fullname template
-  name: "datausa-chat-api"
+  name: "chatbot-api-dev"
 
 configMap:
   TOKENIZERS_PARALLELISM: "false"
@@ -68,9 +68,9 @@ ingress:
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
     acme.cert-manager.io/http01-edit-in-place: "true"
     ingress.kubernetes.io/ssl-redirect: "true"
-    nginx.org/proxy-connect-timeout: "240s"
-    nginx.org/proxy-read-timeout: "240s"
-    nginx.org/proxy-send-timeout: "240s"
+    nginx.org/proxy-connect-timeout: "600s"
+    nginx.org/proxy-read-timeout: "600s"
+    nginx.org/proxy-send-timeout: "600s"
     nginx.org/proxy-buffering: "false"
     nginx.org/location-snippets: |
       add_header Access-Control-Allow-Origin *;
@@ -89,6 +89,6 @@ ingress:
       paths:
         - /
   tls:
-    - secretName: datausa-chat-api-dev-ingress-tls
+    - secretName: chatbot-api-dev-ingress-tls
       hosts: 
         - chatbot-api-dev.datausa.io
