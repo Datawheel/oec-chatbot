@@ -106,7 +106,7 @@ jobs:
             --quiet \
             --timeout=40m \
             --config=cloudbuild.yml \
-            --substitutions=_GCP_PROJECT_ID=${{ env.GCP_PROJECT_ID }},_GCP_ARTIFACT_REGISTRY_NAME=${{ env.GCP_ARTIFACT_REGISTRY_NAME }},_GCP_ARTIFACT_REGISTRY_LOCATION=${{ env.GCP_ARTIFACT_REGISTRY_LOCATION }},_GCP_IMAGE_NAME=${{ env.GCP_IMAGE_NAME }},_GCP_IMAGE_TAG=api-${{ github.sha }},_GCP_IMAGE_ENVIRONMENT=${{ env.GKE_APP_NAMESPACE }}
+            --substitutions=_GCP_PROJECT_ID=${{ env.GCP_PROJECT_ID }},_GCP_ARTIFACT_REGISTRY_NAME=${{ env.GCP_ARTIFACT_REGISTRY_NAME }},_GCP_ARTIFACT_REGISTRY_LOCATION=${{ env.GCP_ARTIFACT_REGISTRY_LOCATION }},_GCP_IMAGE_NAME=${{ env.GCP_IMAGE_NAME }},_GCP_IMAGE_TAG=${{ github.sha }},_GCP_IMAGE_ENVIRONMENT=${{ env.GKE_APP_NAMESPACE }}
         working-directory: ./api
 
   deploy:
@@ -150,7 +150,7 @@ jobs:
               --set app.environment=${{ env.GKE_APP_NAMESPACE }} \
               --set app.release=${{ env.GKE_APP_NAMESPACE }} \
               --set image.repository=${{ env.GCP_ARTIFACT_REGISTRY_LOCATION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.GCP_ARTIFACT_REGISTRY_NAME }}/${{ env.GCP_IMAGE_NAME }} \
-              --set image.tag=api-${{ github.sha }} \
+              --set image.tag=${{ github.sha }} \
               --set nameOverride=${{ env.GKE_APP_NAME }} \
               --set fullnameOverride=${{ env.GKE_APP_NAME }} \
               --set configMap.DATA_PATH=${{ vars.DATA_PATH }} \
@@ -205,7 +205,7 @@ jobs:
               --set app.environment=${{ env.GKE_APP_NAMESPACE }} \
               --set app.release=${{ env.GKE_APP_NAMESPACE }} \
               --set image.repository=${{ env.GCP_ARTIFACT_REGISTRY_LOCATION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.GCP_ARTIFACT_REGISTRY_NAME }}/${{ env.GCP_IMAGE_NAME }} \
-              --set image.tag=api-${{ env.GKE_APP_NAMESPACE }} \
+              --set image.tag=${{ env.GKE_APP_NAMESPACE }} \
               --set nameOverride=${{ env.GKE_APP_NAME }} \
               --set fullnameOverride=${{ env.GKE_APP_NAME }} \
               --set configMap.DATA_PATH=${{ vars.DATA_PATH }} \
