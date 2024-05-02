@@ -17,16 +17,20 @@ def get_api(
         **kwargs
         ) -> Tuple[str, Dict, str]:
     
+    print("get_api")
+
     if token_tracker is None:
         token_tracker = {}
 
     if step == 'request_tables_to_lm_from_db':
+        print("quest_tables_to_lm_from_db")
         start_time = time.time()
         manager = TableManager(TABLES_PATH)
         table, form_json, token_tracker = request_tables_to_lm_from_db(natural_language_query, manager, token_tracker)
         return get_api(natural_language_query, token_tracker, step ='get_api_params_from_lm', **{'table': table, 'manager': manager, 'start_time': start_time})
         
     elif step == 'get_api_params_from_lm':
+        print("get_api_params_from_lm")
         variables, measures, cuts, token_tracker = get_api_params_from_lm(natural_language_query, kwargs['table'], token_tracker, model = 'gpt-4')
         api = ApiBuilder(table = kwargs['table'], drilldowns = variables, measures = measures, cuts = cuts)
         api_url = api.build_api()
@@ -34,6 +38,7 @@ def get_api(
         return get_api(natural_language_query, token_tracker, step = 'fetch_data', **{**kwargs, **{'api': api, "api_url": api_url}})
 
     elif step == 'get_api_params_from_wrapper':
+        print("get_api_params_from_wrapper")
         start_time = time.time()
         table_name = form_json.get("cube")
         manager = TableManager(TABLES_PATH)
@@ -44,10 +49,12 @@ def get_api(
         return get_api(natural_language_query, token_tracker, step = 'fetch_data', **{**kwargs, **{'api': api, "api_url": api_url, 'table': table, 'start_time': start_time}})
 
     elif step == 'fetch_data': 
+        print("fetch_data")
         data, df, response = kwargs['api'].fetch_data()
         return get_api(natural_language_query, token_tracker, step = 'agent_answer', **{**kwargs, **{'df': df, 'response': response, 'data': data}})
 
     elif step == 'agent_answer':
+        print("agent_answer")
         api = kwargs['api']
         variables = api.drilldowns
         measures = api.measures
@@ -63,5 +70,21 @@ def get_api(
     else: return get_api(natural_language_query, step = 'request_tables_to_lm_from_db')
 
 
+form_json = {
+    'base_url': 'https://oec.world/api/olap-proxy/data.jsonrecords?', 
+    'cube': 'trade_i_baci_a_96',
+    'dimensions': {
+        'Year': [2022], 
+        'HS Product': ['All'], 
+        'Hierarchy:Geography': [
+            {'Exporter': ['Chile', 'Argentina']}, 
+            {'Importer': []}], 
+        'Unit': ['Metric Tons']}, 
+        'measures': ['Trade Value', 'Quantity'], 
+        'limit': 'All', 
+        'sort': 'asc', 
+        'locale': 'en'}
+
+
 if __name__ == "__main__":
-    get_api('What where the main products exported from chile and argentina export to the rest of the world in 2022?')
+    get_api('What where the main products exported from chile and argentina export to the rest of the world in 2022?', step = 'get_api_params_from_wrapper', form_json = form_json)
