@@ -1,23 +1,25 @@
-from langchain_community.llms import Ollama
-from langchain_openai import OpenAI
+import json
+
+from operator import itemgetter
+from os import getenv
+from langchain.globals import set_debug, set_verbose
 from langchain_community.chat_message_histories import ChatMessageHistory
+from langchain_community.llms import Ollama
+from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.prompts import PromptTemplate
 from langchain_core.runnables import RunnableSequence, RunnablePassthrough, RunnableLambda, RunnableParallel, chain
-from langchain_core.output_parsers import JsonOutputParser
-from wrapper.logsHandlerCallback import logsHandler
-from langchain.globals import set_debug, set_verbose
-from wrapper.json_check import json_iterator, set_form_json
+from langchain_openai import OpenAI
 from table_selection.table import TableManager
-from os import getenv
-import json
-from operator import itemgetter
+from wrapper.json_check import json_iterator, set_form_json
+from wrapper.logsHandlerCallback import logsHandler
+
+from config import TABLES_PATH, OPENAI_KEY
 
 
-
-TABLES_PATH = getenv('TABLES_PATH')
+# TABLES_PATH = getenv('TABLES_PATH')
 OLLAMA_URL = 'https://caleuche-ollama.datawheel.us'
 CONFIG_FILE_NAME = 'wrapper_datausa.json'
-OPENAI = getenv('OPENAI_KEY')
+OPENAI = OPENAI_KEY
 
 ######### Models
 
