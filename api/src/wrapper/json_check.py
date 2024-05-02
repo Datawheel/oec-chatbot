@@ -83,12 +83,14 @@ def json_iterator(json):
             stack += children
 
         else:
-            # is leaf  
+            # is leaf is blank
             if node == '' or node == []:
                 blank.append(ids)
             else:
+                # If complete, backprop to parents
                 visited = commpletion_updater(parent_id, visited)
-
+    
+    # check if parent nodes of blank nodes are marked as complete
     for id in blank:
         parent_id, position, child_cnt, completion, types = visited[id]
         path_to_node = repath_json(parent_id, visited)
@@ -96,7 +98,7 @@ def json_iterator(json):
             missing.append((path_to_node, position))
 
     
-    return missing
+    return missing #, visited, blank
 
 
 # Call Schema Json to build Form JSON
@@ -109,28 +111,13 @@ def set_form_json(query):
     table_manager = TableManager(TABLES_PATH)
     selected_table, form_json, token_tracker = request_tables_to_lm_from_db(query, table_manager, {})
     if selected_table:
-        form_json = {'base_url':"https://oec.world/api/olap-proxy/data.jsonrecords?",
-                    'cube': selected_table.name,
-                    'dimensions':{
-                            "Year": [2023],
-                            "HS Product": [],
-                            "Hierarchy:Geography": [
-                                {
-                                    "Exporter": []
-                                },
-                                {
-                                    "Importer": []
-                                }
-                            ],
-                            "Unit": ["place_holder"]
-                        },
-                    'measures': [
-                    "Trade Value",
-                    "Quantity"
-                    ],
-                    "limit": "",
-                    "sort": "",
-                    "locale": "en"}
+        form_json = json.loads(form_json)
+        form_json['base_url'] = "https://oec.world/api/olap-proxy/data.jsonrecords?"
+        form_json['limit'] = 'placeholder'
+        form_json['sort'] = 'placeholder'
+        form_json['dimensions']['Unit'] = 'Metric Tons'
+        form_json['cube'] = 'trade_i_baci_a_96'
+
         return form_json
     else:
         return None
@@ -138,7 +125,23 @@ def set_form_json(query):
 
 
 if __name__ == "__main__":
-    form_json = {
+    form_json = {'base_url': 'https://oec.world/api/olap-proxy/data.jsonrecords?',
+                'cube': 'trade_i_baci_a_22', 
+                'dimensions': {
+                      'Year': [2022], 
+                      'HS Product': [], 
+                      'Hierarchy:Geography': [
+                          {'Exporter': ['Chile', 'Argentina']}, 
+                          {'Importer': []}
+                          ], 
+                      'Unit': ['placeholder']
+                      }, 
+                'measures': ['Trade Value', 'Quantity'], 
+                'limit': 'All', 
+                'sort': 'desc', 
+                'locale': 'en'}
+    """
+    {
     "base_url": "https://oec.world/api/olap-proxy/data.jsonrecords?",
     "cube": "trade_i_baci_a_96",
     "dimensions": {
@@ -169,8 +172,10 @@ if __name__ == "__main__":
     "locale": ""
     }
 
+    """
     missing, visited, blank = json_iterator(form_json)
-    #for k, v in visited.items(): print(k,v)
+    #missing = json_iterator(form_json)
+    for k, v in visited.items(): print(k,v)
     print('\n missing')
     for m in missing: print(m)
     print('\n blanks')
@@ -178,4 +183,6 @@ if __name__ == "__main__":
         parent_id, position, child_cnt, completion, types = visited[m]
         path_to_node = repath_json(parent_id, visited)
         print(visited[m], path_to_node)
+    """
+    """
 

@@ -38,11 +38,10 @@ class Item(BaseModel):
 
 @app.post("/wrap/")
 async def wrap(item: Item):
-    print(item)
     query, form_json = item.query, item.form_json
-    #query = [historyMock("HumanMessage", query)]
-    print(form_json)
-    return StreamingResponse(wrapperCall(query, form_json, handleAPIBuilder = lambda x: str(x)), media_type="application/json")
+
+
+    return StreamingResponse(wrapperCall(query, form_json, handleAPIBuilder = get_api), media_type="application/json")
 
 
 @app.get("/query/{query}")
