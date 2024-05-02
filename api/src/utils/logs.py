@@ -27,8 +27,22 @@ def create_table(table_name: str, schema_name: str) -> None:
         table_name (str): The name of the table to create.
         schema_name (str): The name of the schema where the table should be created.
     """
-    POSTGRES_ENGINE.execute(f"CREATE SCHEMA IF NOT EXISTS {schema_name}")
-    POSTGRES_ENGINE.execute(f"CREATE TABLE IF NOT EXISTS {schema_name}.{table_name} (query_id text, question text, api_url text, response text, created_on text, drilldowns text, measures text, cuts text, cube text, duration float, total_tokens int, total_cost float)")
+
+    params = {
+        "schema_name": schema_name,
+        "table_name": table_name
+    }
+
+    insert_query = text("""
+        CREATE SCHEMA IF NOT EXISTS schema_name
+        CREATE TABLE IF NOT EXISTS schema_name.table_name
+    """)
+
+    with POSTGRES_ENGINE.connect() as conn:
+        conn.execute(insert_query, params)
+
+    # POSTGRES_ENGINE.execute(f"CREATE SCHEMA IF NOT EXISTS {schema_name}")
+    # POSTGRES_ENGINE.execute(f"CREATE TABLE IF NOT EXISTS {schema_name}.{table_name} (query_id text, question text, api_url text, response text, created_on text, drilldowns text, measures text, cuts text, cube text, duration float, total_tokens int, total_cost float)")
     return
 
 def log_apicall(
@@ -104,7 +118,7 @@ def log_apicall(
         "total_cost": total_cost
     }
     
-    create_table(LOGS_TABLE_NAME, SCHEMA_LOGS)
+    # create_table(LOGS_TABLE_NAME, SCHEMA_LOGS)
 
     insert_query = text("""
         INSERT INTO chat.logs (query_id, question, api_url, response, created_on, drilldowns, measures, cuts, cube, duration, total_tokens, total_cost)
