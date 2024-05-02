@@ -52,15 +52,15 @@ if not DATA_PATH:
     print("DATA_PATH not found, please check your environment")
     exit(1)
 
-TABLES_PATH = getenv("TABLES_PATH")
-if not TABLES_PATH:
-    TABLES_PATH = DATA_PATH + "few_shot_examples.json"
-
 FEW_SHOT_PATH = getenv("FEW_SHOT_PATH")
 if not FEW_SHOT_PATH:
-    FEW_SHOT_PATH = DATA_PATH + "schema.json"
+    FEW_SHOT_PATH = DATA_PATH + "few_shot_examples.json"
 
-DESCRIPTIONS_PATH = getenv("")
+TABLES_PATH = getenv("TABLES_PATH")
+if not TABLES_PATH:
+    TABLES_PATH = DATA_PATH + "schema.json"
+
+DESCRIPTIONS_PATH = getenv("DESCRIPTIONS_PATH")
 if not DESCRIPTIONS_PATH:
     DESCRIPTIONS_PATH = DATA_PATH + "descriptions.json"
 
