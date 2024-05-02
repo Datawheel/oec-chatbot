@@ -79,7 +79,7 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
-    environment: api
+    environment: api-dev
     if: ${{ !contains(github.event.head_commit.message, '#update') }}
     steps:
       - name: Checkout
@@ -112,7 +112,7 @@ jobs:
   deploy:
     needs: build
     runs-on: ubuntu-latest
-    environment: api
+    environment: api-dev
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -135,8 +135,10 @@ jobs:
       # Transform GitHub secrets to base64 encoded
       - name: Set encoded secret values
         run: |
-          echo "ENCODED_POSTGRES_PASSWORD=$(echo -n "${{ secrets.POSTGRES_PASSWORD }}" | base64 | tr -d '\n')" >> $GITHUB_ENV
           echo "ENCODED_OPENAI_KEY=$(echo -n "${{ secrets.OPENAI_KEY }}" | base64 | tr -d '\n')" >> $GITHUB_ENV
+          echo "ENCODED_POSTGRES_HOST=$(echo -n "${{ secrets.POSTGRES_HOST }}" | base64 | tr -d '\n')" >> $GITHUB_ENV
+          echo "ENCODED_POSTGRES_PASSWORD=$(echo -n "${{ secrets.POSTGRES_PASSWORD }}" | base64 | tr -d '\n')" >> $GITHUB_ENV
+          echo "ENCODED_TESSERACT_API_SECRET=$(echo -n "${{ secrets.TESSERACT_API_SECRET }}" | base64 | tr -d '\n')" >> $GITHUB_ENV
 
       # Install Helm chart
       - name: Helm install
@@ -151,20 +153,20 @@ jobs:
               --set image.tag=${{ github.sha }} \
               --set nameOverride=${{ env.GKE_APP_NAME }} \
               --set fullnameOverride=${{ env.GKE_APP_NAME }} \
-              --set configMap.FEW_SHOT_PATH=${{ vars.FEW_SHOT_PATH }} \
-              --set configMap.MONDRIAN_API=${{ vars.MONDRIAN_API }} \
+              --set configMap.DATA_PATH=${{ vars.DATA_PATH }} \
+              --set configMap.OLLAMA_API=${{ vars.OLLAMA_API }} \
               --set configMap.POSTGRES_DB=${{ vars.POSTGRES_DB }} \
-              --set configMap.POSTGRES_HOST=${{ vars.POSTGRES_HOST }} \
               --set configMap.POSTGRES_USER=${{ vars.POSTGRES_USER }} \
-              --set configMap.TABLES_PATH=${{ vars.TABLES_PATH }} \
               --set configMap.TESSERACT_API=${{ vars.TESSERACT_API }} \
               --set secrets.OPENAI_KEY=$ENCODED_OPENAI_KEY \
+              --set secrets.POSTGRES_HOST=$ENCODED_POSTGRES_HOST \
               --set secrets.POSTGRES_PASSWORD=$ENCODED_POSTGRES_PASSWORD \
+              --set secrets.TESSERACT_API_SECRET=$ENCODED_TESSERACT_API_SECRET \
               ${{ env.GKE_APP_NAME }} --values=./helm/values-api.yaml ./helm
   
   update:
     runs-on: ubuntu-latest
-    environment: api
+    environment: api-dev
     if: ${{ contains(github.event.head_commit.message, '#update') }}
     steps:
       - name: Checkout
@@ -188,8 +190,10 @@ jobs:
       # Transform GitHub secrets to base64 encoded
       - name: Set encoded secret values
         run: |
-          echo "ENCODED_POSTGRES_PASSWORD=$(echo -n "${{ secrets.POSTGRES_PASSWORD }}" | base64 | tr -d '\n')" >> $GITHUB_ENV
           echo "ENCODED_OPENAI_KEY=$(echo -n "${{ secrets.OPENAI_KEY }}" | base64 | tr -d '\n')" >> $GITHUB_ENV
+          echo "ENCODED_POSTGRES_HOST=$(echo -n "${{ secrets.POSTGRES_HOST }}" | base64 | tr -d '\n')" >> $GITHUB_ENV
+          echo "ENCODED_POSTGRES_PASSWORD=$(echo -n "${{ secrets.POSTGRES_PASSWORD }}" | base64 | tr -d '\n')" >> $GITHUB_ENV
+          echo "ENCODED_TESSERACT_API_SECRET=$(echo -n "${{ secrets.TESSERACT_API_SECRET }}" | base64 | tr -d '\n')" >> $GITHUB_ENV
 
       # Install Helm chart
       - name: Helm install
@@ -204,13 +208,13 @@ jobs:
               --set image.tag=${{ env.GKE_APP_NAMESPACE }} \
               --set nameOverride=${{ env.GKE_APP_NAME }} \
               --set fullnameOverride=${{ env.GKE_APP_NAME }} \
-              --set configMap.FEW_SHOT_PATH=${{ vars.FEW_SHOT_PATH }} \
-              --set configMap.MONDRIAN_API=${{ vars.MONDRIAN_API }} \
+              --set configMap.DATA_PATH=${{ vars.DATA_PATH }} \
+              --set configMap.OLLAMA_API=${{ vars.OLLAMA_API }} \
               --set configMap.POSTGRES_DB=${{ vars.POSTGRES_DB }} \
-              --set configMap.POSTGRES_HOST=${{ vars.POSTGRES_HOST }} \
               --set configMap.POSTGRES_USER=${{ vars.POSTGRES_USER }} \
-              --set configMap.TABLES_PATH=${{ vars.TABLES_PATH }} \
               --set configMap.TESSERACT_API=${{ vars.TESSERACT_API }} \
               --set secrets.OPENAI_KEY=$ENCODED_OPENAI_KEY \
+              --set secrets.POSTGRES_HOST=$ENCODED_POSTGRES_HOST \
               --set secrets.POSTGRES_PASSWORD=$ENCODED_POSTGRES_PASSWORD \
+              --set secrets.TESSERACT_API_SECRET=$ENCODED_TESSERACT_API_SECRET \
               ${{ env.GKE_APP_NAME }} --values=./helm/values-api.yaml ./helm
