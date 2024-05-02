@@ -65,6 +65,7 @@ def log_apicall(
     # Convert sets and dict to JSON strings
     drilldowns_list = list(drilldowns)
     measures_list = list(measures)
+    print(cuts)
     cuts_dict = {key: list(value) for key, value in cuts.items()}
 
     drilldowns_json = json.dumps(drilldowns_list)
