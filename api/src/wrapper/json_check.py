@@ -3,8 +3,7 @@ from os import getenv
 from table_selection.table_selector import request_tables_to_lm_from_db
 from table_selection.table import TableManager
 
-TABLES_PATH = getenv('TABLES_PATH')
-
+from config import TABLES_PATH
 
 
 def get_children(node, parent_id):
