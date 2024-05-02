@@ -38,6 +38,7 @@ COPY /src .
 COPY /data ./data
 
 ENV PATH="/usr/app/venv/bin:$PATH"
+ENV PYTHONUNBUFFERED=1
 
 # Run the app
 CMD [ "uvicorn", "main:app", "--proxy-headers", "--host", "0.0.0.0", "--port", "80", "--timeout-keep-alive", "120" ]
