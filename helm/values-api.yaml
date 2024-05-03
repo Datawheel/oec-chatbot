@@ -56,7 +56,7 @@ serviceAccount:
   annotations: {}
   # The name of the service account to use.
   # If not set and create is true, a name is generated using the fullname template
-  name: "chatbot-api-dev"
+  name: "chatbot-api"
 
 configMap:
   TOKENIZERS_PARALLELISM: "false"
@@ -91,6 +91,6 @@ ingress:
       paths:
         - /
   tls:
-    - secretName: chatbot-api-dev-ingress-tls
+    - secretName: chatbot-api-ingress-tls
       hosts: 
         - oec-chatbot-api-dev.datawheel.us
