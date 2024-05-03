@@ -85,10 +85,10 @@ ingress:
       proxy_set_header          Upgrade $http_upgrade;
       proxy_set_header          Connection "upgrade";
   hosts:
-    - host: chatbot-api-dev.oec.world
+    - host: oec-chatbot-api-dev.datawheel.us
       paths:
         - /
   tls:
     - secretName: chatbot-api-dev-ingress-tls
       hosts: 
-        - chatbot-api-dev.oec.world
+        - oec-chatbot-api-dev.datawheel.us
