@@ -13,14 +13,13 @@ from fastapi.middleware.cors import CORSMiddleware
 # fastapi instance declaration
 app = FastAPI()
 
-origins = ["*"]
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    # allow_origins=origins,
+    # allow_credentials=True,
+    # allow_methods=["*"],
+    # allow_headers=["*"],
+    expose_headers=[ "X-Experimental-Stream-Data" ]
 )
 
 # api functions
@@ -80,5 +79,4 @@ def fn2():
 @app.get("/num/")
 def num():
     return StreamingResponse(fn2(), media_type="application/json")
-
 
