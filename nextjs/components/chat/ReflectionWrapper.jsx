@@ -23,7 +23,9 @@ export default async function ReflectionWrap(chatHistory, formJSON, handleTable,
         const response = await fetch(_URL, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json' 
+                'Content-Type': 'application/json', 
+                'Connection': 'keep-alive',
+                'Accept-Encoding': 'gzip; deflate; br'
               },
             body: body
         });
