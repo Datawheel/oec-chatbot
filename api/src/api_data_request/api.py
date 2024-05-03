@@ -150,6 +150,8 @@ class ApiBuilder:
             query_params.append(f"{key}={','.join(values)}")
         if self.drilldowns:
             query_params.append("drilldowns=" + ",".join(self.drilldowns))
+        else: query_params.append("drilldowns=Year")
+
         if self.measures:
             query_params.append("measures=" + ",".join(self.measures))
         if self.limit is not None:
