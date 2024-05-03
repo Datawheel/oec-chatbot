@@ -267,5 +267,7 @@ def cuts_processing(cuts: List[str], table: Table, api: ApiBuilder):
     for cut, values in api.cuts.items():
         if len(values) > 1:
             api.add_drilldown(cut)
+        elif "HS" in cut:
+            api.add_drilldown(cut)
 
         else: api.drilldowns.discard(cut)
