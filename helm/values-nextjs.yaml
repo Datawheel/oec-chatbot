@@ -76,15 +76,20 @@ ingress:
     nginx.org/proxy-buffers: "8 16k"
     nginx.org/proxy-buffer-size: "16k"
     nginx.org/proxy-busy-buffers-size: "64k"
+    nginx.org/websocket-services: "chatbot-site"
     nginx.org/location-snippets: |
       add_header Access-Control-Allow-Origin *;
       add_header Access-Control-Allow-Methods 'GET, POST, OPTIONS, PUT' always;
       add_header Access-Control-Allow-Headers 'Content-Type' always;
-
+      
+      proxy_pass_header         Access-Control-Allow-Origin;
+      proxy_pass_header         Access-Control-Allow-Methods;
+      proxy_pass_header         Access-Control-Allow-Headers;
   hosts:
     - host: oec-chatbot-dev.datawheel.us
       paths:
         - /
+        - /ws
   tls:
     - secretName: chatbot-site-ingress-tls
       hosts: 
