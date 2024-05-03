@@ -110,7 +110,7 @@ def set_form_json(query):
     table_manager = TableManager(TABLES_PATH)
     selected_table, form_json, token_tracker = request_tables_to_lm_from_db(query, table_manager, {})
     if selected_table:
-        form_json = json.loads(form_json)
+        #form_json = json.loads(form_json)
         form_json['base_url'] = "https://oec.world/api/olap-proxy/data.jsonrecords?"
         form_json['limit'] = 'placeholder'
         form_json['sort'] = 'placeholder'

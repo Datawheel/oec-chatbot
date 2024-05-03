@@ -315,7 +315,7 @@ class Table:
             "locale": "en"
         }
 
-        return json.dumps(json_data, indent=4)
+        return json_data
 
     def __str__(self) -> str:
         """
