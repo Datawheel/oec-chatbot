@@ -75,7 +75,7 @@ ingress:
     nginx.org/location-snippets: |
       add_header Access-Control-Allow-Origin *;
       add_header Access-Control-Allow-Methods 'GET, POST, OPTIONS, PUT' always;
-      add_header Access-Control-Allow-Headers 'Content-Type' always;
+      add_header Access-Control-Allow-Headers 'User-Agent,Keep-Alive,Content-Type' always;
       
       proxy_pass_header         Access-Control-Allow-Origin;
       proxy_pass_header         Access-Control-Allow-Methods;
