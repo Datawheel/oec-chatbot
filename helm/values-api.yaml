@@ -70,10 +70,8 @@ ingress:
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
     acme.cert-manager.io/http01-edit-in-place: "true"
     ingress.kubernetes.io/ssl-redirect: "true"
-    nginx.org/proxy-connect-timeout: "600s"
-    nginx.org/proxy-read-timeout: "600s"
-    nginx.org/proxy-send-timeout: "600s"
     nginx.org/proxy-buffering: "false"
+    nginx.org/websocket-services: "chatbot-api"
     nginx.org/location-snippets: |
       add_header Access-Control-Allow-Origin *;
       
@@ -90,6 +88,7 @@ ingress:
     - host: oec-chatbot-api-dev.datawheel.us
       paths:
         - /
+        - /ws
   tls:
     - secretName: chatbot-api-ingress-tls
       hosts: 
