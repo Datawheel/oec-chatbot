@@ -78,5 +78,5 @@ def main(include_cubes=False):
                         load_data_to_db(api_url, measure, cube_name, drilldown_name, drilldown_unique_name)
 
 if __name__ == "__main__":
-    include_cubes = False # if set to False it will upload the drilldowns of all cubes in the schema.json
+    include_cubes = ['trade_i_baci_a_22'] # if set to False it will upload the drilldowns of all cubes in the schema.json
     main(include_cubes)

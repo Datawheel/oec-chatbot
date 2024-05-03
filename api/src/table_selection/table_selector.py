@@ -43,6 +43,28 @@ def _get_table_selection_message_with_descriptions(table_manager: TableManager, 
         ```
 
         """
+        )
+
+    message2 = (
+        f"""
+        ### Task ###
+        Act as a database specialist.
+        You are given a question from a user, and a list of tables you are able to query. 
+        Select the most relevant table that could contain the data to answer the user's question given the following table schemas:
+
+        ### Table schemas ###
+        {table_manager.get_table_schemas(table_names)}
+
+        ### Output details ###
+        Return a JSON with the following fields:
+
+            - "explanation": one to two sentence comment explaining why the chosen table is relevant goes here, double checking it exists in the list provided before.
+            - "table": The name of the selected table, the most relevant one to answer the question.
+    
+        ### Output format ###
+        {response_part}
+            
+        """
     )
 
     return message

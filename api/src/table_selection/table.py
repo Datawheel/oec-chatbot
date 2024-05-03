@@ -291,10 +291,16 @@ class Table:
         for hierarchy_name, dimensions in dimension_hierarchies.items():
             if len(dimensions) == 1:
                 dimension_name = dimensions[0]
+                members = self.get_drilldown_members(drilldown_name = dimension_name)
+                
                 if dimension_name == 'Time' or dimension_name == 'Year': 
                     years = self.get_drilldown_members(drilldown_name = 'Year')
                     latest_year = max(years)
                     drilldowns[dimension_name] = [latest_year]
+                
+                elif len(members) == 1:
+                    drilldowns[dimension_name] = [members]
+
                 else:
                     drilldowns[dimension_name] = []
             else:

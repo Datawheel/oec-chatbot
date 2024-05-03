@@ -49,6 +49,28 @@ def agent_answer(
         """
     )
 
+    prompt2 = (
+        f"""
+        ### Task ###
+        Act as a professional data analyst working for the Observatory of Economic Complexity. Analyze the given dataframe and answer, as accurate and complete as possible, the following user's question.
+        
+        ### User's question ###
+        {natural_language_query}
+        
+        ### Instructions ###
+        Take into consideration the data type and formatting of the columns.
+        It's possible that any product/service or other variables the user is referring to appears with a different name in the dataframe. Explain this in your answer in a polite manner, but always trying to give an answer with the available data.
+        If you can't answer the question with the provided data, please answer with "I can't answer your question with the available data".
+
+        You can complement your answer with any content found in the Observatory of Economic Complexity.
+        Notice that this dataframe was extracted with the following API (you can see the drilldowns, measures and cuts that have been applied to extract the data):
+        {api_url}
+
+        Lets think it through step by step.
+        Avoid any further comments not related to the question itself.
+        """
+    )
+
     llm = ChatOpenAI(model_name = model, temperature = 0, openai_api_key = OPENAI_KEY, callbacks = [cb])
     agent =  create_pandas_dataframe_agent(llm, df, verbose=True)
     response = agent.invoke(prompt)
