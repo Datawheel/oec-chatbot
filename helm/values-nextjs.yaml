@@ -22,6 +22,7 @@ resources:
     memory: 264Mi
 
 livenessProbe:
+  enabled: false
   failureThreshold: 3
   httpGet:
     path: /
@@ -33,6 +34,7 @@ livenessProbe:
   successThreshold: 1
 
 readinessProbe:
+  enabled: false
   failureThreshold: 3
   httpGet:
     path: /
@@ -54,7 +56,7 @@ serviceAccount:
   annotations: {}
   # The name of the service account to use.
   # If not set and create is true, a name is generated using the fullname template
-  name: "datausa-chat-nextjs"
+  name: "chatbot-site"
 
 # configMap:
 #   <VARIABLE>: <VARIABLE_VALUE>
@@ -77,10 +79,10 @@ ingress:
     nginx.org/location-snippets: |
       add_header Access-Control-Allow-Origin *;
   hosts:
-    - host: chat-dev.datausa.io
+    - host: oec-chatbot-dev.datawheel.us
       paths:
         - /
   tls:
-    - secretName: datausa-chat-nextjs-dev-ingress-tls
+    - secretName: chatbot-site-ingress-tls
       hosts: 
-        - chat-dev.datausa.io
+        - oec-chatbot-dev.datawheel.us
