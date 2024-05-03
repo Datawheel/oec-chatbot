@@ -78,6 +78,9 @@ ingress:
     nginx.org/proxy-busy-buffers-size: "64k"
     nginx.org/location-snippets: |
       add_header Access-Control-Allow-Origin *;
+      add_header Access-Control-Allow-Methods 'GET, POST, OPTIONS, PUT' always;
+      add_header Access-Control-Allow-Headers 'Content-Type' always;
+
   hosts:
     - host: oec-chatbot-dev.datawheel.us
       paths:
