@@ -40,7 +40,7 @@ async def wrap(item: Item):
     query, form_json = item.query, item.form_json
 
 
-    return StreamingResponse(wrapperCall(query, form_json, handleAPIBuilder = get_api), media_type="application/json")
+    return StreamingResponse(wrapperCall(query, form_json, handleAPIBuilder = get_api), media_type="application/json", headers={"X-Experimental-Stream-Data": "true"})
 
 
 @app.get("/query/{query}")
