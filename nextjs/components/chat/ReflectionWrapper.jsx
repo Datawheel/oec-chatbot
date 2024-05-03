@@ -12,7 +12,9 @@ const NEXT_PUBLIC_CHAT_API = process.env.NEXT_PUBLIC_CHAT_API;
  */
 export default async function ReflectionWrap(chatHistory, formJSON, handleTable, updater, setLoading) {
     
-    const _URL = `${NEXT_PUBLIC_CHAT_API}wrap/`
+    //const _URL = `${NEXT_PUBLIC_CHAT_API}wrap/`;
+    //const _URL = `http://localhost:3001/wrap/`;
+    const _URL = `https://oec-chatbot-api-dev.datawheel.us//wrap/`;
 
     const body = JSON.stringify({
         query: chatHistory,
@@ -23,7 +25,8 @@ export default async function ReflectionWrap(chatHistory, formJSON, handleTable,
         const response = await fetch(_URL, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json' 
+                'Content-Type': 'application/json',
+                
               },
             body: body
         });

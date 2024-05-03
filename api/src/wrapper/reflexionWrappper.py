@@ -31,7 +31,7 @@ model_ = OpenAI(
 
 model = Ollama(
     base_url= OLLAMA_URL,
-    model= 'llama3:8b-instruct-q8_0',#"llama3:8b-instruct-q4_K_M", #"llama2:7b-chat-q8_0", 
+    model= "llama3:8b-instruct-q4_K_M", #"llama2:7b-chat-q8_0", 
     temperature= 0,
   ).with_config(
     seed= 123,
@@ -40,12 +40,11 @@ model = Ollama(
 
 model_adv = Ollama(
     base_url= OLLAMA_URL,
-    model= 'mixtral:8x7b-instruct-v0.1-q4_K_M',#'gemma:7b-instruct-q4_K_M',//
-    system= '',
+    model= 'llama3:8b-instruct-q8_0',#'mixtral:8x7b-instruct-v0.1-q4_K_M',#'gemma:7b-instruct-q4_K_M',//
     temperature= 0,
 ).with_config(
     seed= 123,
-    run_name= 'advance_mixtral',
+    run_name= 'advance_llama',
 )
 
 
@@ -314,7 +313,7 @@ question_chain = question_prompt\
 
 
 valid_chain = validation_prompt\
-    .pipe(model.bind(system = validation_sys_prompt, format='json'))\
+    .pipe(model_adv.bind(system = validation_sys_prompt, format='json'))\
     .pipe(JsonOutputParser())\
     .with_fallbacks(
         [alt_validation_prompt\
