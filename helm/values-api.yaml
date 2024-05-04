@@ -69,7 +69,7 @@ ingress:
   annotations:
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
     acme.cert-manager.io/http01-edit-in-place: "true"
-    ingress.kubernetes.io/ssl-redirect: "false"
+    ingress.kubernetes.io/ssl-redirect: "true"
     nginx.org/proxy-buffering: "false"
     nginx.org/websocket-services: "chatbot-api"
     nginx.org/location-snippets: |
@@ -88,10 +88,10 @@ ingress:
       proxy_set_header          X-Forwarded-Proto   $scheme;
       proxy_set_header          Upgrade $http_upgrade;
       proxy_set_header          Connection "upgrade";
-    nginx.org/server-snippets: |
-      if ($http_x_forwarded_proto = 'http') {
-          return 308 https://$host$request_uri;
-      }
+    # nginx.org/server-snippets: |
+    #   if ($http_x_forwarded_proto = 'http') {
+    #       return 308 https://$host$request_uri;
+    #   }
   hosts:
     - host: oec-chatbot-api-dev.datawheel.us
       paths:
