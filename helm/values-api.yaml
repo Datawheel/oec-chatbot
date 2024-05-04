@@ -75,8 +75,8 @@ ingress:
     nginx.org/location-snippets: |
       add_header Access-Control-Allow-Origin *;
       add_header Access-Control-Allow-Credentials "true";
-      add_header Access-Control-Allow-Methods "GET,OPTIONS,PATCH,DELETE,POST,PUT";
-      add_header Access-Control-Allow-Headers "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version";
+      add_header Access-Control-Allow-Methods "*";
+      add_header Access-Control-Allow-Headers "*";
       
       proxy_pass_header         Access-Control-Allow-Origin;
       proxy_pass_header         Access-Control-Allow-Credentials;
