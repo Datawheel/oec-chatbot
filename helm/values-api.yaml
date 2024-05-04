@@ -16,10 +16,10 @@ autoscaling:
 resources:
   requests:
     cpu: 500m
-    memory: 2Gi
+    memory: 1Gi
   limits:
     cpu: 1000m
-    memory: 10Gi
+    memory: 3Gi
 
 livenessProbe:
   enabled: false
