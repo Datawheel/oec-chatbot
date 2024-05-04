@@ -1,26 +1,29 @@
 import time
 import json
-from pydantic import BaseModel
+
 from fastapi import FastAPI
+# from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from langchain_core.runnables import RunnableLambda, chain
+from pydantic import BaseModel
+from typing import List, Dict
+
 from app import get_api
 from config import TABLES_PATH
 from wrapper.lanbot import Langbot
 from wrapper.reflexionWrappper import wrapperCall
-from typing import List, Dict
-from fastapi.middleware.cors import CORSMiddleware
+
 # fastapi instance declaration
 app = FastAPI()
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-    expose_headers=[ "X-Experimental-Stream-Data" ]
-)
+# app.add_middleware(
+#     CORSMiddleware,
+#     allow_origins=["*"],
+#     allow_credentials=True,
+#     allow_methods=["*"],
+#     allow_headers=["*"],
+#     expose_headers=[ "X-Experimental-Stream-Data" ]
+# )
 
 # api functions
 @app.get("/")
@@ -39,8 +42,7 @@ class Item(BaseModel):
 async def wrap(item: Item):
     query, form_json = item.query, item.form_json
 
-
-    return StreamingResponse(wrapperCall(query, form_json, handleAPIBuilder = get_api), media_type="application/json", headers={"X-Experimental-Stream-Data": "true"})
+    return StreamingResponse(wrapperCall(query, form_json, handleAPIBuilder = get_api), media_type="application/json")
 
 
 @app.get("/query/{query}")
@@ -48,13 +50,13 @@ async def read_item(query: str):
     api_url, data, text_response = get_api(query, TABLES_PATH)
 
     return {
-            "query":
-                {
-                    "question": query, 
-                    "answer": text_response, 
-                    "url": api_url
-                }
+        "query":
+            {
+                "question": query, 
+                "answer": text_response, 
+                "url": api_url
             }
+        }
 
 #test 
 @chain
