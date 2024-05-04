@@ -1,8 +1,9 @@
 import time
 import json
+from os import getenv
 
 from fastapi import FastAPI
-# from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from langchain_core.runnables import RunnableLambda, chain
 from pydantic import BaseModel
@@ -16,14 +17,17 @@ from wrapper.reflexionWrappper import wrapperCall
 # fastapi instance declaration
 app = FastAPI()
 
-# app.add_middleware(
-#     CORSMiddleware,
-#     allow_origins=["*"],
-#     allow_credentials=True,
-#     allow_methods=["*"],
-#     allow_headers=["*"],
-#     expose_headers=[ "X-Experimental-Stream-Data" ]
-# )
+# add CORS on local environment
+if getenv("ENVIRONMENT") and getenv("ENVIRONMENT") == "local":
+    origins = ["*"]
+
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=origins,
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
 
 # api functions
 @app.get("/")
