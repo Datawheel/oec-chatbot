@@ -41,17 +41,16 @@ export default async function ReflectionWrap(chatHistory, formJSON, handleTable,
                 const str = decoder.decode(value);
                 try {
                     const jsonStr = str.replace(/^data: /, '').trim();
+                    console.log(jsonStr);
                     const resp = JSON.parse(jsonStr);
 
                     if (Object.hasOwn(resp,'content')){
-                        if (resp.content.length === 3 ) {
-                            handleTable(resp.content[0]);
-                            updater((prevMessages) => [...prevMessages, { text: resp.content[2], user: false }]);
-                        } else {
-                            updater((prevMessages) => [...prevMessages, { text: resp.content, user: false }]);
-                        }
+                        updater((prevMessages) => [...prevMessages, { text: resp.content, user: false }])
                     }
-                    
+                    if (Object.hasOwn(resp,'tesseract_api')){
+                        handleTable(resp.tesseract_api);
+                    }
+
                     if (Object.hasOwn(resp,'form_json')){
                         console.log(resp.form_json);
                         formJSON.current = resp.form_json;
