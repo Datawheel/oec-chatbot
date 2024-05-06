@@ -8,7 +8,7 @@ from langchain_community.llms import Ollama
 from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.prompts import PromptTemplate
 from langchain_core.runnables import RunnableSequence, RunnablePassthrough, RunnableLambda, RunnableParallel, chain
-from langchain_openai import OpenAI
+from langchain_openai import ChatOpenAI, OpenAI
 from table_selection.table import TableManager
 from wrapper.json_check import json_iterator, set_form_json
 from wrapper.logsHandlerCallback import logsHandler
@@ -23,22 +23,33 @@ OPENAI = OPENAI_KEY
 
 ######### Models
 
-model_ = OpenAI(
-    model_name="gpt-3.5-turbo-instruct",
+model = ChatOpenAI(
+    model_name="gpt-4-turbo",
     temperature=0,
     openai_api_key=OPENAI_KEY
     )
 
-model = Ollama(
+model_basic = Ollama(
     base_url= OLLAMA_URL,
-    model= 'llama3:8b-instruct-q8_0',#"llama3:8b-instruct-q4_K_M", #"llama2:7b-chat-q8_0", 
+    model= "llama2:7b-chat-q8_0", 
     temperature= 0,
   ).with_config(
     seed= 123,
     run_name= 'basic_llama', 
   )
 
+
 model_adv = Ollama(
+    base_url= OLLAMA_URL,
+    model= 'llama3:8b-instruct-q8_0',#"llama3:8b-instruct-q4_K_M", #"llama2:7b-chat-q8_0", 
+    temperature= 0,
+  ).with_config(
+    seed= 123,
+    run_name= 'adv_llama', 
+  )
+
+
+model_mix = Ollama(
     base_url= OLLAMA_URL,
     model= 'mixtral:8x7b-instruct-v0.1-q4_K_M',#'gemma:7b-instruct-q4_K_M',//
     system= '',
@@ -65,6 +76,7 @@ def stream_acc(info):
 question_sys_prompt = """
 You are a grammar expert analyzing questions in chats. All output must be in valid JSON format. 
 Don't add explanation beyond the JSON. Do not respond to questions, just analyze them.
+Take a depth breath and think step by step.
 """
 
 question_prompt = PromptTemplate.from_template(
@@ -168,7 +180,7 @@ trade_validation_few_shot = [
         "base_url": "https://oec.world/api/olap-proxy/data.jsonrecords?",
         "cube": "trade_i_baci_a_96",
         "dimensions": {
-            "Year": [2023],
+            "Year": [2022],
             "HS Product": ["copper"],
             "Hierarchy:Geography": [
                 {
@@ -192,13 +204,13 @@ trade_validation_few_shot = [
     {
     "question":"How much coffee did Colombia exported to US?",
     "explanation":"question mentions a exporter geography, importer geography, a product, but does not mention a year. \
-    Then year is left as it is, product is filled with 'coffee', and exporter and importer filled with 'Colombia' and 'US'.\
+    Then year is left as it is, HS Product is filled with 'coffee', and exporter and importer filled with 'Colombia' and 'US'.\
     User wants to know 'how much', then sort is set to 'desc' for descending order, and limit is set to 'All'",
     "form_json":{
         "base_url": "https://oec.world/api/olap-proxy/data.jsonrecords?",
         "cube": "trade_i_baci_a_96",
         "dimensions": {
-            "Year": [2023],
+            "Year": [2022],
             "HS Product": ["coffee"],
             "Hierarchy:Geography": [
                 {
@@ -220,15 +232,15 @@ trade_validation_few_shot = [
         },
     },
     {
-    "question":"How much product?",
+    "question":"How much product in 2019?",
     "explanation":"question mentions product, but does not mention a year or geography.\
-    Then year is left as it is and product is set to 'All', but exporter and imported are left blank.\
+    Then year is left as it is and HS Product is set to 'All', but exporter and imported are left blank.\
     User wants to know 'how much', then sort is set to 'desc' for descending order and limit is set to 'All'.",
     "form_json":{
         "base_url": "https://oec.world/api/olap-proxy/data.jsonrecords?",
         "cube": "trade_i_baci_a_96",
         "dimensions": {
-            "Year": [2023],
+            "Year": [2019],
             "HS Product": ["All"],
             "Hierarchy:Geography": [
                 {
@@ -260,7 +272,7 @@ trade_validation_few_shot = [
         "base_url": "https://oec.world/api/olap-proxy/data.jsonrecords?",
         "cube": "trade_i_baci_a_96",
         "dimensions": {
-            "Year": [2023],
+            "Year": [2020],
             "HS Product": [{"HS4": "All"}],
             "Hierarchy:Geography": [
                 {
@@ -301,8 +313,9 @@ alt_validation_prompt = PromptTemplate.from_template(validation_template)
 
 # CHAINs
 
+    #.pipe(model_basic.bind(system=question_sys_prompt, format='json'))\
 question_chain = question_prompt\
-    .pipe(model.bind(system=question_sys_prompt, format='json'))\
+    .pipe(model)\
     .pipe(stream_acc)\
     .pipe(JsonOutputParser())\
     .with_fallbacks([
@@ -313,12 +326,13 @@ question_chain = question_prompt\
         ])
 
 
+    #.pipe(model_adv.bind(system = validation_sys_prompt, format='json'))\
 valid_chain = validation_prompt\
-    .pipe(model.bind(system = validation_sys_prompt, format='json'))\
+    .pipe(model)\
     .pipe(JsonOutputParser())\
     .with_fallbacks(
         [alt_validation_prompt\
-            .pipe(model_adv.bind(
+            .pipe(model_mix.bind(
                 system = validation_sys_prompt, 
                 format= 'json'))\
             .pipe(JsonOutputParser())])
@@ -333,7 +347,8 @@ def route_question(info):
     action = info['action']
 
     if action['type'] == 'not a question':
-        return {'question': lambda x: action['question'] } | PromptTemplate.from_template("Answer politely: {question}").pipe(model)
+        return {'question': lambda x: action['question'] } | PromptTemplate.from_template("Answer politely: {question}")\
+            .pipe(model)
     
     elif action['type'] =='new question':
         form_json = set_form_json(action['question'])
@@ -367,7 +382,7 @@ def route_answer(info):
         table = table_manager.get_table(form_json['cube'])
         print('MISSING: ',missing)
         if missing:
-            request_info = 'Please, specify the following '
+            request_info = 'Please, specify the following: '
             for m in missing:
                 if ':' in m[1]:
                     dimension = m[1].split(':')[-1]

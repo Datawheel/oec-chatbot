@@ -41,10 +41,11 @@ export default async function ReflectionWrap(chatHistory, formJSON, handleTable,
                 const str = decoder.decode(value);
                 try {
                     const jsonStr = str.replace(/^data: /, '').trim();
+                    console.log(jsonStr);
                     const resp = JSON.parse(jsonStr);
 
                     if (Object.hasOwn(resp,'content')){
-                        if (resp.content.length === 3 ) {
+                        if (resp.content.length >= 1 ) {
                             handleTable(resp.content[0]);
                             updater((prevMessages) => [...prevMessages, { text: resp.content[2], user: false }]);
                         } else {
