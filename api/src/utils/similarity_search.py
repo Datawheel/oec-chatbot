@@ -18,7 +18,7 @@ def get_similar_content(text, cube_name, drilldown_names, threshold=0, content_l
     query = """select drilldown_id, drilldown_name, similarity from "match_drilldowns"('{}','{}' ,'{}','{}','{}'); """.format(embedding[0].tolist().__str__(), str(threshold), str(content_limit), str(cube_name), drilldown_names_array)
     
     if verbose: print(query)
-
+    print("text", text, 'drilldowns:', drilldown_names)
     df = pd.read_sql(query,con=POSTGRES_ENGINE)
 
     if verbose: print(df)

@@ -66,7 +66,7 @@ def get_api(
             kwargs['response'], token_tracker = agent_answer(kwargs['df'], natural_language_query, kwargs['api_url'], token_tracker)
             #log_apicall(natural_language_query, kwargs['api_url'], kwargs['response'], variables, measures, cuts, kwargs['table'], kwargs['start_time'], tokens = token_tracker)
 
-        return kwargs['api_url'], kwargs['data'], kwargs['response']
+        return kwargs['api_url'], "", kwargs['response']
 
     else: return get_api(natural_language_query, step = 'request_tables_to_lm_from_db')
 
