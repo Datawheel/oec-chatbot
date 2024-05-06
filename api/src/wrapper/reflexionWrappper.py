@@ -15,6 +15,10 @@ from wrapper.logsHandlerCallback import logsHandler
 
 from config import TABLES_PATH, OPENAI_KEY
 
+from langchain.globals import set_debug, set_verbose
+set_verbose(True)
+set_debug(True)
+
 
 # TABLES_PATH = getenv('TABLES_PATH')
 OLLAMA_URL = 'https://caleuche-ollama.datawheel.us'
@@ -32,6 +36,7 @@ model = ChatOpenAI(
 model_basic = Ollama(
     base_url= OLLAMA_URL,
     model= "llama2:7b-chat-q8_0", 
+    verbose= True,
     temperature= 0,
   ).with_config(
     seed= 123,
@@ -42,6 +47,7 @@ model_basic = Ollama(
 model_adv = Ollama(
     base_url= OLLAMA_URL,
     model= 'llama3:8b-instruct-q8_0',#"llama3:8b-instruct-q4_K_M", #"llama2:7b-chat-q8_0", 
+    verbose= True,
     temperature= 0,
   ).with_config(
     seed= 123,
@@ -53,6 +59,7 @@ model_mix = Ollama(
     base_url= OLLAMA_URL,
     model= 'mixtral:8x7b-instruct-v0.1-q4_K_M',#'gemma:7b-instruct-q4_K_M',//
     system= '',
+    verbose= True,
     temperature= 0,
 ).with_config(
     seed= 123,
@@ -304,6 +311,7 @@ If a dimension is mentioned but no specified, fill it with "All". Do not remove 
 Answer in JSON format as shown in the following examples:
 
 """ + '\n'.join([str(d).replace("{", "{{").replace("}","}}") for d in trade_validation_few_shot[:-1]]) + """
+
 Here is the question: {question}
 Here is the form: {form_json}
 """
@@ -313,9 +321,9 @@ alt_validation_prompt = PromptTemplate.from_template(validation_template)
 
 # CHAINs
 
-    #.pipe(model_basic.bind(system=question_sys_prompt, format='json'))\
+    #.pipe(model)\
 question_chain = question_prompt\
-    .pipe(model)\
+    .pipe(model_basic.bind(system=question_sys_prompt, format='json'))\
     .pipe(stream_acc)\
     .pipe(JsonOutputParser())\
     .with_fallbacks([
@@ -348,9 +356,10 @@ def route_question(info):
 
     if action['type'] == 'not a question':
         return {'question': lambda x: action['question'] } | PromptTemplate.from_template("Answer politely: {question}")\
-            .pipe(model)
+            .pipe(model_basic)
     
     elif action['type'] =='new question':
+        yield {'content': 'Selecting a cube to answer your data...'}
         form_json = set_form_json(action['question'])
         if form_json:
             return {'form_json': lambda x: form_json, 'question': lambda x: action['question']} | valid_chain
@@ -377,7 +386,7 @@ def route_answer(info):
         form_json = process['form_json']
         missing = json_iterator(form_json)
 
-        # TODO: Debugg missing result
+        # Missing questions
         table_manager = TableManager(TABLES_PATH)
         table = table_manager.get_table(form_json['cube'])
         print('MISSING: ',missing)
@@ -387,7 +396,7 @@ def route_answer(info):
                 if ':' in m[1]:
                     dimension = m[1].split(':')[-1]
                     options = table.get_drilldown_members(dimension)
-                    #options = table.get_drilldown_members(dimension)
+                    
                 else:
                     dimension = m[1]
                     options = table.get_drilldown_members(dimension)
@@ -402,7 +411,11 @@ def route_answer(info):
         else:
             yield json.dumps({'content': "Good question, let's check the data..."})
             query = process['question']
-            response = handleAPIBuilder(query, form_json=form_json, step= 'get_api_params_from_wrapper')
+            for response in handleAPIBuilder(query, form_json=form_json, step= 'get_api_params_from_wrapper'):
+                if isinstance(response, dict):
+                    yield json.dumps(response)
+                else:
+                    yield json.dumps({'content': response})
             #response = handleAPIBuilder(form_json['measures'])
             yield json.dumps({'content': response, 'form_json': form_json})
 
@@ -432,7 +445,7 @@ def wrapperCall(history, form_json, handleAPIBuilder, logger=[] ):
                             for m in history]) + '[.]',
         'form_json': form_json, 
         'handleAPIBuilder': handleAPIBuilder
-    }, config = {'callbacks':[logsHandler(logger, print_logs = True, print_starts=False)]}
+    }, config = {'callbacks':[logsHandler(logger, print_logs = False, print_starts=False)]}
     ):
         yield answer
   

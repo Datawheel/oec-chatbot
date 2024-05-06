@@ -27,7 +27,7 @@ def get_api(
         start_time = time.time()
         manager = TableManager(TABLES_PATH)
         table, form_json, token_tracker = request_tables_to_lm_from_db(natural_language_query, manager, token_tracker)
-        return get_api(natural_language_query, token_tracker, step ='get_api_params_from_lm', **{'table': table, 'manager': manager, 'start_time': start_time})
+        yield from get_api(natural_language_query, token_tracker, step ='get_api_params_from_lm', **{'table': table, 'manager': manager, 'start_time': start_time})
         
     elif step == 'get_api_params_from_lm':
         print("get_api_params_from_lm")
@@ -35,7 +35,7 @@ def get_api(
         api = ApiBuilder(table = kwargs['table'], drilldowns = variables, measures = measures, cuts = cuts)
         api_url = api.build_api()
         print("API:", api_url)
-        return get_api(natural_language_query, token_tracker, step = 'fetch_data', **{**kwargs, **{'api': api, "api_url": api_url}})
+        yield from get_api(natural_language_query, token_tracker, step = 'fetch_data', **{**kwargs, **{'api': api, "api_url": api_url}})
 
     elif step == 'get_api_params_from_wrapper':
         print("get_api_params_from_wrapper")
@@ -46,12 +46,13 @@ def get_api(
         api = ApiBuilder(table = table, form_json = form_json)
         api_url = api.build_api()
         print("API:", api_url)
-        return get_api(natural_language_query, token_tracker, step = 'fetch_data', **{**kwargs, **{'api': api, "api_url": api_url, 'table': table, 'start_time': start_time}})
+        yield {'tesseract_api': api_url}
+        yield from get_api(natural_language_query, token_tracker, step = 'fetch_data', **{**kwargs, **{'api': api, "api_url": api_url, 'table': table, 'start_time': start_time}})
 
     elif step == 'fetch_data': 
         print("fetch_data")
         data, df, response = kwargs['api'].fetch_data()
-        return get_api(natural_language_query, token_tracker, step = 'agent_answer', **{**kwargs, **{'df': df, 'response': response, 'data': data}})
+        yield from get_api(natural_language_query, token_tracker, step = 'agent_answer', **{**kwargs, **{'df': df, 'response': response, 'data': data}})
 
     elif step == 'agent_answer':
         print("agent_answer")
@@ -66,9 +67,9 @@ def get_api(
             kwargs['response'], token_tracker = agent_answer(kwargs['df'], natural_language_query, kwargs['api_url'], token_tracker)
             #log_apicall(natural_language_query, kwargs['api_url'], kwargs['response'], variables, measures, cuts, kwargs['table'], kwargs['start_time'], tokens = token_tracker)
 
-        return kwargs['api_url'], "", kwargs['response']
+        yield kwargs['response']
 
-    else: return get_api(natural_language_query, step = 'request_tables_to_lm_from_db')
+    else: yield from get_api(natural_language_query, step = 'request_tables_to_lm_from_db')
 
 
 form_json = {
