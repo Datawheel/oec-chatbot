@@ -36,7 +36,6 @@ model = ChatOpenAI(
 model_basic = Ollama(
     base_url= OLLAMA_URL,
     model= "llama2:7b-chat-q8_0", 
-    verbose= True,
     temperature= 0,
   ).with_config(
     seed= 123,
@@ -47,7 +46,6 @@ model_basic = Ollama(
 model_adv = Ollama(
     base_url= OLLAMA_URL,
     model= 'llama3:8b-instruct-q8_0',#"llama3:8b-instruct-q4_K_M", #"llama2:7b-chat-q8_0", 
-    verbose= True,
     temperature= 0,
   ).with_config(
     seed= 123,
@@ -59,7 +57,6 @@ model_mix = Ollama(
     base_url= OLLAMA_URL,
     model= 'mixtral:8x7b-instruct-v0.1-q4_K_M',#'gemma:7b-instruct-q4_K_M',//
     system= '',
-    verbose= True,
     temperature= 0,
 ).with_config(
     seed= 123,
@@ -359,7 +356,7 @@ def route_question(info):
             .pipe(model_basic)
     
     elif action['type'] =='new question':
-        yield {'content': 'Selecting a cube to answer your data...'}
+        #yield {'content': 'Selecting a cube to answer your data...'}
         form_json = set_form_json(action['question'])
         if form_json:
             return {'form_json': lambda x: form_json, 'question': lambda x: action['question']} | valid_chain
@@ -415,9 +412,7 @@ def route_answer(info):
                 if isinstance(response, dict):
                     yield json.dumps(response)
                 else:
-                    yield json.dumps({'content': response})
-            #response = handleAPIBuilder(form_json['measures'])
-            yield json.dumps({'content': response, 'form_json': form_json})
+                    yield json.dumps({'content': response, 'form_json': form_json})
 
 
 ################ Build Chain
