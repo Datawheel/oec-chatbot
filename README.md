@@ -146,3 +146,7 @@ create a .env file with the required env variables
 cd api/
 docker run --env-file=./.env -p 80:80 datausa-chat:<tag>
 ```
+
+## Python Eslint Configuration
+- [https://code.visualstudio.com/docs/python/formatting](https://code.visualstudio.com/docs/python/formatting)
+- [https://docs.astral.sh/ruff/configuration/](https://docs.astral.sh/ruff/configuration/)
