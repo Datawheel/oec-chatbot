@@ -3,12 +3,22 @@ import pandas as pd
 import requests
 import urllib.parse
 
-from config import POSTGRES_ENGINE, SCHEMA_DRILLDOWNS, DRILLDOWNS_TABLE_NAME, TESSERACT_API, TABLES_PATH
+from config import POSTGRES_ENGINE, SCHEMA_DRILLDOWNS, TESSERACT_API, TABLES_PATH
 from utils.similarity_search import embedding
+from sqlalchemy import text as sql_text
 
-def create_table(table_name=DRILLDOWNS_TABLE_NAME, schema_name=SCHEMA_DRILLDOWNS, embedding_size=384):
-    POSTGRES_ENGINE.execute(f"CREATE SCHEMA IF NOT EXISTS {schema_name}")
-    POSTGRES_ENGINE.execute(f"CREATE TABLE IF NOT EXISTS {schema_name}.{table_name} (drilldown_id text, drilldown_name text, cube_name text, drilldown text, embedding vector({embedding_size}))")
+embedding_model = "sfr-embedding-mistral:q8_0"
+embedding_size = 4096
+DRILLDOWNS_TABLE_NAME = "drilldowns_sfr"
+
+def create_table(table_name=DRILLDOWNS_TABLE_NAME, schema_name=SCHEMA_DRILLDOWNS, embedding_size=embedding_size):
+    query_schema = f"CREATE SCHEMA IF NOT EXISTS {schema_name}"
+    query_table = f"CREATE TABLE IF NOT EXISTS {schema_name}.{table_name} (drilldown_id text, drilldown_name text, cube_name text, drilldown text, embedding vector({embedding_size}))"
+    
+    with POSTGRES_ENGINE.connect() as conn:
+            conn.execute(sql_text(query_schema))
+            conn.execute(sql_text(query_table))
+            conn.commit()
 
 def get_data_from_api(api_url):
     try:
@@ -31,13 +41,15 @@ def prepare_dataframe(df, measure_name, cube_name, drilldown_name, drilldown_uni
     df.dropna(subset=['drilldown_name', 'drilldown_id'], how='all', inplace=True)
     df = df[['drilldown_id', 'drilldown_name', 'cube_name', 'drilldown']]
     df['drilldown_name'] = df['drilldown_name'].astype(str)
+    df["embedding"] = ""
+    df['embedding'] = df['embedding'].astype(object)
     print(df.head())
     return df
 
 def load_data_to_db(api_url, measure_name, cube_name, drilldown_name, drilldown_unique_name=None, schema_name=SCHEMA_DRILLDOWNS, db_table_name=DRILLDOWNS_TABLE_NAME):
     df = get_data_from_api(api_url)
     df = prepare_dataframe(df, measure_name, cube_name, drilldown_name, drilldown_unique_name)
-    df_embeddings = embedding(df, 'drilldown_name')
+    df_embeddings = embedding(df, 'drilldown_name', model = embedding_model)
     df_embeddings.to_sql(db_table_name, con=POSTGRES_ENGINE, if_exists='append', index=False, schema=schema_name)
 
 def main(include_cubes=False):
@@ -78,5 +90,5 @@ def main(include_cubes=False):
                         load_data_to_db(api_url, measure, cube_name, drilldown_name, drilldown_unique_name)
 
 if __name__ == "__main__":
-    include_cubes = False # if set to False it will upload the drilldowns of all cubes in the schema.json
+    include_cubes = ['trade_i_baci_a_96'] # if set to False it will upload the drilldowns of all cubes in the schema.json
     main(include_cubes)
