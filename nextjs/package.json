@@ -19,7 +19,7 @@
     "@next/font": "13.1.6",
     "@tabler/icons-react": "^2.44.0",
     "@typescript-eslint/eslint-plugin": "^5.51.0",
-    "axios": "^1.6.3",
+    "axios": "^1.6.8",
     "eslint-config-airbnb": "^19.0.4",
     "eslint-plugin-react": "^7.32.2",
     "langchain": "^0.1.24",
