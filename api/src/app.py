@@ -57,6 +57,7 @@ def get_api(
         api = ApiBuilder(table=table, form_json=form_json)
         api_url = api.build_api()
         print("API:", api_url)
+
         return get_api(
             natural_language_query,
             token_tracker,
