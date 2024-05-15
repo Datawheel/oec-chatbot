@@ -40,6 +40,7 @@ Jinja2==3.1.3
 joblib==1.3.2
 jsonpatch==1.33
 jsonpointer==2.4
+jwt
 kubernetes==29.0.0
 langchain==0.1.16
 langchain-community==0.0.34
