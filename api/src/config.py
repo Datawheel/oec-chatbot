@@ -15,17 +15,14 @@ POSTGRES_DB = getenv("POSTGRES_DB")
 POSTGRES_PORT = 5432
 
 if POSTGRES_HOST:
-    POSTGRES_ENGINE = create_engine("postgresql+psycopg2://{}:{}@{}:{}/{}".format(POSTGRES_USER,POSTGRES_PASSWORD,POSTGRES_HOST,POSTGRES_PORT,POSTGRES_DB))
+    POSTGRES_ENGINE = create_engine(
+        "postgresql+psycopg2://{}:{}@{}:{}/{}".format(
+            POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_HOST, POSTGRES_PORT, POSTGRES_DB
+        )
+    )
 else:
     print("POSTGRES_HOST not found, please check your environment")
     exit(1)
-
-SCHEMA_TABLES = getenv("SCHEMA_TABLES")
-SCHEMA_DRILLDOWNS = getenv("SCHEMA_DRILLDOWNS")
-SCHEMA_LOGS = getenv("SCHEMA_LOGS")
-CUBES_TABLE_NAME = getenv("CUBES_TABLE_NAME")
-DRILLDOWNS_TABLE_NAME = getenv("DRILLDOWNS_TABLE_NAME")
-LOGS_TABLE_NAME = getenv("LOGS_TABLE_NAME")
 
 # OpenAI Connection
 OPENAI_KEY = getenv("OPENAI_KEY")
@@ -64,6 +61,10 @@ DESCRIPTIONS_PATH = getenv("DESCRIPTIONS_PATH")
 if not DESCRIPTIONS_PATH:
     DESCRIPTIONS_PATH = DATA_PATH + "descriptions.json"
 
-# OEC token and API
-OEC_TOKEN = getenv("OEC_TOKEN")
-OEC_API = getenv("OEC_API")
+# Extra arguments
+SCHEMA_TABLES = getenv("SCHEMA_TABLES")
+SCHEMA_DRILLDOWNS = getenv("SCHEMA_DRILLDOWNS")
+SCHEMA_LOGS = getenv("SCHEMA_LOGS")
+CUBES_TABLE_NAME = getenv("CUBES_TABLE_NAME")
+DRILLDOWNS_TABLE_NAME = getenv("DRILLDOWNS_TABLE_NAME")
+LOGS_TABLE_NAME = getenv("LOGS_TABLE_NAME")
