@@ -123,7 +123,7 @@ def get_api(
                     "total_tokens": token_tracker,
                 }
             )
-            insert_logs(table=table, values=values)
+            insert_logs(table=table, values=values, log_type="apicall")
         else:
             kwargs["response"], token_tracker = agent_answer(kwargs["df"], natural_language_query, kwargs["api_url"], token_tracker)
             values.update(
@@ -136,7 +136,7 @@ def get_api(
                     "total_tokens": token_tracker,
                 }
             )
-            insert_logs(table=table, values=values)
+            insert_logs(table=table, values=values, log_type="apicall")
         return kwargs["api_url"], kwargs["data"], kwargs["response"]
 
     else:

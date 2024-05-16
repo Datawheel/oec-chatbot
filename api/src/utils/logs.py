@@ -44,7 +44,7 @@ def create_table(table: dict) -> None:
         conn.close()
 
 
-def insert_logs(table: dict, values: dict) -> None:
+def insert_logs(table: dict, values: dict, log_type: str) -> None:
     """
     Insert the required logs from an API call into the respective database.
 
@@ -74,16 +74,28 @@ def insert_logs(table: dict, values: dict) -> None:
     creation_time = datetime.now()
     values.update({"created_on": creation_time})
 
-    # Assign token costs in to the values dict
-    costs = calculate_total_cost(values["total_tokens"])
-    values.update({"total_tokens": costs["tokens"], "total_cost": costs["cost"]})
-
     # Insert logs in to the database
     # create function that creates :query_id, :query..........
-    insert_query = text(f"""
-        INSERT INTO {table['schema']}.{table['name']} {keys_to_tuple(table['columns'])}
-        VALUES ('{values['query_id']}', '{values['question']}', '{values['api_url']}', '{values['response']}', '{values['cube']}', '{values['drilldowns']}', '{values['measures']}', '{values['cuts']}', '{values['created_on']}', '{values['duration']}', '{values['total_tokens']}', '{values['total_cost']}')
-    """)
+
+    if log_type == "apicall":
+        # Code to execute if log_type is "apicall"
+        # Assign token costs in to the values dict
+        costs = calculate_total_cost(values["total_tokens"])
+        values.update({"total_tokens": costs["tokens"], "total_cost": costs["cost"]})
+
+        insert_query = text(f"""
+            INSERT INTO {table['schema']}.{table['name']} {keys_to_tuple(table['columns'])}
+            VALUES ('{values['query_id']}', '{values['question']}', '{values['api_url']}', '{values['response']}', '{values['cube']}', '{values['drilldowns']}', '{values['measures']}', '{values['cuts']}', '{values['created_on']}', '{values['duration']}', '{values['total_tokens']}', '{values['total_cost']}')
+        """)
+    else:
+        # Code to execute if log_type is not "apicall"
+        insert_query = text(f"""
+            INSERT INTO {table['schema']}.{table['name']} {keys_to_tuple(table['columns'])}
+            VALUES ('{values['query_id']}', '{values['type']}', '{values['name_tags']}', '{values['input']}', '{values['name']}', '{values['output']}', '{values['error']}', '{values['tags']}', '{values['promps']}', '{values['duration']}', '{values['loading']}', '{values['tkn_cnt']}')
+        """)
+
+    print("here")
+    print(insert_query)
 
     with POSTGRES_ENGINE.connect() as conn:
         conn.execute(insert_query, values)

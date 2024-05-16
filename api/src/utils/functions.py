@@ -86,6 +86,16 @@ def clean_string(text):
     return cleaned_text
 
 
+def transform_json_to_string(json_string):
+    # Parse the JSON string into a dictionary
+    json_object = json.loads(json_string)
+
+    # Convert the dictionary back to a JSON string with proper formatting
+    transformed_string = json.dumps(json_object, ensure_ascii=False)
+
+    return transformed_string
+
+
 def calculate_total_cost(tokens: dict):
     # Calculate total tokens and total cost
     total_tokens = 0

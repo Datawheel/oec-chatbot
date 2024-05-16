@@ -1,6 +1,9 @@
 from langchain_core.callbacks.base import BaseCallbackHandler
 from typing import Any
 
+from utils.logs import insert_logs
+from utils.functions import clean_string, transform_json_to_string
+
 
 def elapsed(run: Any) -> str:
     """Get the elapsed time of a run.
@@ -39,8 +42,44 @@ class logsHandler(BaseCallbackHandler):
 
     def log_to_file(self, event):
         self.outFile.append(event)
-        with open("./log.txt", "a") as log:
-            log.write(str(event) + "\n")
+
+        print(event)
+
+        table = {
+            "name": "steps",
+            "schema": "chatbot",
+            "columns": {
+                "query_id": "text",
+                "type": "text",
+                "name_tags": "text",
+                "input": "text",
+                "name": "text",
+                "output": "text",
+                "error": "text",
+                "tags": "text",
+                "promps": "text",
+                "duration": "text",
+                "loading": "text",
+                "tkn_cnt": "text",
+            },
+        }
+        values = {
+            "type": str(event.get("type", "")),
+            "name_tags": str(event.get("name_tags", "")),
+            "input": str(event.get("input", "")),
+            "name": str(event.get("name", "")),
+            "output": clean_string(transform_json_to_string(event.get("output", ""))),
+            "error": str(event.get("error", "")),
+            "tags": str(event.get("tags", "")),
+            "promps": str(event.get("promps", "")),
+            "duration": str(event.get("duration", "")),
+            "loading": str(event.get("loading", "")),
+            "tkn_cnt": str(event.get("tkn_cnt", "")),
+        }
+        insert_logs(table=table, values=values, log_type="wrapper")
+
+        # with open("./log.txt", "a") as log:
+        # log.write(str(event) + "\n")
 
     def parent_tracking(self, node):
         trace = []
