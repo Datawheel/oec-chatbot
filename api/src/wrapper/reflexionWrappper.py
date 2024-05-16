@@ -46,8 +46,11 @@ model = ChatOpenAI(model_name="gpt-4-turbo", temperature=0, openai_api_key=OPENA
 
 model_basic = Ollama(
     base_url=LLAMA_2_URL,
-    model="llama2:7b-chat-q8_0",
+    model="llama2:7b-chat-q8_0",  # use
     temperature=0,
+    keep_alive="1h",
+    num_ctx=4096,
+    num_predict=64,
 ).with_config(
     seed=123,
     run_name="basic_llama",
@@ -58,6 +61,7 @@ model_adv = Ollama(
     base_url=LLAMA_3_URL,
     model="llama3:8b-instruct-q8_0",  # "llama3:8b-instruct-q4_K_M", #"llama2:7b-chat-q8_0",
     temperature=0,
+    keep_alive="1h",
 ).with_config(
     seed=123,
     run_name="adv_llama",
@@ -68,6 +72,7 @@ model_mix = Ollama(
     base_url=MIXTRAL_URL,
     model="mixtral:8x7b-instruct-v0.1-q4_K_M",  #'gemma:7b-instruct-q4_K_M',//
     temperature=0,
+    keep_alive="1h",
 ).with_config(
     seed=123,
     run_name="advance_mixtral",
@@ -104,7 +109,7 @@ In the following Chat history, classify if the latest [User] input is:
 If the input is classified as 'complementary information', summarize the question.
 
 Answer using following output format. All answer must contain all the four fields (chat_history, reasoning, question and type).
-Make sure "chat_history field is an exact copy the chat history."
+Make sure "chat_history" field is an exact copy of the chat history.
 Here are some examples:
 
 {{
@@ -287,12 +292,7 @@ If a dimension is mentioned but no specified, fill it with "All". Do not remove 
 Answer in JSON format as shown in the following examples:
 
 """
-    + "\n".join(
-        [
-            str(d).replace("{", "{{").replace("}", "}}")
-            for d in trade_validation_few_shot[:-1]
-        ]
-    )
+    + "\n".join([str(d).replace("{", "{{").replace("}", "}}") for d in trade_validation_few_shot[:-2]])
     + """
 
 Here is the question: {question}
@@ -307,36 +307,23 @@ alt_validation_prompt = PromptTemplate.from_template(validation_template)
 
 # .pipe(model)\
 question_chain = (
-    question_prompt.pipe(model_mix.bind(system=question_sys_prompt, format="json"))
+    question_prompt.pipe(model_adv.bind(system=question_sys_prompt, format="json"))
     .pipe(stream_acc)
     .pipe(JsonOutputParser())
     .with_fallbacks(
-        [
-            alt_question_prompt.pipe(
-                model_mix.bind(system=question_sys_prompt, format="json")
-            )
-            .pipe(stream_acc)
-            .pipe(JsonOutputParser())
-        ]
+        [alt_question_prompt.pipe(model_mix.bind(system=question_sys_prompt, format="json")).pipe(stream_acc).pipe(JsonOutputParser())]
     )
 )
 
 # .pipe(model_adv.bind(system = validation_sys_prompt, format='json'))\
 valid_chain = (
-    validation_prompt.pipe(model_mix)
+    validation_prompt.pipe(model_adv.bind(system=validation_sys_prompt, format="json"))
     .pipe(JsonOutputParser())
-    .with_fallbacks(
-        [
-            alt_validation_prompt.pipe(
-                model_mix.bind(system=validation_sys_prompt, format="json")
-            ).pipe(JsonOutputParser())
-        ]
-    )
+    .with_fallbacks([alt_validation_prompt.pipe(model_mix.bind(system=validation_sys_prompt, format="json")).pipe(JsonOutputParser())])
 )
 
-polite_chain = PromptTemplate.from_template("Answer politely: {question}").pipe(
-    model_mix
-)
+
+polite_chain = PromptTemplate.from_template("Answer politely: {question}").pipe(model_basic)
 
 ########## ROUTING LOGIC
 
@@ -410,9 +397,7 @@ def route_answer(info):
         else:
             yield json.dumps({"content": "Good question, let's check the data..."})
             query = process["question"]
-            for response in handleAPIBuilder(
-                query, form_json=form_json, step="get_api_params_from_wrapper"
-            ):
+            for response in handleAPIBuilder(query, form_json=form_json, step="get_api_params_from_wrapper"):
                 if isinstance(response, dict):
                     yield json.dumps(response)
                 else:
@@ -424,10 +409,7 @@ def route_answer(info):
 main_chain = RunnableSequence(
     {
         "input": RunnablePassthrough(),
-        "process": (
-            {"form_json": itemgetter("form_json"), "action": question_chain}
-            | route_question
-        ),
+        "process": ({"form_json": itemgetter("form_json"), "action": question_chain} | route_question),
     }
     | route_answer,
 )
@@ -439,13 +421,7 @@ main_chain = RunnableSequence(
 @chain
 def get_input(info):
     # return latest input
-    return {
-        "question": info["chathistory"]
-        .split(";")[-1]
-        .replace("[.]", "")
-        .replace("[User]", "")
-        .strip()
-    }
+    return {"question": info["chathistory"].split(";")[-1].replace("[.]", "").replace("[User]", "").strip()}
 
 
 @chain
@@ -454,8 +430,21 @@ def get_form(info):
     question = info["question"]
 
     try:
-        #form_json = set_form_json(question)
-        form_json = {'base_url': 'https://oec.world/api/olap-proxy/data.jsonrecords?', 'cube': 'trade_i_baci_a_96', 'dimensions': {'Year': [2022], 'HS Product': [], 'Hierarchy:Geography': [{'Exporter': []}, {'Importer': []}], 'Unit': 'Metric Tons'}, 'measures': ['Trade Value', 'Quantity'], 'limit': 'placeholder', 'sort': 'placeholder', 'locale': 'en'}}
+        # form_json = set_form_json(question)
+        form_json = {
+            "base_url": "https://oec.world/api/olap-proxy/data.jsonrecords?",
+            "cube": "trade_i_baci_a_96",
+            "dimensions": {
+                "Year": [2022],
+                "HS Product": [],
+                "Hierarchy:Geography": [{"Exporter": []}, {"Importer": []}],
+                "Unit": "Metric Tons",
+            },
+            "measures": ["Trade Value", "Quantity"],
+            "limit": "placeholder",
+            "sort": "placeholder",
+            "locale": "en",
+        }
     except Exception as error:
         print("no cube: ", error)
         form_json = None
@@ -516,16 +505,11 @@ def wrapperCall(history, form_json, handleAPIBuilder, logger=[]):
     """
     for answer in alt_chain.stream(
         {
-            "chathistory": ";".join(
-                [f"{' [User]' if m['user'] else ' [AI]'}:{m['text']}" for m in history]
-            )
-            + "[.]",
+            "chathistory": ";".join([f"{' [User]' if m['user'] else ' [AI]'}:{m['text']}" for m in history]) + "[.]",
             "form_json": form_json,
-            "handleAPIBuilder": lambda x, form_json, step: range(2),  # handleAPIBuilder
+            "handleAPIBuilder": handleAPIBuilder,  # lambda x, form_json, step: range(2)
         },
-        config={
-            "callbacks": [logsHandler(logger, print_logs=True, print_starts=False)]
-        },
+        config={"callbacks": [logsHandler(logger, print_logs=True, print_starts=False)]},
     ):
         yield answer
 
