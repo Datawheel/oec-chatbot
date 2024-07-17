@@ -38,7 +38,7 @@ diversity_set = [
     "What are the main exporters of grapes?",
     "How many cars were trade in 2021?",
     "What did Chile and Argentina export in 2020?",
-    "How much is the commercial balnace?",
+    "How much is the commercial balance?",
 ]
 
 # Users can ask ambiguous questions, chatbot will define default values, approximations, or ask back for clarifications until reach valid/unambiguous questions
@@ -102,10 +102,7 @@ chitchat_set = [
 
 def parse_conversations(chat_history):
     """ """
-    formated_history = [
-        f"{' [AI]' if i%2==0 else ' [User]'}:{text}"
-        for i, text in enumerate(chat_history)
-    ]
+    formated_history = [f"{' [AI]' if i%2==0 else ' [User]'}:{text}" for i, text in enumerate(chat_history)]
     # to string
     return ";".join(formated_history) + "[.]"
 
@@ -131,17 +128,9 @@ def test_classification(case, expectedCat, expectedAns):
             # Evaluate Classification
             if "category" in parsed_ouput.keys():
                 if parsed_ouput["category"].lower() != expectedCat:
-                    errors.append(
-                        "Category: {} {}".format(
-                            parsed_ouput["category"].lower(), expectedCat
-                        )
-                    )
+                    errors.append("Category: {} {}".format(parsed_ouput["category"].lower(), expectedCat))
             # Evaluate Verification
             if "answer" in parsed_ouput.keys():
                 if parsed_ouput["answer"].lower() != expectedAns:
-                    errors.append(
-                        "Answer {} {}".format(
-                            parsed_ouput["answer"].lower(), expectedAns
-                        )
-                    )
+                    errors.append("Answer {} {}".format(parsed_ouput["answer"].lower(), expectedAns))
     assert not errors, "Errors: ".format("\n".join(errors))
