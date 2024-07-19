@@ -1,13 +1,14 @@
 import time
 
-from os import getenv
+from typing import Dict, Generator, Tuple
 
-from table_selection.table_selector import *
-from table_selection.table import *
-from api_data_request.api_generator import *
-from data_analysis.data_analysis import *
-from utils.logs import insert_logs
-from utils.functions import set_to_string, clean_string
+from table_selection.table_selector import request_tables_to_lm_from_db
+from table_selection.table import TableManager
+from api_data_request.api_generator import get_api_params_from_lm
+from api_data_request.api import ApiBuilder
+from data_analysis.data_analysis import agent_answer
+#from utils.logs import *
+from utils.functions import clean_string, set_to_string
 from config import TABLES_PATH
 
 
@@ -23,8 +24,8 @@ def get_api(
     if token_tracker is None:
         token_tracker = {}
 
-    if step == "request_tables_to_lm_from_db":
-        print("quest_tables_to_lm_from_db")
+    if step == 'request_tables_to_lm_from_db':
+        print("request_tables_to_lm_from_db")
         start_time = time.time()
         manager = TableManager(TABLES_PATH)
         table, form_json, token_tracker = request_tables_to_lm_from_db(natural_language_query, manager, token_tracker)

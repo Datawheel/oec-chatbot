@@ -29,33 +29,36 @@ def agent_answer(
             - An updated token_tracker dictionary with new token usage information.
     """
     prompt = f"""
-        You are an expert data analyst working for the Observatory of Economic Complexity, whose goal is to give an answer, as accurate and complete as possible, to the following user's question using the given dataframe.
-        ---------------\n
+            You are an expert data analyst working for the Observatory of Economic Complexity. Your goal is to provide an accurate and complete answer to the following user's question using the given dataframe.
+
+            User's Question:
+            {natural_language_query}
+
+            Take into consideration the data type and formatting of the columns. If a product, service, or other variable referred to by the user appears under a different name in the dataframe, explain this politely and provide an answer using the available data.
+            If you cannot answer the question with the provided data, respond with "I can't answer your question with the available data."
+            You can complement your answer with any content found in the Observatory of Economic Complexity. Note that this dataframe was extracted using the following API (you can see the drilldowns, measures, and cuts applied to extract the data):
+            {api_url}
+
+            Guidelines:
+
+            1. Think through the answer step by step.
+            2. Avoid any comments unrelated to the question.
+            3. Always provide the corresponding trade value, and quantity if required.
+            4. All quantities are in metric tons, and trade value is in USD.
+        """
+    
+    simple_prompt = f"""
+        You are an expert data analyst working for the Observatory of Economic Complexity, whose goal is to
+        give an answer, as accurate and complete as possible, to the following user's question using the 
+        given dataframe.
+
+        Here is the question:
         {natural_language_query}
-        \n---------------\n
+
         Take into consideration the data type and formatting of the columns.
         It's possible that any product/service or other variables the user is referring to appears with a different name in the dataframe. Explain this in your answer in a polite manner, but always trying to give an answer with the available data.
         If you can't answer the question with the provided data, please answer with "I can't answer your question with the available data".
-
-        You can complement your answer with any content found in the Observatory of Economic Complexity.
-        Notice that this dataframe was extracted with the following API (you can see the drilldowns, measures and cuts that have been applied to extract the data):
-        {api_url}
-
-        Lets think it through step by step.
         Avoid any further comments not related to the question itself.
-        """
-    simple_prompt = f"""
-    You are an expert data analyst working for the Observatory of Economic Complexity, whose goal is to
-    give an answer, as accurate and complete as possible, to the following user's question using the 
-    given dataframe.
-
-    Here is the question:
-    {natural_language_query}
-
-    Take into consideration the data type and formatting of the columns.
-    It's possible that any product/service or other variables the user is referring to appears with a different name in the dataframe. Explain this in your answer in a polite manner, but always trying to give an answer with the available data.
-    If you can't answer the question with the provided data, please answer with "I can't answer your question with the available data".
-    Avoid any further comments not related to the question itself.
     """
 
     llm = ChatOpenAI(model_name=model, temperature=0, openai_api_key=OPENAI_KEY, callbacks=[cb])

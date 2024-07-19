@@ -55,7 +55,8 @@ class ApiBuilder:
 
                 if measures:
                     self.add_measure(measures)
-                else: self.measures = table.measures
+                else: 
+                    self.measures = table.measures
 
                 if cuts:
                     cuts_processing(cuts, table, self)
@@ -150,7 +151,8 @@ class ApiBuilder:
             query_params.append(f"{key}={','.join(values)}")
         if self.drilldowns:
             query_params.append("drilldowns=" + ",".join(self.drilldowns))
-        else: query_params.append("drilldowns=Year")
+        else: 
+            query_params.append("drilldowns=Year")
 
         if self.measures:
             query_params.append("measures=" + ",".join(self.measures))
@@ -269,5 +271,5 @@ def cuts_processing(cuts: List[str], table: Table, api: ApiBuilder):
             api.add_drilldown(cut)
         elif "HS" in cut:
             api.add_drilldown(cut)
-
-        else: api.drilldowns.discard(cut)
+        else: 
+            api.drilldowns.discard(cut)
