@@ -57,7 +57,7 @@ def get_similar_tables(vector, threshold=0, content_limit=1) -> List[str]:
     """
     query = """select table_name, similarity from "match_table"('{}','{}' ,'{}'); """.format(vector[0].tolist().__str__(), str(threshold), str(content_limit))
     
-    df = pd.read_sql(query, con=POSTGRES_ENGINE.connect())
+    df = pd.read_sql_query(sql_text(query), con=POSTGRES_ENGINE.connect())
     tables = df['table_name'].tolist()
 
     return tables

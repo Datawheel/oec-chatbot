@@ -20,17 +20,17 @@ def _get_api_components_messages(
 
     response_part = """
         {
-            "drilldowns": "",
-            "measures": "",
-            "filters": "",
-            "explanation": ""
+            "explanation": "Your explanation here",
+            "drilldowns": ["list", "of", "level", "names"],
+            "measures": ["list", "of", "measures"],
+            "filters": ["level = filtered_value"]
         }
         """
 
     if(model_author == "openai"):
 
         message = f"""
-            You're a data scientist working with OLAP cubes. Given dimensions and measures in JSON format, identify the drilldowns, measures, and filters for querying the cube via API.
+            You're a data scientist working with OLAP cubes. Given dimensions and measures in JSON format, identify the appropriate drilldowns, measures, and filters for querying the cube via API.
 
             **Dimensions:**
             {table.prompt_get_dimensions()}
@@ -38,12 +38,12 @@ def _get_api_components_messages(
             **Measures:**
             {table.get_measures_description()}
 
-            Your response should be in JSON format with:
+            Your response should be in JSON format and include:
 
-            - "drilldowns": List of specific levels within each dimension for drilldowns (ONLY the level names).
-            - "measures": List of relevant measures.
-            - "filters": List of filters in 'level = filtered_value' format.
-            - "explanation": one to two sentence comment explaining why the chosen drilldowns and cuts are relevant goes here, double checking that the levels exist in the JSON given above.
+            - "explanation": A brief comment (one to two sentences) explaining why the chosen drilldowns and filters are relevant, ensuring the levels exist in the provided JSON.
+            - "drilldowns": A list of specific levels within each dimension for drilldowns (only the level names).
+            - "measures":  A list of relevant measures.
+            - "filters": A list of filters in 'level = filtered_value' format.
 
             Response format:
 
@@ -51,12 +51,13 @@ def _get_api_components_messages(
             {response_part}
             ```
 
-            Provide only the required lists, and adhere to these rules:
+            Please adhere to these rules:
 
+            - Prioritize the HS4 level for products, but choose other levels if they are more appropriate.
             - Apply filters only to the most relevant or granular level within the same parent dimension.
             - For year or month ranges, specify each separately.
-            - Double check that the drilldowns and cuts contain ONLY the level names, and not the dimension.
-            - For filters, just write the general name, as it will be matched to its ID later on.
+            - Ensure that the drilldowns and filters contain only the level names, not the dimension names.
+            - For filters, use general names as they will be matched to their IDs later on.
         """
         
     else: 
@@ -211,9 +212,7 @@ def get_api_params_from_lm(
         }
 
         response = requests.post(url, json=payload)
-        print(response.text)
         response = parse_response(response.text)
-        print(response)
         params = extract_text_from_markdown_triple_backticks(response)
         tokens = ""
 

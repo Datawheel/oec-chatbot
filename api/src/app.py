@@ -1,12 +1,13 @@
 import time
 
-from os import getenv
+from typing import Dict, Generator
 
-from table_selection.table_selector import *
-from table_selection.table import *
-from api_data_request.api_generator import *
-from data_analysis.data_analysis import *
-from utils.logs import *
+from table_selection.table_selector import request_tables_to_lm_from_db
+from table_selection.table import TableManager
+from api_data_request.api_generator import get_api_params_from_lm
+from api_data_request.api import ApiBuilder
+from data_analysis.data_analysis import agent_answer
+#from utils.logs import *
 from config import TABLES_PATH
 
 def get_api(
@@ -15,7 +16,7 @@ def get_api(
         step: str = None, 
         form_json: Dict = None,
         **kwargs
-        ) -> Tuple[str, Dict, str]:
+        ) -> Generator[str, Dict, str]:
     
     print("get_api")
 
@@ -23,7 +24,7 @@ def get_api(
         token_tracker = {}
 
     if step == 'request_tables_to_lm_from_db':
-        print("quest_tables_to_lm_from_db")
+        print("request_tables_to_lm_from_db")
         start_time = time.time()
         manager = TableManager(TABLES_PATH)
         table, form_json, token_tracker = request_tables_to_lm_from_db(natural_language_query, manager, token_tracker)
@@ -46,7 +47,7 @@ def get_api(
         api = ApiBuilder(table = table, form_json = form_json)
         api_url = api.build_api()
         print("API:", api_url)
-        yield {'tesseract_api': api_url}
+        #yield {'tesseract_api': api_url}
         yield from get_api(natural_language_query, token_tracker, step = 'fetch_data', **{**kwargs, **{'api': api, "api_url": api_url, 'table': table, 'start_time': start_time}})
 
     elif step == 'fetch_data': 
@@ -69,7 +70,8 @@ def get_api(
 
         yield kwargs['response']
 
-    else: yield from get_api(natural_language_query, step = 'request_tables_to_lm_from_db')
+    else: 
+        yield from get_api(natural_language_query, step = 'request_tables_to_lm_from_db')
 
 
 form_json = {
@@ -87,6 +89,11 @@ form_json = {
         'sort': 'asc', 
         'locale': 'en'}
 
+#if __name__ == "__main__":
 
-if __name__ == "__main__":
-    get_api('What where the main products exported from chile and argentina export to the rest of the world in 2022?', step = 'get_api_params_from_wrapper', form_json = form_json)
+#    get_api('What where the main exporters of cucumber in 2022?', step = 'get_api_params_from_wrapper', form_json = form_json)
+
+for result in get_api('how much coffee was traded globally in 1998?'):
+    print(result)
+
+#get_api(natural_language_query='What where the main exporters of cucumber in 2022?')
