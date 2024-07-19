@@ -44,7 +44,7 @@ const Chatbot = () => {
   };
 
   const handleData = async (url) => {
-    setLoading(true);
+    //setLoading(true);
     await axios
         .get(url)
         .then((resp) => {
@@ -57,7 +57,7 @@ const Chatbot = () => {
             //setLoading(false);
         })
         .finally(() => {
-            setLoading(false);
+            //setLoading(false);
         });
 };
   
