@@ -6,6 +6,9 @@ from langchain.schema import LLMResult
 
 MODEL_COST_PER_1K_TOKENS = {
     # GPT-4 input
+    "gpt-4o": 0.005,
+    "gpt-4o-completion": 0.005,
+    "gpt-4o-mini": 0.0006,
     "gpt-4": 0.03,
     "gpt-4-turbo": 0.01,
     "gpt-4-0314": 0.03,
@@ -50,6 +53,7 @@ MODEL_COST_PER_1K_TOKENS = {
     "davinci-finetuned": 0.12,
 }
 
+
 def standardize_model_name(
     model_name: str,
     is_completion: bool = False,
@@ -69,18 +73,18 @@ def standardize_model_name(
     model_name = model_name.lower()
     if "ft-" in model_name:
         return model_name.split(":")[0] + "-finetuned"
-    elif is_completion and (
-        model_name.startswith("gpt-4") or model_name.startswith("gpt-3.5")
-    ):
+    elif is_completion and (model_name.startswith("gpt-4") or model_name.startswith("gpt-3.5")):
         return model_name + "-completion"
     else:
         return model_name
+
 
 def num_tokens_from_string(string: str, encoding_name: str) -> int:
     """Returns the number of tokens in a text string."""
     encoding = tiktoken.encoding_for_model(encoding_name)
     num_tokens = len(encoding.encode(string))
     return num_tokens
+
 
 def get_openai_token_cost_for_model(model_name: str, num_tokens: int, is_completion: bool = False) -> float:
     """
@@ -127,9 +131,9 @@ class TokenTrackingHandler(BaseCallbackHandler):
             f"Successful Requests: {self.successful_requests}\n"
             f"Total Cost (USD): ${self.total_cost}"
         )
-    
+
     def on_llm_start(self, serialized: Dict[str, Any], prompts: List[str] | str | Dict[str, Any], **kwargs: Any) -> None:
-        self.model_name=serialized['kwargs']['model_name']
+        self.model_name = serialized["kwargs"]["model_name"]
         self.base_model_name = "gpt-4" if "gpt-4" in self.model_name else self.model_name.rpartition("-")[0]
         self.prompt_tokens_increment = num_tokens_from_string(prompts[0], self.base_model_name)
         self.prompt_tokens += self.prompt_tokens_increment
@@ -139,9 +143,11 @@ class TokenTrackingHandler(BaseCallbackHandler):
         if response.generations:
             for generation in response.generations[0]:
                 aimessage = generation.message
-                self.completion_tokens_increment =  num_tokens_from_string(aimessage.content, self.base_model_name)
+                self.completion_tokens_increment = num_tokens_from_string(aimessage.content, self.base_model_name)
                 self.completion_tokens += self.completion_tokens_increment
-                self.price_per_1k_tokens_completion = get_openai_token_cost_for_model(self.model_name, self.completion_tokens, is_completion=True)
+                self.price_per_1k_tokens_completion = get_openai_token_cost_for_model(
+                    self.model_name, self.completion_tokens, is_completion=True
+                )
         self.total_cost += self.price_per_1k_tokens + self.price_per_1k_tokens_completion
         self.total_tokens = self.prompt_tokens + self.completion_tokens
         self.successful_requests += 1

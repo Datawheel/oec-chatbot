@@ -63,6 +63,7 @@ class logsHandler(BaseCallbackHandler):
                 "tkn_cnt": "text",
             },
         }
+        """
         values = {
             "type": str(event.get("type", "")),
             "name_tags": str(event.get("name_tags", "")),
@@ -77,6 +78,7 @@ class logsHandler(BaseCallbackHandler):
             "tkn_cnt": str(event.get("tkn_cnt", "")),
         }
         insert_logs(table=table, values=values, log_type="wrapper")
+        """
 
         # with open("./log.txt", "a") as log:
         # log.write(str(event) + "\n")
@@ -123,7 +125,7 @@ class logsHandler(BaseCallbackHandler):
         _track = self.parent_tracking(run_id)
         # _run = elapsed(run)
         if self.print_logs and self.ends:
-            print(f"Finish chain[{_track}]:  {outputs}")
+            print(f"Finish chain[{_track}formatted_response]:  {outputs}")
             self.log_to_file(formatted_response)
 
     def on_chain_error(self, error, run_id, **kwargs):

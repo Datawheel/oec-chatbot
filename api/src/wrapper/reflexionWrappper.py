@@ -1,6 +1,7 @@
 import json
 
 from operator import itemgetter
+import time
 from langchain.globals import set_debug, set_verbose
 from langchain_community.chat_message_histories import ChatMessageHistory
 from langchain_community.llms import Ollama
@@ -35,6 +36,7 @@ class QuestionParser(BaseModel):
     type: str = Field(description="with the classification category")
 
 
+OLLAMA_URL = "https://caleuche-ollama.datawheel.us"
 LLAMA_2_URL = "https://oec-chatbot-nginx.datawheel.us/model/llama2-7b/"
 LLAMA_3_URL = "https://oec-chatbot-nginx.datawheel.us/model/llama3-8b/"
 MIXTRAL_URL = "https://oec-chatbot-nginx.datawheel.us/model/mixtral-8x7b/"
@@ -45,7 +47,7 @@ MIXTRAL_URL = "https://oec-chatbot-nginx.datawheel.us/model/mixtral-8x7b/"
 model = ChatOpenAI(model_name="gpt-4-turbo", temperature=0, openai_api_key=OPENAI_KEY)
 
 model_basic = Ollama(
-    base_url=LLAMA_2_URL,
+    base_url=OLLAMA_URL,
     model="llama2:7b-chat-q8_0",  # use
     temperature=0,
     keep_alive="1h",
@@ -496,6 +498,56 @@ alt_chain = RunnableSequence(
     | route_answer
 )
 
+
+########  Short
+
+check_template = PromptTemplate.from_template(
+    """
+Classify the following input as "question" if the in put is a question of trade products among countries
+or "not a question" if is something else.
+Respond following the the JSON format.
+
+Here are some examples:
+
+{{
+"input":"How much wine did Chile exported in 2021?",
+"reasoning":"The input explicitly asked information about Chile exports",
+"type": "question"
+}}
+
+{{
+"input":"Hi, how are you?",
+"reasoning":"The input asked a question not realated to international commerce or trade",
+"type":"not a question"
+}}
+
+Here is the input:
+{chathistory}
+"""
+)
+
+simple_check = check_template.pipe(model_basic.bind(system=question_sys_prompt, format="json")).pipe(JsonOutputParser())
+
+
+@chain
+def assistant(info):
+    query = info["chathistory"]
+    handleAPIBuilder = info["handleAPIBuilder"]
+    manager = TableManager(TABLES_PATH)
+    table = manager.get_table("trade_i_baci_a_96")
+    response = handleAPIBuilder(query, form_json={}, step="get_api_params_from_lm", **{"table": table, "start_time": time.time()})
+    return json.dumps({"content": [i for i in response], "form_json": {}})
+
+
+@chain
+def short_route(info):
+    if info["check"]["type"] == "not a question":
+        yield json.dumps({"content": "Please, try a different question..."})
+    yield info["assistant"]
+
+
+short_chain = {"assistant": assistant, "check": simple_check} | short_route
+
 ############# Export function
 
 
@@ -503,7 +555,7 @@ def wrapperCall(history, form_json, handleAPIBuilder, logger=[]):
     """
     Stream main_chain answers
     """
-    for answer in alt_chain.stream(
+    for answer in short_chain.stream(
         {
             "chathistory": ";".join([f"{' [User]' if m['user'] else ' [AI]'}:{m['text']}" for m in history]) + "[.]",
             "form_json": form_json,

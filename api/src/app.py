@@ -76,6 +76,7 @@ def get_api(
     elif step == "fetch_data":
         print("fetch_data")
         data, df, response = kwargs["api"].fetch_data()
+        print(df)
         return get_api(
             natural_language_query,
             token_tracker,
@@ -123,7 +124,7 @@ def get_api(
                     "total_tokens": token_tracker,
                 }
             )
-            insert_logs(table=table, values=values, log_type="apicall")
+            # insert_logs(table=table, values=values, log_type="apicall")
         else:
             kwargs["response"], token_tracker = agent_answer(kwargs["df"], natural_language_query, kwargs["api_url"], token_tracker)
             values.update(
@@ -136,7 +137,7 @@ def get_api(
                     "total_tokens": token_tracker,
                 }
             )
-            insert_logs(table=table, values=values, log_type="apicall")
+            # insert_logs(table=table, values=values, log_type="apicall")
         return kwargs["api_url"], kwargs["data"], kwargs["response"]
 
     else:
