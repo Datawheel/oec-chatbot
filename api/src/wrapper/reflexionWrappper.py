@@ -548,6 +548,7 @@ def short_route(info):
 
 short_chain = {"assistant": assistant, "check": simple_check} | short_route
 
+
 ############# Export function
 
 
