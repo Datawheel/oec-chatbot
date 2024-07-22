@@ -23,11 +23,10 @@ def get_similar_content(text, cube_name, drilldown_names, threshold=0, content_l
     embedding = model.encode([text])
     query = """select drilldown_id, drilldown_name, drilldown, similarity from "match_drilldowns"('{}','{}' ,'{}','{}','{}', '{}'); """.format(embedding[0].tolist().__str__(), str(threshold), str(content_limit), str(cube_name), drilldown_names_array, embedding_column_name[embedding_model])
 
-    #df = pd.read_sql(query,con=POSTGRES_ENGINE)
-    df = pd.read_sql_query(sql_text(query), POSTGRES_ENGINE.connect())
-
-    if verbose: 
-        print(df)
+    with POSTGRES_ENGINE.connect() as connection:
+            df = pd.read_sql_query(sql_text(query), connection)
+            if verbose: 
+                print(df)
 
     drilldown_id = df.drilldown_id[0]
     drilldown_name = df.drilldown_name[0]
@@ -43,7 +42,9 @@ def get_similar_tables(vector, threshold=0, content_limit=1) -> List[str]:
     """
     query = """select table_name, similarity from "match_table"('{}','{}' ,'{}'); """.format(vector[0].tolist().__str__(), str(threshold), str(content_limit))
     
-    df = pd.read_sql_query(sql_text(query), con=POSTGRES_ENGINE.connect())
+    with POSTGRES_ENGINE.connect() as connection:
+        df = pd.read_sql_query(sql_text(query), connection)
+    
     tables = df['table_name'].tolist()
 
     return tables
