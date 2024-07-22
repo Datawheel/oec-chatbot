@@ -46,7 +46,7 @@ def agent_answer(
             3. Always provide the corresponding trade value, and quantity if required.
             4. All quantities are in metric tons, and trade value is in USD.
         """
-    
+
     simple_prompt = f"""
         You are an expert data analyst working for the Observatory of Economic Complexity, whose goal is to
         give an answer, as accurate and complete as possible, to the following user's question using the 
@@ -62,7 +62,9 @@ def agent_answer(
     """
 
     llm = ChatOpenAI(model_name=model, temperature=0, openai_api_key=OPENAI_KEY, callbacks=[cb])
-    agent = create_pandas_dataframe_agent(llm, df, verbose=True, max_iterations=3, allow_dangerous_code=ALLOW_DANGEROUS_REQUEST)
+    agent = create_pandas_dataframe_agent(
+        llm, df, verbose=True, agent_type="openai-tools", max_iterations=3, allow_dangerous_code=ALLOW_DANGEROUS_REQUEST
+    )
     response = agent.invoke(prompt)
 
     if token_tracker:
