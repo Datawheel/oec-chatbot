@@ -1,0 +1,92 @@
+{
+    "custom_members": [
+        {
+            "drilldown_name": "Norwegian Salmon",
+            "dimension": "HS Product",
+            "drilldown": "HS6",
+            "drilldown_id": "1030212,1030322,1030541,1030310",
+            "cube_name": [
+                "trade_i_baci_a_92",
+                "trade_i_baci_a_96",
+                "trade_i_baci_a_22"
+            ]
+        },
+        {
+            "drilldown_name": "Chicken",
+            "dimension": "HS Product",
+            "drilldown": "HS6",
+            "drilldown_id": "1020711,1020712,1020713,1020714,4160232",
+            "cube_name": [
+                "trade_i_baci_a_92",
+                "trade_i_baci_a_96",
+                "trade_i_baci_a_22"
+            ]
+        },
+        {
+            "drilldown_name": "Watches",
+            "dimension": "HS Product",
+            "drilldown": "HS4",
+            "drilldown_id": "189101,189102",
+            "cube_name": [
+                "trade_i_baci_a_92",
+                "trade_i_baci_a_96",
+                "trade_i_baci_a_22"
+            ]   
+        },
+        {
+            "drilldown_name": "Steel",
+            "dimension": "HS Product",
+            "drilldown": "HS2",
+            "drilldown_id": "1572,1573",
+            "cube_name": [
+                "trade_i_baci_a_92",
+                "trade_i_baci_a_96",
+                "trade_i_baci_a_22"
+            ]   
+        },
+        {
+            "drilldown_name": "Dairy Products",
+            "dimension": "HS Product",
+            "drilldown": "HS4",
+            "drilldown_id": "10401,10402,10403,10404,10405,10406",
+            "cube_name": [
+                "trade_i_baci_a_92",
+                "trade_i_baci_a_96",
+                "trade_i_baci_a_22"
+            ]   
+        },
+        {
+            "drilldown_name": "Olive Oil",
+            "dimension": "HS Product",
+            "drilldown": "HS4",
+            "drilldown_id": "31510,31509",
+            "cube_name": [
+                "trade_i_baci_a_92",
+                "trade_i_baci_a_96",
+                "trade_i_baci_a_22"
+            ]   
+        },
+        {
+            "drilldown_name": "Fruits",
+            "dimension": "HS Product",
+            "drilldown": "HS4",
+            "drilldown_id": "20803,20804,20805,20806,20807,20808,20809,20810",
+            "cube_name": [
+                "trade_i_baci_a_92",
+                "trade_i_baci_a_96",
+                "trade_i_baci_a_22"
+            ]   
+        },
+        {
+            "drilldown_name": "Tablets & Laptops",
+            "dimension": "HS Product",
+            "drilldown": "HS6",
+            "drilldown_id": "16847130,16847141",
+            "cube_name": [
+                "trade_i_baci_a_92",
+                "trade_i_baci_a_96",
+                "trade_i_baci_a_22"
+            ]   
+        }
+    ]
+}
