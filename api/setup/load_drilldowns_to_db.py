@@ -1,15 +1,14 @@
 import json
 import pandas as pd
 import requests
-import urllib.parse
 
 from config import POSTGRES_ENGINE, SCHEMA_DRILLDOWNS, TESSERACT_API, TABLES_PATH
 from utils.similarity_search import embedding
 from sqlalchemy import text as sql_text
 
-embedding_model = "sfr-embedding-mistral:q8_0"
-embedding_size = 4096
-DRILLDOWNS_TABLE_NAME = "drilldowns_sfr"
+embedding_model = "multi-qa-mpnet-base-cos-v1"
+embedding_size = 768
+DRILLDOWNS_TABLE_NAME = "drilldowns"
 
 def create_table(table_name=DRILLDOWNS_TABLE_NAME, schema_name=SCHEMA_DRILLDOWNS, embedding_size=embedding_size):
     query_schema = f"CREATE SCHEMA IF NOT EXISTS {schema_name}"
@@ -71,7 +70,8 @@ def main(include_cubes=False):
                             drilldown_unique_name = level.get('unique_name')
                             api_url = f"{TESSERACT_API}data.jsonrecords?cube={cube_name}&drilldowns={level['unique_name'] if drilldown_unique_name is not None else drilldown_name}&measures={measure}"
                             load_data_to_db(api_url, measure, cube_name, drilldown_name, drilldown_unique_name)
-        else: pass
+        else: 
+            pass
 
     else: 
         create_table()
@@ -90,5 +90,5 @@ def main(include_cubes=False):
                         load_data_to_db(api_url, measure, cube_name, drilldown_name, drilldown_unique_name)
 
 if __name__ == "__main__":
-    include_cubes = ['trade_i_baci_a_96'] # if set to False it will upload the drilldowns of all cubes in the schema.json
+    include_cubes = ['trade_i_baci_a_92', 'trade_i_baci_a_22'] # if set to False it will upload the drilldowns of all cubes in the schema.json
     main(include_cubes)
