@@ -150,7 +150,10 @@ class ApiBuilder:
         """
         query_params = []
 
-        self.set_sort('Trade Value', 'desc')
+        if 'Trade Value' in self.measures:
+            self.set_sort('Trade Value', 'desc')
+        elif 'Quantity' in self.measures:
+            self.set_sort('Quantity', 'desc')
 
         if self.cube:
             query_params.append(f"cube={self.cube}")
