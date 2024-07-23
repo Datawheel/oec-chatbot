@@ -2,12 +2,11 @@ import pandas as pd
 import requests
 
 from datetime import datetime
-from typing import Dict, List, Tuple, Union
+from typing import Dict, List, Tuple, Union, Any
 
-from config import MONDRIAN_API, TESSERACT_API
-from table_selection.table import *
-from utils.preprocessors.text import *
-from utils.similarity_search import *
+from config import TESSERACT_API
+from table_selection.table import Table
+from utils.similarity_search import get_similar_content
 
 class ApiBuilder:
 
@@ -91,8 +90,8 @@ class ApiBuilder:
         else:
             self.measures.add(measure)
 
-    def set_sort(self, drilldown: str, order: str):
-        self.sort = f"{drilldown}.{order}"
+    def set_sort(self, measure: str, order: str):
+        self.sort = f"{measure}.{order}"
 
     def from_json(self, form_json: Dict[str, Any], table: Table):
         """
@@ -144,6 +143,8 @@ class ApiBuilder:
             str: The API request URL.
         """
         query_params = []
+
+        self.set_sort('Trade Value', 'desc')
 
         if self.cube:
             query_params.append(f"cube={self.cube}")
