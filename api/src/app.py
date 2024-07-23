@@ -1,6 +1,6 @@
 import time
 
-from typing import Dict, Generator, Tuple
+from typing import Dict, Tuple
 
 from table_selection.table_selector import request_tables_to_lm_from_db
 from table_selection.table import TableManager
@@ -13,12 +13,13 @@ from config import TABLES_PATH
 
 
 def get_api(
-    natural_language_query: str,
-    token_tracker: Dict[str, Dict[str, int]] = None,
-    step: str = None,
-    form_json: Dict = None,
-    **kwargs,
-) -> Tuple[str, Dict, str]:
+        natural_language_query: str,
+        token_tracker: Dict[str, Dict[str, int]] = None,
+        step: str = None,
+        form_json: Dict = None,
+        **kwargs
+        ) -> Tuple[str, Dict, str]:
+
     print("get_api")
 
     if token_tracker is None:
@@ -41,12 +42,13 @@ def get_api(
         variables, measures, cuts, token_tracker = get_api_params_from_lm(natural_language_query, kwargs["table"], token_tracker, model="gpt-4")
         api = ApiBuilder(table=kwargs["table"], drilldowns=variables, measures=measures, cuts=cuts)
         api_url = api.build_api()
+        cuts_context = api.format_cuts_context()
         print("API:", api_url)
         return get_api(
             natural_language_query,
             token_tracker,
             step="fetch_data",
-            **{**kwargs, **{"api": api, "api_url": api_url}},
+            **{**kwargs, **{"api": api, "api_url": api_url, "cuts_context": cuts_context}},
         )
 
     elif step == "get_api_params_from_wrapper":
@@ -88,6 +90,7 @@ def get_api(
     elif step == "agent_answer":
         print("agent_answer")
         api = kwargs["api"]
+        cuts_context = kwargs["cuts_context"]
         variables = api.drilldowns
         measures = api.measures
         cuts = api.cuts
@@ -127,7 +130,7 @@ def get_api(
             )
             # insert_logs(table=table, values=values, log_type="apicall")
         else:
-            kwargs["response"], token_tracker = agent_answer(kwargs["df"], natural_language_query, kwargs["api_url"], token_tracker)
+            kwargs["response"], token_tracker = agent_answer(df = kwargs["df"], natural_language_query = natural_language_query, api_url = kwargs["api_url"], context = cuts_context, token_tracker = token_tracker)
             values.update(
                 {
                     "api_url": kwargs["api_url"],
@@ -163,7 +166,6 @@ form_json = {
 
 if __name__ == "__main__":
     get_api(
-        "What was the most imported product of USA in 2022?",
-        step="get_api_params_from_wrapper",
-        form_json=form_json,
+        "how much coffee did colombia export to the rest of the world in 2020?",
+        step="request_tables_to_lm_from_db",
     )

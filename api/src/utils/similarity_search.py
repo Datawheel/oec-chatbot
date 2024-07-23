@@ -29,10 +29,11 @@ def get_similar_content(text, cube_name, drilldown_names, threshold=0, content_l
                 print(df)
 
     drilldown_id = df.drilldown_id[0]
+    drilldown_name = df.drilldown_name[0]
     drilldown = df.drilldown[0]
     similarity = df.similarity[0]
 
-    return drilldown_id, drilldown, similarity
+    return drilldown_id, drilldown, similarity, drilldown_name
 
 
 def get_similar_tables(vector, threshold=0, content_limit=1) -> List[str]:

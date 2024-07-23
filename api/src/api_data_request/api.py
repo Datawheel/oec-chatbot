@@ -34,6 +34,7 @@ class ApiBuilder:
         self.base_url = base_url
         self.cube = table.name
         self.cuts = {}
+        self.cuts_context = {}
         self.drilldowns = set()
         self.measures = set()
         self.limit = None
@@ -60,10 +61,15 @@ class ApiBuilder:
                 if cuts:
                     cuts_processing(cuts, table, self)
 
-    def add_cut(self, key: str, value: str):
+    def add_cut(self, key: str, value: str, name: str):
         if key not in self.cuts:
             self.cuts[key] = set()
+            self.cuts_context[key] = set()
         self.cuts[key].add(str(value))
+        self.cuts_context[key].add(str(name))
+
+    def format_cuts_context(self):
+        return ', '.join([f"{key} = {', '.join(values)}" for key, values in self.cuts_context.items()])
 
     def add_drilldown(self, drilldown: Union[str, List[str]]):
         """
@@ -191,6 +197,7 @@ class ApiBuilder:
     def __str__(self):
         return self.build_api()
 
+
 def cuts_processing(cuts: List[str], table: Table, api: ApiBuilder):
     """
     Process cuts for the API request.
@@ -242,7 +249,7 @@ def cuts_processing(cuts: List[str], table: Table, api: ApiBuilder):
 
     if year_range:
         for year in range(min(year_range), max(year_range) + 1):
-            api.add_cut("Year", str(year))
+            api.add_cut("Year", str(year), str(year))
 
     # Process other cuts
     for cut in other_cuts:
@@ -257,20 +264,20 @@ def cuts_processing(cuts: List[str], table: Table, api: ApiBuilder):
             var_levels = table.get_dimension_levels(var)
 
             if var == "Year" or var == "Month" or var == "Quarter" or var == "Month and Year" or var == "Time":
-                api.add_cut(var, cut)
+                api.add_cut(var, cut, cut)
             else:
-                drilldown_id, drilldown_name, s = get_similar_content(cut, table.name, var_levels)
+                drilldown_id, drilldown, s, drilldown_name = get_similar_content(cut, table.name, var_levels)
 
-                if drilldown_name != var:
+                if drilldown != var:
                     api.drilldowns.discard(var)
-                    api.add_drilldown(drilldown_name)
+                    api.add_drilldown(drilldown)
 
-                api.add_cut(drilldown_name, drilldown_id)
+                api.add_cut(drilldown, drilldown_id, drilldown_name)
 
     for cut, values in api.cuts.items():
         if len(values) > 1:
             api.add_drilldown(cut)
-        elif "HS" in cut:
-            api.add_drilldown(cut)
+        # elif "HS" in cut:
+        #     api.add_drilldown(cut)
         else: 
             api.drilldowns.discard(cut)
