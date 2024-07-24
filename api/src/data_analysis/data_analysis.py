@@ -36,21 +36,25 @@ def agent_answer(
     prompt = f"""
             You are an expert data analyst working for the Observatory of Economic Complexity. Your goal is to provide an accurate and complete answer to the following user's question using the data available.
 
-            User's Question:
+            **User's Question**:
             {natural_language_query}
 
-            Take into consideration the data type and formatting of the columns. If a product, service, or other variable referred to by the user appears under a different name in the data, explain this politely and provide an answer using the available information.
-            If you cannot answer the question with the provided data, respond with "I can't answer your question with the available data."
-            You can complement your answer with any content found in the Observatory of Economic Complexity. Note that this data was extracted with the following filters:
-            {context}
+            **Data Provided**:
+            - The provided data has been extracted from a database specifically to answer the user's question.
+            - The following filters have been applied in the query to retrieve it: {context}
 
-            Guidelines:
-
-            Think through the answer step by step.
-            Avoid any comments unrelated to the question.
-            Always provide the corresponding trade value, and quantity if required.
-            All quantities are in metric tons, and trade value is in USD.
+            **Guidelines**:
+            - Take into consideration the data type and formatting of the columns. 
+            - If a product, service, or other variable referred to by the user appears under a different name in the data, explain this politely and provide an answer using the available information.
+            - In the exceptional case that you cannot answer the question with the provided data, respond with "I can't answer your question with the available data."
+            - Avoid any comments unrelated to the question.
+            - Always provide the corresponding trade value, and quantity if required.
+            - All quantities are in metric tons, and trade value is in USD.
+            - You can complement your answer with any content found in the Observatory of Economic Complexity. 
+            - Think through the answer step by step.
         """
+    
+    print('Context for agent:', context)
 
     simple_prompt = f"""
         You are an expert data analyst working for the Observatory of Economic Complexity, whose goal is to
