@@ -38,7 +38,7 @@ def get_api(
         variables, measures, cuts, limit, token_tracker = get_api_params_from_lm(
             natural_language_query, kwargs["table"], token_tracker, model="gpt-4"
         )
-        print(kwargs["table"])
+        print(kwargs["table"].name)
         api = ApiBuilder(table=kwargs["table"], drilldowns=variables, measures=measures, cuts=cuts, limit=limit)
         api_url = api.build_api()
         cuts_context = api.format_cuts_context()
