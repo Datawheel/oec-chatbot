@@ -17,6 +17,7 @@ class ApiBuilder:
             drilldowns: List[str] = None, 
             measures: List[str] = None, 
             cuts: List[str] = None,
+            limit: str = None,
             form_json: Dict = None, 
             ):
         """
@@ -28,8 +29,8 @@ class ApiBuilder:
             drilldowns (List[str]): List of drilldowns.
             measures (List[str]): List of measures.
             cuts (List[str]): List of cuts.
+            limit (str): The limit of the response.
             form_json (Dict): JSON data for initialization.
-            limit (str): The limit.
         """
         self.base_url = base_url
         self.cube = table.name
@@ -60,6 +61,9 @@ class ApiBuilder:
 
                 if cuts:
                     cuts_processing(cuts, table, self)
+
+                if limit:
+                    self.limit = limit
 
     def add_cut(self, key: str, value: str, name: str):
         if key not in self.cuts:
@@ -159,6 +163,7 @@ class ApiBuilder:
             query_params.append(f"cube={self.cube}")
         for key, values in self.cuts.items():
             query_params.append(f"{key}={','.join(values)}")
+        
         if self.drilldowns:
             query_params.append("drilldowns=" + ",".join(self.drilldowns))
         else: 
