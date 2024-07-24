@@ -534,7 +534,7 @@ def assistant(info):
     query = info["chathistory"]
     handleAPIBuilder = info["handleAPIBuilder"]
     manager = TableManager(TABLES_PATH)
-    table = manager.get_table("trade_i_baci_a_96")
+    table = manager.get_table("trade_i_baci_a_92")
     response = handleAPIBuilder(query, form_json={}, step="get_api_params_from_lm", **{"table": table, "start_time": time.time()})
     return json.dumps({"content": [i for i in response], "form_json": {}})
 
