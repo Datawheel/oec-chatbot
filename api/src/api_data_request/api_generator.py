@@ -6,10 +6,8 @@ from typing import Dict, List, Tuple
 from openai import OpenAI, APIConnectionError
 
 from config import OLLAMA_API, OPENAI_KEY
-from table_selection.table import *
-from utils.preprocessors.text import *
-from utils.similarity_search import *
-from api_data_request.api import *
+from table_selection.table import Table
+from utils.preprocessors.text import extract_text_from_markdown_triple_backticks, parse_response
 from data_analysis.token_counter import get_openai_token_cost_for_model
 
 def _get_api_components_messages(
@@ -23,7 +21,8 @@ def _get_api_components_messages(
             "explanation": "Your explanation here",
             "drilldowns": ["list", "of", "level", "names"],
             "measures": ["list", "of", "measures"],
-            "filters": ["level = filtered_value"]
+            "filters": ["level = filtered_value"],
+            "limit": "Number"
         }
         """
 
@@ -44,6 +43,7 @@ def _get_api_components_messages(
             - "drilldowns": A list of specific levels within each dimension for drilldowns (only the level names).
             - "measures":  A list of relevant measures.
             - "filters": A list of filters in 'level = filtered_value' format.
+            - "limit": A limit for the response if applicable. If not, should be left empty.
 
             Response format:
 
@@ -58,6 +58,7 @@ def _get_api_components_messages(
             - For year or month ranges, specify each separately.
             - Ensure that the drilldowns and filters contain only the level names, not the dimension names.
             - For filters, use general names as they will be matched to their IDs later on.
+            - As a general rule, if the user asks for top results without specifying a number, limit the response to 5 entries.
         """
         
     else: 
@@ -200,6 +201,7 @@ def get_api_params_from_lm(
         drilldowns = json.loads(params).get("drilldowns")
         measures = json.loads(params).get("measures")
         cuts = json.loads(params).get("filters")
+        limit = json.loads(params).get("limit")
 
     # alternative prompt
 
@@ -219,9 +221,10 @@ def get_api_params_from_lm(
         drilldowns = json.loads(params).get("drilldowns")
         measures = json.loads(params).get("measures")
         cuts = json.loads(params).get("filters")
+        limit = json.loads(params).get("limit")
 
     else:
         # logic: ask for model on the list, or use a default one
         status = "bad status"
 
-    return drilldowns, measures, cuts, token_tracker # json
+    return drilldowns, measures, cuts, limit, token_tracker # json
