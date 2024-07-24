@@ -39,8 +39,8 @@ def get_api(
 
     elif step == "get_api_params_from_lm":
         print("get_api_params_from_lm")
-        variables, measures, cuts, token_tracker = get_api_params_from_lm(natural_language_query, kwargs["table"], token_tracker, model="gpt-4")
-        api = ApiBuilder(table=kwargs["table"], drilldowns=variables, measures=measures, cuts=cuts)
+        variables, measures, cuts, limit, token_tracker = get_api_params_from_lm(natural_language_query, kwargs["table"], token_tracker, model="gpt-4")
+        api = ApiBuilder(table=kwargs["table"], drilldowns=variables, measures=measures, cuts=cuts, limit=limit)
         api_url = api.build_api()
         cuts_context = api.format_cuts_context()
         print("API:", api_url)
@@ -166,6 +166,6 @@ form_json = {
 
 if __name__ == "__main__":
     get_api(
-        "how much coffee did colombia export to the rest of the world in 2020?",
+        "what were the exports of chile in 2020?",
         step="request_tables_to_lm_from_db",
     )
