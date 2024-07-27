@@ -166,6 +166,6 @@ form_json = {
 
 if __name__ == "__main__":
     get_api(
-        "what were the exports of chile in 2020?",
+        "what were the imports of chile in 2020?",
         step="request_tables_to_lm_from_db",
     )
