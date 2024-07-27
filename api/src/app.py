@@ -7,25 +7,21 @@ from table_selection.table import TableManager
 from api_data_request.api_generator import get_api_params_from_lm
 from api_data_request.api import ApiBuilder
 from data_analysis.data_analysis import agent_answer
-#from utils.logs import *
+
+# from utils.logs import *
 from utils.functions import clean_string, set_to_string
 from config import TABLES_PATH
 
 
 def get_api(
-        natural_language_query: str,
-        token_tracker: Dict[str, Dict[str, int]] = None,
-        step: str = None,
-        form_json: Dict = None,
-        **kwargs
-        ) -> Tuple[str, Dict, str]:
-
+    natural_language_query: str, token_tracker: Dict[str, Dict[str, int]] = None, step: str = None, form_json: Dict = None, **kwargs
+) -> Tuple[str, Dict, str]:
     print("get_api")
 
     if token_tracker is None:
         token_tracker = {}
 
-    if step == 'request_tables_to_lm_from_db':
+    if step == "request_tables_to_lm_from_db":
         print("request_tables_to_lm_from_db")
         start_time = time.time()
         manager = TableManager(TABLES_PATH)
@@ -39,7 +35,10 @@ def get_api(
 
     elif step == "get_api_params_from_lm":
         print("get_api_params_from_lm")
-        variables, measures, cuts, limit, token_tracker = get_api_params_from_lm(natural_language_query, kwargs["table"], token_tracker, model="gpt-4")
+        variables, measures, cuts, limit, token_tracker = get_api_params_from_lm(
+            natural_language_query, kwargs["table"], token_tracker, model="gpt-4"
+        )
+        print(kwargs["table"].name)
         api = ApiBuilder(table=kwargs["table"], drilldowns=variables, measures=measures, cuts=cuts, limit=limit)
         api_url = api.build_api()
         cuts_context = api.format_cuts_context()
@@ -130,7 +129,13 @@ def get_api(
             )
             # insert_logs(table=table, values=values, log_type="apicall")
         else:
-            kwargs["response"], token_tracker = agent_answer(df = kwargs["df"], natural_language_query = natural_language_query, api_url = kwargs["api_url"], context = cuts_context, token_tracker = token_tracker)
+            kwargs["response"], token_tracker = agent_answer(
+                df=kwargs["df"],
+                natural_language_query=natural_language_query,
+                api_url=kwargs["api_url"],
+                context=cuts_context,
+                token_tracker=token_tracker,
+            )
             values.update(
                 {
                     "api_url": kwargs["api_url"],
